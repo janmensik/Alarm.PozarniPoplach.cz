@@ -1,0 +1,12 @@
+# dependencies
+/vendor/
+/lib/
+
+# cache files
+/cache/
+
+# sensitive files
+.env
+.env.localhost
+data.txt
+dashboard.html

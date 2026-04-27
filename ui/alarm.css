@@ -1,0 +1,37 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/container-queries";
+
+@theme {
+  --color-surface: #09151a;
+  --color-on-surface: #d7e4ec;
+  --color-primary: #F80000;
+  --color-primary-container: #AF2B1E;
+  --color-on-primary-container: #ffffff;
+  --color-secondary: #FFD400;
+  --color-on-secondary: #402d00;
+  --color-tertiary: #c6c6c7;
+  --color-error: #ffb4ab;
+  --color-outline-variant: #5b403d;
+  --color-surface-container-low: #111d23;
+  --color-surface-container: #152127;
+  --color-surface-container-high: #202c32;
+  --color-surface-container-highest: #2a363d;
+
+  --font-sans: "Public Sans", sans-serif;
+
+  --radius-default: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-full: 9999px;
+}
+
+@layer base {
+  [x-cloak] { display: none !important; }
+
+  .scanline {
+    background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.1) 50%);
+    background-size: 100% 4px;
+    pointer-events: none;
+  }
+}

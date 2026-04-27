@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="cs">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Bootstrap CSS -->
+    <link href="{$BASE_URL}/ui/custom.css" rel="stylesheet">
+
+    <title>Požární poplach</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <style>
+    /*
+    .bg-black h3.h6.text-muted,
+      .bg-black small.text-muted,
+      .bg-black p.h5 .text-muted {
+        color: #999 !important;
+      }
+      .scrollable-col {
+        overflow-y: auto;
+      }
+      @keyframes pulse-indicator {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+
+      #other-units .list-group-item {
+        border-color:#595c5f;
+      }
+      */
+    </style>
+  </head>
+  <body class="d-flex flex-column vh-100">
+    <div class="container-fluid bg-danger d-flex justify-content-between align-items-center">
+      <h2 class="display-6 text-white pb-0 mb-0">{$data.unit|escape}</h2>
+      <div class="d-flex align-items-center">
+        <div id="refresh-indicator" class="h4 text-white me-2" style="display: none; animation: pulse-indicator 1.5s ease-in-out infinite;">●</div>
+        <div id="clock" class="text-white text-muted font-monospace"></div>
+      </div>
+    </div>
+    <div class="container-fluid p-0 flex-grow-1">
+      <div class="row g-0 h-100">
+        <div class="col-4 p-3 bg-black text-white scrollable-col">
+          <div class="d-flex flex-column h-100">
+            <h1 class="alert alert-warning fw-bolder h4" role="alert">
+              <i class="{$data.event_icon} fa-fade"></i>
+              {$data.event|escape} - {$data.event_subtype|escape}
+            </h1>
+
+            <div class="card bg-dark text-white">
+              <div class="card-body">
+                <div>
+                  <h3 class="h6 text-muted">Adresa události:</h3>
+                  <address class="h5">
+                    <strong class="text-warning">{$data.address_street|default:$data.address_city|escape} {$data.address_house_number|escape}</strong>
+                    <br />
+                    {$data.address_city|escape} {if $data.address_city_part}<small>(část: {$data.address_city_part|escape})</small>{/if}
+                  </address>
+                </div>
+                {if $data.object}
+                  <hr />
+                  <div>
+                    <h3 class="h6 text-muted">OBJEKT:</h3>
+                    <p class="h5">{$data.object|escape}</p>
+                  </div>
+                {/if}
+                {if $data.clarification}
+                  <hr />
+                  <div>
+                    <h3 class="h6 text-muted">UPŘESNĚNÍ:</h3>
+                    <p class="h5">{$data.clarification|escape}</p>
+                  </div>
+                {/if}
+                {if $data.situation}
+                  <hr />
+                  <div>
+                    <h3 class="h6 text-muted">CO SE STALO:</h3>
+                    <p class="h5">{$data.situation|escape}</p>
+                  </div>
+                {/if}
+                {if $data.notifier || $data.notifier_phone}
+                  <hr />
+                  <div>
+                    <h3 class="h6 text-muted">OZNÁMENÍ:</h3>
+                    {if $data.notifier}<p class="h5">{$data.notifier|escape}</p>{/if}
+                    {if $data.notifier_phone}<p class="h5"><small class="text-muted">Telefon:</small> {$data.notifier_phone|escape}</p>{/if}
+                  </div>
+                {/if}
+              </div>
+            </div>
+
+            {if $data.other_vehicles}
+              <div class="card bg-dark text-white mt-3" id="other-units">
+                <div class="card-body">
+                  <h3 class="h6 text-muted">TECHNIKA dalších jednotek PO:</h3>
+                  <ul class="list-group list-group-flush">
+                    {foreach from=$data.other_vehicles item=vehicle}
+                      <li class="list-group-item bg-dark text-white px-0 small">{$vehicle.fullname|escape}</li>
+                    {/foreach}
+                  </ul>
+                </div>
+              </div>
+            {/if}
+
+            <div class="mt-3">
+              <small class="text-muted">
+                {if $data.dispatch_identification}
+                  <i>Poplach JPO č.:</i> <code class="">{$data.dispatch_identification|escape}</code> <i>vyhlášen:</i> <code class="">{$data.dispatched_at_ts|date_format:'j. n. Y H:i:s'}</code>
+                {else}
+                  <i>{$data.info|escape}</i>
+                {/if}
+              </small>
+            </div>
+
+            <div class="card mt-auto text-center bg-success bg-gradient text-white" id="timer" data-timer-start="{$data.dispatched_at_ts|date_format:'%c'}" data-timer-limit="600">
+              <div class="card-header">
+                <h5 class="card-title h6 text-muted">Odpočet:</h5>
+              </div>
+              <div class="card-body">
+                <p class="card-text h1 fw-bold font-monospace" id="time">00:00</p>
+              </div>
+            </div>
+
+
+          </div>
+        </div>
+        <div class="col-8 text-end scrollable-col">
+          <div class="position-relative">
+            <!-- <img src="https://maps.googleapis.com/maps/api/staticmap?size=640x405&scale=2&markers=color:red|{$data.gps_latitude},{$data.gps_longitude}&key={$APPD.APP.GOOGLE_MAPS_API_KEY}{if $data.directions.polyline}&path=color:0x0000ff|weight:5|enc:{$data.directions.polyline}{/if}" class="img-fluid w-100" id="map" alt="Mapa s požárními body" /> -->
+
+            {thumb url=$data.directions.static_big_map baseimgurl=$BASE_URL hint="false" link="false" html="class='img-fluid w-100' id='map' alt='Mapa s požárními body'" cache_forced=1}
+
+            <div class="position-absolute bottom-0 start-0 end-0 bg-dark bg-opacity-75 text-white p-2 text-center">
+              <p class="mb-0">
+                <strong>Adresa:</strong>
+                {if $data.address_street}
+                  {$data.address_street|escape}
+                  {if $data.address_house_number}
+                    {$data.address_house_number|escape}
+                  {/if},
+                {/if}
+                {$data.address_city|escape}
+                {if !$data.address_street && $data.address_house_number} {$data.address_house_number|escape}{/if}
+                {if $data.directions.distance} | <strong>Vzdálenost:</strong> {$data.directions.distance|escape}&nbsp;km{/if}
+                {if $data.directions.distance} | <strong>Doba jízdy:</strong> {$data.directions.duration|escape} min{/if}</p>
+            </div>
+          </div>
+          <div class="row m-0">
+            <div class="col-8 pt-3">
+              <div class="row justify-content-start" id="vehicles">
+                {foreach from=$data.unit_vehicles item=vehicle}
+                  <div class="col">
+                    <div class="card text-center shadow-sm h-100" style="max-width: 10em">
+                      <div class="card-header h5 bg-warning"><strong>{$vehicle.callsign|escape|default:'&nbsp;'}</strong></div>
+                      <div class="card-body p-1">
+                        <i class="fa-solid {$vehicle.vehicle_type_icon} fa-4x text-muted"></i>
+                        <p class="card-text p-2">{$vehicle.name|escape}</p>
+                      </div>
+                    </div>
+                  </div>
+                {/foreach}
+              </div>
+            </div>
+            <div class="col-4 pe-0">
+              {thumb url=$data.directions.static_streetview baseimgurl=$BASE_URL hint="false" link="false" html="class='img-fluid' alt='Regionální pohled na místo události'" cache_forced=1}
+
+              {*if $data.streetview_available}
+                <img src="https://maps.googleapis.com/maps/api/streetview?size=500x280&location={$data.gps_latitude},{$data.gps_longitude}&key={$APPD.APP.GOOGLE_MAPS_API_KEY}&fov=120" alt="Detailní pohled na místo události" class="img-fluid" />
+              {else}
+                <img src="https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/pin-s+e44b38({$data.gps_longitude},{$data.gps_latitude})/{$data.gps_longitude},{$data.gps_latitude},17,0/500x280@2x?access_token={$APPD.APP.MAPBOX_API_KEY}" alt="Detailní pohled na místo události" class="img-fluid" />
+              {/if*}
+              <!-- <img src="https://maps.googleapis.com/maps/api/staticmap?size=404x202&scale=2&zoom=17&markers=color:red|50.195343,14.370878&maptype=hybrid&key={$APPD.APP.GOOGLE_MAPS_API_KEY}" class="img-fluid" /> -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script src="https://kit.fontawesome.com/3208d26f35.js" crossorigin="anonymous"></script>
+
+    <!-- Audio element for the alarm sound -->
+    <audio id="alarm-sound-start" src="./timer-start.mp3" preload="auto"></audio>
+    <audio id="alarm-sound-limit" src="./timer-limit.mp3" preload="auto"></audio>
+
+    <script src="{$BASE_URL}/ui/alarm.js" crossorigin="anonymous"></script>
+  </body>
+</html>

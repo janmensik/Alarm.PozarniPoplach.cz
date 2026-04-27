@@ -1,0 +1,25 @@
+Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+
+(CC BY-NC-SA 4.0)
+
+This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
+
+Summary (human-readable):
+- You are free to: Share — copy and redistribute the material in any medium or format; Adapt — remix, transform, and build upon the material.
+- Under the following terms: Attribution — You must give appropriate credit, provide a link to the license, and indicate if changes were made; NonCommercial — You may not use the material for commercial purposes; ShareAlike — If you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original.
+
+Full license deed and legal code:
+- License deed (human readable): https://creativecommons.org/licenses/by-nc-sa/4.0/
+- Legal code: https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode
+
+If you need the complete legal code embedded in this file, see the official legal code at the second link above. Including the official legal text in this file verbatim is permitted; the links above resolve to the authoritative versions maintained by Creative Commons.
+
+SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
+Notes for this repository:
+- This `LICENSE` applies to files in this repository unless a specific file states a different license.
+- The repository previously contained secrets which have been removed from history; do not assume past commits are safe. Rotate any keys or credentials that were previously exposed.
+
+---
+
+PožárníPoplach.cz (c) 2025 Jan Menšík

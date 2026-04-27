@@ -1,0 +1,23 @@
+{
+  "name": "alarm.pozarnipoplach.cz",
+  "version": "1.0.0",
+  "description": "phpcs src\r ./vendor/bin/pest\r composer validate\r git tag _version_ // (just number, like 1.5.13)\r commit\r git push origin _version_ // (just number, like 1.5.13)",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npx @tailwindcss/cli -i ./ui/alarm.css -o ./ui/alarm.dist.css --watch",
+    "build": "npx @tailwindcss/cli -i ./ui/alarm.css -o ./ui/alarm.dist.css --minify"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@tailwindcss/container-queries": "^0.1.1",
+    "@tailwindcss/forms": "^0.5.11",
+    "tailwindcss": "^4.2.2"
+  }
+}

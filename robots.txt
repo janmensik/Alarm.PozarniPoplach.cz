@@ -1,0 +1,8 @@
+# soubor pro indexovaci roboty - prohledavace
+# nepresouvat, nemazat
+#
+# Jan Mensik, WebWorks.cz email: jan.mensik@webworks.cz
+#
+User-agent: *
+Disallow: /
+#

@@ -1,0 +1,41 @@
+RewriteEngine On
+
+RewriteBase /
+
+# Komprese
+<IfModule mod_deflate.c>
+	<FilesMatch "\.(js|css)$">
+		SetOutputFilter DEFLATE
+	</FilesMatch>
+</IfModule>
+
+# ExpiresDefault "access plus 4 seconds"
+# ExpiresByType text/css "access plus 1 weeks"
+# ExpiresByType text/rtf "access plus 48 hours"
+# ExpiresByType text/plain "access plus 48 hours"
+# ExpiresByType image/gif "access plus 2 weeks"
+# ExpiresByType image/bmp "access plus 2 weeks"
+# ExpiresByType image/jpeg "access plus 2 weeks"
+# ExpiresByType image/png "access plus 2 weeks"
+# ExpiresByType image/x-icon "access plus 2 weeks"
+# ExpiresByType audio/x-wav "access plus 2 weeks"
+# ExpiresByType audio/mpeg "access plus 2 weeks"
+# ExpiresByType video/mpeg "access plus 2 weeks"
+# ExpiresByType application/zip "access plus 2 weeks"
+# ExpiresByType application/x-tar "access plus 2 weeks"
+# ExpiresByType application/pdf "access plus 2 weeks"
+# ExpiresByType application/ogg "access plus 2 weeks"
+# ExpiresByType application/x-javascript "access plus 120 minutes"
+# ExpiresByType application/javascript "access plus 120 minutes"
+
+ErrorDocument 404 /404
+
+
+# no trailing slash
+RewriteRule ^(.+)/$ $1 [R=301,L]
+
+# Router Alarm
+RewriteRule 	^alarm/([a-z0-9_-]+)(/?[a-z0-9_-]+)*$	./alarm.php?page=alarm/$1&link=$2 [QSA,L]
+
+# Router
+# RewriteRule 	^([a-z0-9_-]+)(/?[a-z0-9_-]+)*$	./index.php?page=$1&link=$2 [QSA]
