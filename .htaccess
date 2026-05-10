@@ -4,9 +4,14 @@ RewriteBase /
 
 # Komprese
 <IfModule mod_deflate.c>
-	<FilesMatch "\.(js|css)$">
+	<FilesMatch "\.(js|css|svg)$">
 		SetOutputFilter DEFLATE
 	</FilesMatch>
+</IfModule>
+
+# MIME typy
+<IfModule mod_mime.c>
+	AddType image/svg+xml svg svgz
 </IfModule>
 
 # ExpiresDefault "access plus 4 seconds"

@@ -101,7 +101,7 @@ if ($APPD->getData('API')) {
     }
 } else {
     // $Smarty->display($template_prefix . '.' . $APPD->getData('PAGE') . '.html');
-    $Smarty->display($template_prefix . '.alarm-alpine.html');
+    $Smarty->display($template_prefix . '.alarm.html');
 }
 
 $APPD->clearMessages();
