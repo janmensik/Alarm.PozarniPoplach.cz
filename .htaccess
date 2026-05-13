@@ -40,7 +40,8 @@ ErrorDocument 404 /404
 RewriteRule ^(.+)/$ $1 [R=301,L]
 
 # Router Alarm
-RewriteRule 	^alarm/([a-z0-9_-]+)(/?[a-z0-9_-]+)*$	./alarm.php?page=alarm/$1&link=$2 [QSA,L]
+#RewriteRule 	^alarm/([a-z0-9_-]+)(/?[a-z0-9_-]+)*$	./index.php?page=alarm/$1&link=$2 [QSA,L]
+RewriteRule 	^([a-z0-9_-]+)(/?[a-z0-9_-]+)*$	./index.php?page=alarm/$1&link=$2 [QSA,L]
 
 # Router
 # RewriteRule 	^([a-z0-9_-]+)(/?[a-z0-9_-]+)*$	./index.php?page=$1&link=$2 [QSA]

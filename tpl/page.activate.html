@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html class="dark" lang="cs">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Aktivace panelu - Požární poplach</title>
+    <link rel="icon" href="{$BASE_URL}/favicon.svg" type="image/svg+xml" />
+
+    <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="{$BASE_URL}/ui/alarm.dist.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@100..900&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <script src="https://kit.fontawesome.com/3208d26f35.js" crossorigin="anonymous"></script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface flex flex-col items-center justify-center min-h-screen p-6">
+
+    <div class="max-w-xl w-full bg-surface-container-high p-8 md:p-12 border-t-8 border-secondary shadow-2xl">
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-black uppercase tracking-tighter text-secondary mb-2">Aktivace panelu</h1>
+            <p class="text-lg font-light text-tertiary">Propojení výjezdového panelu s jednotkou</p>
+        </div>
+
+        {if $success}
+            <div class="flex flex-col items-center py-8">
+                <div class="w-20 h-20 bg-secondary/20 text-secondary rounded-full flex items-center justify-center mb-6">
+                    <i class="fa-solid fa-check text-4xl"></i>
+                </div>
+                <h2 class="text-2xl font-black uppercase tracking-widest mb-4">Hotovo!</h2>
+                <p class="text-tertiary mb-8 text-center">Panel byl úspěšně autorizován. Na monitoru by se nyní měla zobrazit data.</p>
+                <p class="text-tertiary text-sm uppercase tracking-widest">Nyní můžete toto okno zavřít.</p>
+            </div>
+        {elseif $manual_mode}
+            <div class="text-center mb-8">
+                <p class="text-tertiary">Zadejte 8-místný kód zobrazený na výjezdovém panelu.</p>
+            </div>
+
+            {if $error}
+                <div class="bg-error/10 border-l-4 border-error p-4 mb-8 text-error flex items-center gap-3">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span class="font-bold">{$error}</span>
+                </div>
+            {/if}
+
+            <form method="post" action="{$BASE_URL}/activate" class="flex flex-col gap-8">
+                <div class="relative">
+                    <label class="block text-xs font-black uppercase tracking-widest text-tertiary mb-4 text-center">Aktivační kód</label>
+                    <input type="text" name="manual_code" maxlength="8"
+                           class="w-full bg-surface-container p-6 border-2 border-outline-variant focus:border-secondary outline-hidden text-5xl font-mono font-black tracking-[0.3em] text-center text-primary uppercase transition-all" 
+                           placeholder="" required autocomplete="off" autofocus
+                           oninput="this.value = this.value.toUpperCase().replace(/[^A-Z2-9]/g, '')">
+                </div>
+                
+                <button type="submit" class="bg-secondary text-on-secondary px-8 py-5 font-black uppercase tracking-widest hover:bg-secondary-dim transition-colors shadow-lg">
+                    Pokračovat v aktivaci
+                </button>
+            </form>
+        {else}
+            {if $error}
+                <div class="bg-error/10 border-l-4 border-error p-4 mb-6 text-error flex items-center gap-3">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span class="font-bold">{$error}</span>
+                </div>
+            {/if}
+
+            <form method="post" action="{$BASE_URL}/activate?code={$device_code}" class="flex flex-col gap-6">
+                <div>
+                    <label class="block text-xs font-black uppercase tracking-widest text-tertiary mb-2">Název zařízení:</label>
+                    <input type="text" name="device_name" 
+                           class="w-full bg-surface-container p-4 border-b-2 border-outline-variant focus:border-secondary outline-hidden text-xl font-bold transition-colors" 
+                           placeholder="např. Garáž, Kuchyň..." required>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black uppercase tracking-widest text-tertiary mb-2">Přiřadit k jednotce:</label>
+                    <select name="unit_id" 
+                            class="w-full bg-surface-container p-4 border-b-2 border-outline-variant focus:border-secondary outline-hidden text-xl font-bold transition-colors appearance-none" 
+                            required>
+                        <option value="" disabled selected>-- Vyberte jednotku --</option>
+                        {foreach from=$units item=unit}
+                            <option value="{$unit.id}">{$unit.fullname}</option>
+                        {/foreach}
+                    </select>
+                </div>
+                
+                <button type="submit" class="mt-4 bg-secondary text-on-secondary px-8 py-4 font-black uppercase tracking-widest hover:bg-secondary-dim transition-colors shadow-lg active:scale-95">
+                    Autorizovat panel
+                </button>
+            </form>
+
+            <div class="mt-10 pt-8 border-t border-outline-variant/20 flex flex-col items-center text-tertiary font-mono text-xs uppercase">
+                <span class="mb-2">ID zařízení:</span>
+                <div class="tracking-widest">{$session_data.device_uuid}</div>
+            </div>
+        {/if}
+    </div>
+
+    <footer class="mt-8 text-tertiary font-mono text-[10px] uppercase tracking-widest">
+        &copy; {$smarty.now|date_format:"%Y"} Požární poplach
+    </footer>
+
+</body>
+</html>

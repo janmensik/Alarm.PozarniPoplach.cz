@@ -6,7 +6,8 @@
         "nette/utils": "^4.0",
         "vlucas/phpdotenv": "^5.6",
         "janmensik/jmlib": "^1.1",
-        "twbs/bootstrap": "^5.3"
+        "twbs/bootstrap": "^5.3",
+        "firebase/php-jwt": "^7.0"
     },
     "config": {
         "allow-plugins": {

@@ -1,4 +1,4 @@
-function alarmSystem(apiUrl) {
+function alarmSystem(apiUrl, authBaseUrl) {
   return {
     data: null,
     loading: false,
@@ -10,29 +10,138 @@ function alarmSystem(apiUrl) {
     isOnline: true,
     isSyncing: false,
 
-    init() {
+    // Auth State
+    isAuthorized: false,
+    deviceUuid: null,
+    refreshToken: null,
+    qrCodeData: null,
+    deviceCode: null,
+    verificationUrl: null,
+    authStatus: 'initializing', // initializing, pending, authorized, error
+    pollInterval: null,
+
+    async init() {
       this.updateClock();
       setInterval(() => this.updateClock(), 1000);
-
-      // Check audio permissions on load
       this.checkAudioAutoplay();
 
-      this.fetchData();
-      // Poll for updates every 60 seconds
-      setInterval(() => this.fetchData(), 60000);
+      // Load or generate device UUID
+      this.deviceUuid = localStorage.getItem("alarm_device_uuid");
+      if (!this.deviceUuid) {
+        this.deviceUuid = crypto.randomUUID();
+        localStorage.setItem("alarm_device_uuid", this.deviceUuid);
+      }
+
+      this.refreshToken = localStorage.getItem("alarm_refresh_token");
+
+      if (this.refreshToken) {
+        await this.validateAndStart();
+      } else {
+        await this.startAuthFlow();
+      }
 
       setInterval(() => this.updateTimer(), 1000);
     },
 
+    async validateAndStart() {
+      this.loading = true;
+      try {
+        const response = await fetch(`${authBaseUrl}/validate?uuid=${this.deviceUuid}&token=${this.refreshToken}`);
+        const result = await response.json();
+
+        if (result.success) {
+          this.isAuthorized = true;
+          this.authStatus = 'authorized';
+          this.fetchData();
+          setInterval(() => this.fetchData(), 60000);
+        } else {
+          // Token invalid or expired
+          this.refreshToken = null;
+          localStorage.removeItem("alarm_refresh_token");
+          await this.startAuthFlow();
+        }
+      } catch (e) {
+        console.error("Validation failed", e);
+        this.authStatus = 'error';
+        this.isOnline = false;
+        // Retry validation later if it was a network error
+        setTimeout(() => this.validateAndStart(), 10000);
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async startAuthFlow() {
+      this.authStatus = 'pending';
+      try {
+        const response = await fetch(`${authBaseUrl}/init?uuid=${this.deviceUuid}`);
+        const result = await response.json();
+
+        if (result.success) {
+          this.qrCodeData = result.qr_code_data;
+          this.deviceCode = result.device_code;
+          this.verificationUrl = result.verification_url;
+          this.startPolling(result.device_code);
+        } else {
+          this.authStatus = 'error';
+        }
+      } catch (e) {
+        console.error("Auth init failed", e);
+        this.authStatus = 'error';
+        setTimeout(() => this.startAuthFlow(), 10000);
+      }
+    },
+
+    startPolling(deviceCode) {
+      if (this.pollInterval) clearInterval(this.pollInterval);
+
+      this.pollInterval = setInterval(async () => {
+        try {
+          const response = await fetch(`${authBaseUrl}/poll?code=${deviceCode}`);
+          const result = await response.json();
+
+          if (result.success && result.status === 'linked') {
+            clearInterval(this.pollInterval);
+            await this.finalizeAuthorization(deviceCode);
+          } else if (result.status === 'expired') {
+            clearInterval(this.pollInterval);
+            this.startAuthFlow();
+          }
+        } catch (e) {
+          console.error("Polling error", e);
+        }
+      }, 5000);
+    },
+
+    async finalizeAuthorization(deviceCode) {
+      try {
+        const response = await fetch(`${authBaseUrl}/authorize?code=${deviceCode}`);
+        const result = await response.json();
+
+        if (result.success) {
+          this.refreshToken = result.refresh_token;
+          localStorage.setItem("alarm_refresh_token", this.refreshToken);
+          this.isAuthorized = true;
+          this.authStatus = 'authorized';
+          
+          // Cleanup URL if we are on /login or other non-root path
+          if (window.location.pathname !== '/' && window.location.pathname !== '') {
+            window.location.href = '/';
+          } else {
+            this.fetchData();
+            setInterval(() => this.fetchData(), 60000);
+          }
+        }
+      } catch (e) {
+        console.error("Finalization failed", e);
+      }
+    },
+
     checkAudioAutoplay() {
       try {
-        // Use AudioContext to check if the browser allows audio
-        // If autoplay is blocked by the browser, the context starts in a 'suspended' state
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const ctx = new AudioContext();
         this.audioEnabled = ctx.state === "running";
-
-        // Clean up the context to free up memory resources
         if (ctx.state !== "closed") ctx.close().catch(() => {});
       } catch (e) {
         this.audioEnabled = false;
@@ -49,16 +158,29 @@ function alarmSystem(apiUrl) {
     },
 
     async fetchData() {
+      if (!this.isAuthorized) return;
+
       this.loading = true;
       this.isSyncing = true;
       try {
-        const response = await fetch(apiUrl);
+        // We pass the auth credentials with the API call
+        const response = await fetch(`${apiUrl}&uuid=${this.deviceUuid}&token=${this.refreshToken}`);
+        
+        if (response.status === 401) {
+          // Device was likely deleted or token invalidated
+          console.warn("Authorization revoked by server. Restarting auth flow.");
+          this.refreshToken = null;
+          localStorage.removeItem("alarm_refresh_token");
+          this.isAuthorized = false;
+          await this.startAuthFlow();
+          return;
+        }
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const newData = await response.json();
 
-        // Check if it's a new incident (assuming unit_id and dispatched_at_ts form a unique combo)
         const eventId = newData.dispatch_identification || newData.dispatched_at_ts;
         if (eventId !== this.lastEventId) {
           if (this.lastEventId !== null) {
@@ -74,7 +196,6 @@ function alarmSystem(apiUrl) {
         this.isOnline = false;
       } finally {
         this.loading = false;
-        // Keep the sync indicator visible for 1 second
         setTimeout(() => {
           this.isSyncing = false;
         }, 1000);
@@ -90,13 +211,10 @@ function alarmSystem(apiUrl) {
 
       if (diff >= 0) {
         this.timerSeconds = diff;
-        const mins = Math.floor(diff / 60)
-          .toString()
-          .padStart(2, "0");
+        const mins = Math.floor(diff / 60).toString().padStart(2, "0");
         const secs = (diff % 60).toString().padStart(2, "0");
         this.timerDisplay = `${mins}:${secs}`;
 
-        // Play limit sound exactly at 10 minutes
         if (diff === 600) {
           this.playAlert("limit");
         }
@@ -105,12 +223,11 @@ function alarmSystem(apiUrl) {
 
     playAlert(type) {
       if (!this.audioEnabled) return;
-
       const el = document.getElementById(`alarm-sound-${type}`);
       if (el) {
         el.play().catch((e) => {
           console.log("Audio blocked:", e);
-          this.audioEnabled = false; // Disable toggle state if dynamically blocked by browser
+          this.audioEnabled = false;
         });
       }
     },
