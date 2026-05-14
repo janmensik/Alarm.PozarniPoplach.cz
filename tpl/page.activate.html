@@ -55,11 +55,11 @@
                 <div class="relative">
                     <label class="block text-xs font-black uppercase tracking-widest text-tertiary mb-4 text-center">Aktivační kód</label>
                     <input type="text" name="manual_code" maxlength="8"
-                           class="w-full bg-surface-container p-6 border-2 border-outline-variant focus:border-secondary outline-hidden text-5xl font-mono font-black tracking-[0.3em] text-center text-primary uppercase transition-all" 
+                           class="w-full bg-surface-container p-6 border-2 border-outline-variant focus:border-secondary outline-hidden text-5xl font-mono font-black tracking-[0.3em] text-center text-primary uppercase transition-all"
                            placeholder="" required autocomplete="off" autofocus
                            oninput="this.value = this.value.toUpperCase().replace(/[^A-Z2-9]/g, '')">
                 </div>
-                
+
                 <button type="submit" class="bg-secondary text-on-secondary px-8 py-5 font-black uppercase tracking-widest hover:bg-secondary-dim transition-colors shadow-lg">
                     Pokračovat v aktivaci
                 </button>
@@ -75,15 +75,15 @@
             <form method="post" action="{$BASE_URL}/activate?code={$device_code}" class="flex flex-col gap-6">
                 <div>
                     <label class="block text-xs font-black uppercase tracking-widest text-tertiary mb-2">Název zařízení:</label>
-                    <input type="text" name="device_name" 
-                           class="w-full bg-surface-container p-4 border-b-2 border-outline-variant focus:border-secondary outline-hidden text-xl font-bold transition-colors" 
+                    <input type="text" name="device_name"
+                           class="w-full bg-surface-container p-4 border-b-2 border-outline-variant focus:border-secondary outline-hidden text-xl font-bold transition-colors"
                            placeholder="např. Garáž, Kuchyň..." required>
                 </div>
 
                 <div>
                     <label class="block text-xs font-black uppercase tracking-widest text-tertiary mb-2">Přiřadit k jednotce:</label>
-                    <select name="unit_id" 
-                            class="w-full bg-surface-container p-4 border-b-2 border-outline-variant focus:border-secondary outline-hidden text-xl font-bold transition-colors appearance-none" 
+                    <select name="unit_id"
+                            class="w-full bg-surface-container p-4 border-b-2 border-outline-variant focus:border-secondary outline-hidden text-xl font-bold transition-colors appearance-none"
                             required>
                         <option value="" disabled selected>-- Vyberte jednotku --</option>
                         {foreach from=$units item=unit}
@@ -91,7 +91,7 @@
                         {/foreach}
                     </select>
                 </div>
-                
+
                 <button type="submit" class="mt-4 bg-secondary text-on-secondary px-8 py-4 font-black uppercase tracking-widest hover:bg-secondary-dim transition-colors shadow-lg active:scale-95">
                     Autorizovat panel
                 </button>

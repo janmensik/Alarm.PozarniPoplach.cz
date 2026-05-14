@@ -113,7 +113,7 @@
             <!-- TOP ALARM HEADER -->
             <header class="p-6 flex items-center justify-between border-b-4 border-secondary z-50 bg-primary-container text-on-primary-container transition-colors duration-500">
                 <div class="flex items-center gap-6">
-                    <span class="text-5xl animate-pulse">
+                    <span class="text-5xl text-secondary OFFanimate-pulse">
                         <i :class="data?.event_icon ? data.event_icon : 'fa-solid fa-bell'"></i>
                     </span>
                     <h1 class="font-black text-4xl uppercase tracking-tighter">
@@ -283,41 +283,65 @@
             </main>
 
             <!-- FOOTER METADATA -->
-            <footer class="fixed bottom-0 left-0 w-full flex justify-between items-center px-10 z-50 bg-surface-container-high h-12 border-t border-outline-variant/15" x-cloak x-show="data">
-                <div class="flex gap-8 items-center h-full">
+            <footer class="fixed bottom-0 left-0 w-full flex justify-between items-center px-10 z-50 bg-surface-container-high h-12 border-t border-outline-variant/15 text-tertiary font-bold text-xs tracking-widest uppercase" x-cloak x-show="data">
+
+                <!-- Left Section: Dispatch Info -->
+                <div class="flex gap-5 items-center h-full">
                     <div class="flex items-center gap-2">
-                        <span class="text-tertiary font-bold text-xs tracking-widest uppercase">
-                            <i class="fa-solid fa-light-emergency-on text-sm"></i>
-                            Vyhlášeno: <span x-text="data?.dispatched_at_ts ? formatDate(data.dispatched_at_ts) : '--:--'" class="text-white"></span>
-                        </span>
+                        <i class="fa-solid fa-light-emergency-on"></i>
+                        <span>Vyhlášeno: <span x-text="data?.dispatched_at_ts ? formatDate(data.dispatched_at_ts) : '--:--'" class="text-white"></span></span>
                     </div>
-                    <div class="h-4 w-px bg-outline-variant/30"></div>
-                    <div class="text-tertiary font-bold text-xs tracking-widest uppercase flex items-center gap-2">
-                        <i class="fa-solid fa-circle-info text-sm"></i>
-                        ID POPLACHU: <span x-text="data?.dispatch_identification || '---'" class="text-white"></span>
+
+                    <div class="w-px"></div>
+
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>ID poplachu: <span x-text="data?.dispatch_identification || '---'" class="text-white"></span></span>
                     </div>
-                    <div class="h-4 w-px bg-outline-variant/30"></div>
-                    <div class="text-tertiary font-bold text-xs tracking-widest uppercase flex items-center gap-2">
-                        <i class="fa-solid fa-building-shield text-sm"></i>
-                        JSDH: <span x-text="data?.unit" class="text-white"></span>
+
+                    <div class="w-px"></div>
+
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-building-shield"></i>
+                        <span>JSDH: <span x-text="data?.unit" class="text-white"></span></span>
                     </div>
+
                     <template x-if="!data?.dispatch_identification && data?.info">
-                        <div class="text-tertiary font-bold text-xs tracking-widest uppercase flex items-center gap-2 ml-4">
-                            <span x-text="data.info"></span>
+                        <div class="flex items-center gap-6 h-full">
+                            <div class="w-px"></div>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-message"></i>
+                                <span x-text="data.info" class="text-white"></span>
+                            </div>
                         </div>
                     </template>
                 </div>
-                <div class="flex items-center gap-8">
-                    <div class="text-tertiary font-bold font-mono text-xs tracking-widest uppercase flex items-center gap-2">
+
+                <!-- Right Section: System Status -->
+                <div class="flex items-center gap-6 h-full">
+                    <div class="flex items-center gap-2 font-mono">
                         <i class="fa-solid fa-clock text-sm"></i>
-                        <span x-text="currentTime">00:00:00</span>
+                        <span x-text="currentTime" class="text-white">00:00:00</span>
                     </div>
-                    <div class="text-tertiary font-bold text-xs tracking-widest uppercase">
-                        SYSTÉM:
-                        <span class="text-secondary">OPERATIVNÍ</span>
+
+                    <div class="w-px"></div>
+
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-shield-check text-sm"></i>
+                        <span>Systém: 
+                            <template x-if="isOnline">
+                                <span class="text-secondary">Operativní</span>
+                            </template>
+                            <template x-if="!isOnline">
+                                <span class="text-primary" x-text="connectionError === 'no_internet' ? 'Bez internetu' : 'Server nedostupný'">Bez připojení</span>
+                            </template>
+                        </span>
                     </div>
-                    <div class="text-tertiary flex items-center gap-2 text-sm">
-                        <i class="transition-colors duration-300" :class="!isOnline ? 'fa-solid fa-wifi-slash text-error' : (isSyncing ? 'fa-solid fa-wifi text-secondary animate-pulse' : 'fa-solid fa-wifi')"></i>
+
+                    <div class="w-px"></div>
+
+                    <div class="flex items-center gap-4 text-sm">
+                        <i class="transition-colors duration-300" :class="!isOnline ? 'fa-solid fa-wifi-slash text-error' : (isSyncing ? 'fa-solid fa-arrows-rotate text-secondary animate-pulse' : 'fa-solid fa-wifi')"></i>
                         <button type="button" @click="toggleAudio()" class="focus:outline-none hover:text-white transition-colors" title="Přepnout zvukové upozornění">
                             <i :class="audioEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-slash'"></i>
                         </button>

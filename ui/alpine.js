@@ -8,6 +8,7 @@ function alarmSystem(apiUrl, authBaseUrl) {
     lastEventId: null,
     audioEnabled: true,
     isOnline: true,
+    connectionError: null,
     isSyncing: false,
 
     // Auth State
@@ -201,9 +202,17 @@ function alarmSystem(apiUrl, authBaseUrl) {
 
         this.data = newData;
         this.isOnline = true;
+        this.connectionError = null;
       } catch (error) {
         console.error("API Error:", error);
         this.isOnline = false;
+        
+        // Check if it is a general internet issue or specifically our API
+        if (!navigator.onLine) {
+          this.connectionError = 'no_internet';
+        } else {
+          this.connectionError = 'api_unreachable';
+        }
       } finally {
         this.loading = false;
         setTimeout(() => {
