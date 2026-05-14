@@ -23,14 +23,10 @@ $unit_id = null;
 
 # ...................................................................
 # Access control logic
-# 1. Try new Device Auth (UUID + Token)
-if (!empty($_GET['uuid']) && !empty($_GET['token'])) {
-    $unit_id = $DeviceAuth->validateDevice($_GET['uuid'], $_GET['token']);
-}
+$creds = $DeviceAuth->getRequestCredentials();
 
-# 2. Fallback to legacy Pincode
-if (empty($unit_id) && !empty($_GET['pincode'])) {
-	$unit_id = $Dispatch->checkUnitPincode($_GET['pincode'], true); // PINCODE is hashed (SHA1)
+if (!empty($creds['uuid']) && !empty($creds['token'])) {
+    $unit_id = $DeviceAuth->validateDevice($creds['uuid'], $creds['token']);
 }
 
 # ...................................................................

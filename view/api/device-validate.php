@@ -11,15 +11,14 @@ require_once(__DIR__ . '/../../include/class.DeviceAuth.php');
 
 $DeviceAuth = new \PozarniPoplach\DeviceAuth($DB);
 
-$device_uuid = $_GET['uuid'] ?? $_POST['uuid'] ?? null;
-$refresh_token = $_GET['token'] ?? $_POST['token'] ?? null;
+$creds = $DeviceAuth->getRequestCredentials();
 
-if (empty($device_uuid) || empty($refresh_token)) {
+if (empty($creds['uuid']) || empty($creds['token'])) {
     $APPD->setData('OUTPUT_JSON', json_encode(['success' => false, 'error' => 'Missing parameters']));
     return;
 }
 
-$unit_id = $DeviceAuth->validateDevice($device_uuid, $refresh_token);
+$unit_id = $DeviceAuth->validateDevice($creds['uuid'], $creds['token']);
 
 if ($unit_id) {
     $APPD->setData('OUTPUT_JSON', json_encode([

@@ -46,7 +46,12 @@ function alarmSystem(apiUrl, authBaseUrl) {
     async validateAndStart() {
       this.loading = true;
       try {
-        const response = await fetch(`${authBaseUrl}/validate?uuid=${this.deviceUuid}&token=${this.refreshToken}`);
+        const response = await fetch(`${authBaseUrl}/validate`, {
+          headers: {
+            'X-Device-Uuid': this.deviceUuid,
+            'X-Device-Token': this.refreshToken
+          }
+        });
         const result = await response.json();
 
         if (result.success) {
@@ -163,8 +168,13 @@ function alarmSystem(apiUrl, authBaseUrl) {
       this.loading = true;
       this.isSyncing = true;
       try {
-        // We pass the auth credentials with the API call
-        const response = await fetch(`${apiUrl}&uuid=${this.deviceUuid}&token=${this.refreshToken}`);
+        // We pass the auth credentials in headers
+        const response = await fetch(apiUrl, {
+          headers: {
+            'X-Device-Uuid': this.deviceUuid,
+            'X-Device-Token': this.refreshToken
+          }
+        });
         
         if (response.status === 401) {
           // Device was likely deleted or token invalidated

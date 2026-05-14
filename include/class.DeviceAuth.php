@@ -153,6 +153,34 @@ class DeviceAuth extends Modul {
     }
 
     /**
+     * Helper to get device credentials from headers or request.
+     * Token is ONLY accepted from Authorization or X-Device-Token header.
+     * UUID is accepted from X-Device-UUID header or request parameter.
+     */
+    public function getRequestCredentials(): array {
+        $headers = [];
+        foreach ($_SERVER as $name => $value) {
+            if (substr($name, 0, 5) == 'HTTP_') {
+                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+            }
+        }
+
+        $uuid = $headers['X-Device-Uuid'] ?? $_REQUEST['uuid'] ?? null;
+        
+        $token = null;
+        if (isset($headers['Authorization']) && preg_match('/Bearer\s+(.*)$/i', $headers['Authorization'], $matches)) {
+            $token = $matches[1];
+        } elseif (isset($headers['X-Device-Token'])) {
+            $token = $headers['X-Device-Token'];
+        }
+
+        return [
+            'uuid' => $uuid,
+            'token' => $token
+        ];
+    }
+
+    /**
      * Validates a refresh token and updates the device's last_seen timestamp.
      *
      * @param string $deviceUuid The hardware UUID.
