@@ -1,6 +1,6 @@
-<!DOCTYPE html>
+<!doctype html>
 <html class="dark" lang="cs">
-<head>
+  <head>
     <!-- Required meta tags -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -9,11 +9,11 @@
     <link rel="icon" href="{$BASE_URL}/favicon.svg" type="image/svg+xml" />
 
     <!-- Tailwind CSS -->
-    <link rel="stylesheet" href="{$BASE_URL}/ui/alarm.dist.css">
+    <link rel="stylesheet" href="{$BASE_URL}/ui/alarm.dist.css" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@100..900&display=swap" rel="stylesheet" />
 
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -22,385 +22,410 @@
     <script src="https://kit.fontawesome.com/3208d26f35.js" crossorigin="anonymous"></script>
 
     <style>
-        [x-cloak] { display: none !important; }
-        .scanline {
-            width: 100%;
-            height: 100px;
-            z-index: 5;
-            background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(255, 255, 255, 0.2) 50%, rgba(0, 0, 0, 0) 100%);
-            opacity: 0.1;
-            position: absolute;
-            bottom: 100%;
-            animation: scanline 10s linear infinite;
+      [x-cloak] {
+        display: none !important;
+      }
+      .scanline {
+        width: 100%;
+        height: 100px;
+        z-index: 5;
+        background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(255, 255, 255, 0.2) 50%, rgba(0, 0, 0, 0) 100%);
+        opacity: 0.1;
+        position: absolute;
+        bottom: 100%;
+        animation: scanline 10s linear infinite;
+      }
+      @keyframes scanline {
+        0% {
+          bottom: 100%;
         }
-        @keyframes scanline {
-            0% { bottom: 100%; }
-            100% { bottom: -100px; }
+        100% {
+          bottom: -100px;
         }
+      }
     </style>
-</head>
-<body class="bg-surface text-on-surface overflow-hidden h-screen flex flex-col"
-      x-data="alarmSystem('{$BASE_URL}/api/dispatch?v=1', '{$BASE_URL}/api/auth/device')"
-      x-init="init()">
-
+  </head>
+  <body class="bg-surface text-on-surface overflow-hidden h-screen flex flex-col" x-data="alarmSystem('{$BASE_URL}/api/dispatch?v=1', '{$BASE_URL}/api/auth/device')">
     <!-- AUTHENTICATION SCREEN -->
     <div x-show="!isAuthorized" class="fixed inset-0 z-100 bg-surface flex flex-col items-center justify-center p-10 text-center" x-cloak>
-        <div class="max-w-2xl w-full bg-surface-container-high p-12 border-t-8 border-secondary shadow-2xl">
-            <template x-if="authStatus === 'initializing'">
-                <div class="flex flex-col items-center">
-                    <div class="w-20 h-20 border-4 border-secondary border-t-transparent rounded-full animate-spin mb-8"></div>
-                    <h2 class="text-3xl font-black uppercase tracking-widest mb-4">Inicializace systému...</h2>
-                </div>
-            </template>
+      <div class="max-w-2xl w-full bg-surface-container-high p-12 border-t-8 border-secondary shadow-2xl">
+        <template x-if="authStatus === 'initializing'">
+          <div class="flex flex-col items-center">
+            <div class="w-20 h-20 border-4 border-secondary border-t-transparent rounded-full animate-spin mb-8"></div>
+            <h2 class="text-3xl font-black uppercase tracking-widest mb-4">Inicializace systému...</h2>
+          </div>
+        </template>
 
-            <template x-if="authStatus === 'pending'">
-                <div class="flex flex-col items-center">
-                    <h2 class="text-4xl font-black uppercase tracking-tighter mb-2 text-secondary">Panel není autorizován</h2>
-                    <p class="text-xl font-light text-tertiary mb-10">Pro aktivaci tohoto výjezdového panelu naskenujte QR kód svým mobilním telefonem.</p>
+        <template x-if="authStatus === 'pending'">
+          <div class="flex flex-col items-center">
+            <h2 class="text-4xl font-black uppercase tracking-tighter mb-2 text-secondary">Panel není autorizován</h2>
+            <p class="text-xl font-light text-tertiary mb-10">Pro aktivaci tohoto výjezdového panelu naskenujte QR kód svým mobilním telefonem.</p>
 
-                    <div class="bg-white p-8 mb-10 shadow-inner rounded-xl w-full flex flex-col md:flex-row items-center justify-center gap-12">
-                        <div class="flex flex-col items-center shrink-0">
-                            <template x-if="qrCodeData">
-                                <img :src="qrCodeData" alt="QR kód pro aktivaci" class="w-64 aspect-square">
-                            </template>
-                            <template x-if="!qrCodeData">
-                                <div class="w-48 aspect-square flex items-center justify-center text-surface">
-                                    <i class="fa-solid fa-qrcode fa-3x animate-pulse"></i>
-                                </div>
-                            </template>
-                        </div>
+            <div class="bg-white p-8 mb-10 shadow-inner rounded-xl w-full flex flex-col md:flex-row items-center justify-center gap-12">
+              <div class="flex flex-col items-center shrink-0">
+                <template x-if="qrCodeData">
+                  <img :src="qrCodeData" alt="QR kód pro aktivaci" class="w-64 aspect-square" />
+                </template>
+                <template x-if="!qrCodeData">
+                  <div class="w-48 aspect-square flex items-center justify-center text-surface">
+                    <i class="fa-solid fa-qrcode fa-3x animate-pulse"></i>
+                  </div>
+                </template>
+              </div>
 
-                        <div class="flex flex-col items-center md:items-start text-surface text-left">
-                            <span class="text-xs font-black uppercase tracking-widest text-outline-variant mb-2">Kód ruční aktivace</span>
-                            <div class="text-4xl font-mono font-black tracking-[0.2em] text-primary mb-4" x-text="deviceCode"></div>
-                            <p class="text-sm font-bold text-outline-variant">
-                                Pokud nejde naskenovat, otevřete stránku:<br>
-                                <a :href="verificationUrl" target="_blank" class="text-primary underline break-all" x-text="verificationUrl"></a>
-                            </p>
-                        </div>
-                    </div>
+              <div class="flex flex-col items-center md:items-start text-surface text-left">
+                <span class="text-xs font-black uppercase tracking-widest text-outline-variant mb-2">Kód ruční aktivace</span>
+                <div class="text-4xl font-mono font-black tracking-[0.2em] text-primary mb-4" x-text="deviceCode"></div>
+                <p class="text-sm font-bold text-outline-variant">
+                  Pokud nejde naskenovat, otevřete stránku:<br />
+                  <a :href="verificationUrl" target="_blank" class="text-primary underline break-all" x-text="verificationUrl"></a>
+                </p>
+              </div>
+            </div>
 
-                    <div class="flex items-center gap-3 text-secondary font-bold animate-pulse">
-                        <i class="fa-solid fa-spinner fa-spin"></i>
-                        <span class="uppercase tracking-widest text-sm">Čekám na potvrzení z mobilního telefonu...</span>
-                    </div>
+            <div class="flex items-center gap-3 text-secondary font-bold animate-pulse">
+              <i class="fa-solid fa-spinner fa-spin"></i>
+              <span class="uppercase tracking-widest text-sm">Čekám na potvrzení z mobilního telefonu...</span>
+            </div>
 
-                    <div class="mt-12 text-tertiary font-mono text-xs uppercase">
-                        ID zařízení: <span class="tracking-widest" x-text="deviceUuid"></span>
-                    </div>
-                </div>
-            </template>
+            <div class="mt-12 text-tertiary font-mono text-xs uppercase">ID zařízení: <span class="tracking-widest" x-text="deviceUuid"></span></div>
+          </div>
+        </template>
 
-            <template x-if="authStatus === 'error'">
-                <div class="flex flex-col items-center">
-                    <i class="fa-solid fa-triangle-exclamation text-error text-6xl mb-6"></i>
-                    <h2 class="text-3xl font-black uppercase tracking-tighter mb-4">Chyba připojení</h2>
-                    <p class="text-lg text-tertiary mb-8">Nepodařilo se navázat spojení se serverem. Zkontrolujte prosím připojení k internetu.</p>
-                    <button @click="startAuthFlow()" class="bg-secondary text-on-secondary px-8 py-3 font-black uppercase tracking-widest hover:bg-secondary-dim transition-colors">
-                        Zkusit znovu
-                    </button>
-                </div>
-            </template>
-        </div>
+        <template x-if="authStatus === 'error'">
+          <div class="flex flex-col items-center">
+            <i class="fa-solid fa-triangle-exclamation text-error text-6xl mb-6"></i>
+            <h2 class="text-3xl font-black uppercase tracking-tighter mb-4">Chyba připojení</h2>
+            <p class="text-lg text-tertiary mb-8">Nepodařilo se navázat spojení se serverem. Zkontrolujte prosím připojení k internetu.</p>
+            <button @click="startAuthFlow()" class="bg-secondary text-on-secondary px-8 py-3 font-black uppercase tracking-widest hover:bg-secondary-dim transition-colors">Zkusit znovu</button>
+          </div>
+        </template>
+      </div>
 
-        <footer class="mt-8 text-tertiary font-mono text-[10px] uppercase tracking-widest">
-            &copy; {$smarty.now|date_format:"%Y"} Požární poplach
-        </footer>
+      <footer class="mt-8 text-tertiary font-mono text-[10px] uppercase tracking-widest">&copy; {$smarty.now|date_format:"%Y"} Požární poplach</footer>
     </div>
 
     <template x-if="isAuthorized">
-        <div class="flex flex-col h-screen overflow-hidden">
+      <div class="flex flex-col h-screen overflow-hidden">
+        <!-- Loading State Overlay -->
+        <div class="absolute inset-0 z-50 flex flex-col justify-center items-center bg-surface text-on-surface" x-show="!data && loading">
+          <div class="w-16 h-16 border-4 border-secondary border-t-transparent rounded-full animate-spin mb-4"></div>
+          <div class="font-black text-2xl uppercase tracking-widest animate-pulse">Navazuji spojení s KOPIS...</div>
+        </div>
 
-            <!-- Loading State Overlay -->
-            <div class="absolute inset-0 z-50 flex flex-col justify-center items-center bg-surface text-on-surface" x-show="!data && loading">
-                <div class="w-16 h-16 border-4 border-secondary border-t-transparent rounded-full animate-spin mb-4"></div>
-                <div class="font-black text-2xl uppercase tracking-widest animate-pulse">Navazuji spojení s KOPIS...</div>
+        <!-- 1. ALARM VIEW -->
+        <template x-if="data?.dispatch_status === 'alarm'">
+          <div class="flex flex-col flex-1 overflow-hidden" x-cloak>
+            <!-- TOP ALARM HEADER -->
+            <header class="p-6 flex items-center justify-between border-b-4 border-secondary z-50 bg-primary-container text-on-primary-container transition-colors duration-500">
+              <div class="flex items-center gap-6">
+                <span class="text-5xl text-secondary">
+                  <i :class="data?.event_icon ? data.event_icon : 'fa-solid fa-bell'"></i>
+                </span>
+                <h1 class="font-black text-4xl uppercase tracking-tighter">
+                  <span x-text="data?.event || 'VYHLEDÁVÁM UDÁLOST'"></span>
+                  <template x-if="data?.event_subtype">
+                    <span>- <span x-text="data.event_subtype"></span></span>
+                  </template>
+                </h1>
+              </div>
+              <div class="flex items-center gap-4 bg-black/20 px-6 py-2">
+                <i class="fa-solid fa-stopwatch text-2xl" :class="timerSeconds > 600 ? 'text-secondary animate-pulse' : 'text-secondary'"></i>
+                <span class="font-black text-3xl uppercase font-mono tracking-tighter" :class="timerSeconds > 600 ? 'text-error' : 'text-white'" x-text="timerDisplay">00:00</span>
+              </div>
+            </header>
+
+            <!-- MAIN DASHBOARD CONTENT -->
+            <main class="flex-1 flex overflow-hidden relative">
+              <!-- DASHBOARD GRID CANVAS -->
+              <div class="flex-1 p-8 grid grid-cols-12 gap-8 h-full bg-surface relative">
+                <div class="absolute inset-0 scanline opacity-5"></div>
+
+                <!-- LEFT PANEL: LOCATION & UNITS (40% / 5 Cols) -->
+                <div class="col-span-4 flex flex-col gap-8 h-full overflow-hidden z-10">
+                  <!-- ADDRESS CARD -->
+                  <section class="bg-surface-container-high p-10 border-l-8 border-secondary flex flex-col shrink-0">
+                    <span class="text-secondary font-black uppercase tracking-widest text-sm mb-2"><i class="fa-solid fa-location-dot"></i> Primární lokace události</span>
+                    <h2 class="text-3xl font-black uppercase text-on-surface leading-none mb-4"><span x-text="data.address_street || data.address_city"></span> <span x-text="data.address_house_number"></span></h2>
+                    <div class="flex items-center gap-4 py-4 border-t border-outline-variant/30 mb-4 shrink-0">
+                      <span class="text-2xl font-bold uppercase text-tertiary">
+                        <span x-text="data.address_city"></span>
+                        <template x-if="data.address_city_part">
+                          <span> - <span x-text="data.address_city_part"></span></span>
+                        </template>
+                      </span>
+                    </div>
+
+                    <!-- Additional Details Scrollable Area -->
+                    <div class="flex flex-col gap-3 overflow-y-auto">
+                      <template x-if="data.object">
+                        <div class="bg-surface-container p-4 border-l-4 border-tertiary shrink-0">
+                          <span class="text-tertiary font-black uppercase tracking-widest text-xs block mb-1">Objekt</span>
+                          <span class="font-extralight text-on-surface" x-text="data.object"></span>
+                        </div>
+                      </template>
+                      <template x-if="data.clarification">
+                        <div class="bg-surface-container p-4 border-l-4 border-tertiary shrink-0">
+                          <span class="text-tertiary font-black uppercase tracking-widest text-xs block mb-1">Upřesnění</span>
+                          <span class="font-extralight text-on-surface" x-text="data.clarification"></span>
+                        </div>
+                      </template>
+                      <template x-if="data.situation">
+                        <div class="bg-surface-container p-4 border-l-4 border-primary shrink-0">
+                          <span class="text-primary font-black uppercase tracking-widest text-xs block mb-1">Situace</span>
+                          <span class="font-extralight text-xl text-on-surface" x-text="data.situation"></span>
+                        </div>
+                      </template>
+                      <template x-if="data.notifier || data.notifier_phone">
+                        <div class="bg-surface-container p-4 border-l-4 border-secondary shrink-0">
+                          <span class="text-secondary font-black uppercase tracking-widest text-xs block mb-1">Oznamovatel</span>
+                          <span class="font-extralight text-on-surface block" x-text="data.notifier"></span>
+                          <span class="font-extralight text-sm text-tertiary block mt-1" x-show="data.notifier_phone">Tel: <span class="text-on-surface tracking-widest" x-text="data.notifier_phone"></span></span>
+                        </div>
+                      </template>
+                    </div>
+                  </section>
+
+                  <!-- RESPONDING UNITS CARD -->
+                  <section class="flex-1 bg-surface-container-low p-8 flex flex-col overflow-hidden">
+                    <h3 class="font-black text-2xl uppercase tracking-tighter mb-6 border-b-2 border-outline-variant/30 pb-4 shrink-0">Zasahující jednotky</h3>
+                    <div class="grid grid-cols-1 gap-4 flex-1 overflow-y-auto content-start">
+                      <!-- Unit Vehicles -->
+                      <template x-for="vehicle in data.unit_vehicles">
+                        <div class="bg-surface-container-highest p-5 flex items-center justify-between border-l-8 border-secondary shrink-0">
+                          <div class="flex items-center gap-5">
+                            <i :class="'text-3xl text-secondary fa-solid ' + (vehicle.vehicle_type_icon || 'fa-truck-fire')"></i>
+                            <div class="flex flex-col">
+                              <span class="text-3xl font-black text-on-surface leading-none mb-1" x-text="vehicle.callsign || '---'"></span>
+                              <span class="text-xs font-bold text-tertiary uppercase tracking-widest leading-none" x-text="vehicle.name"></span>
+                            </div>
+                          </div>
+                          <span class="bg-secondary text-on-secondary px-4 py-1 font-black uppercase text-sm animate-pulse">Výjezd</span>
+                        </div>
+                      </template>
+
+                      <!-- Other Vehicles -->
+                      <template x-for="vehicle in data.other_vehicles">
+                        <div class="bg-surface-container p-4 flex items-center justify-between border-l-4 border-tertiary opacity-80 shrink-0">
+                          <div class="flex items-center gap-4">
+                            <i class="fa-solid fa-truck text-2xl text-tertiary"></i>
+                            <span class="text-lg font-bold text-tertiary" x-text="vehicle.fullname"></span>
+                          </div>
+                          <span class="bg-tertiary text-surface px-3 py-1 font-black uppercase text-xs" x-text="vehicle.unit_type || 'HZS'"></span>
+                        </div>
+                      </template>
+                    </div>
+                  </section>
+                </div>
+
+                <!-- RIGHT PANEL: TACTICAL & VISUAL (60% / 7 Cols) -->
+                <div class="col-span-8 flex flex-col gap-8 h-full overflow-hidden z-10">
+                  <!-- MAP CONTAINER -->
+                  <div class="w-full aspect-640/280 shrink-0 relative bg-surface-container-highest overflow-hidden border border-outline-variant/20">
+                    <template x-if="data.directions?.static_big_map">
+                      <img alt="Taktická mapa" class="w-full h-full object-cover" :src="data.directions.static_big_map" />
+                    </template>
+                    <template x-if="!data.directions?.static_big_map">
+                      <div class="w-full h-full flex items-center justify-center bg-surface-container-low text-tertiary">
+                        <span class="font-bold uppercase tracking-widest">Mapa není k dispozici</span>
+                      </div>
+                    </template>
+
+                    <div class="absolute inset-0 bg-linear-to-t from-surface to-transparent opacity-40"></div>
+
+                    <!-- HUD Overlay: Distance & Duration -->
+                    <div class="absolute bottom-0 right-0 flex flex-col gap-3" x-show="data.directions?.distance">
+                      <div class="bg-surface/70 p-4 backdrop-blur-sm">
+                        <div class="flex items-center gap-6">
+                          <div>
+                            <div class="flex items-center gap-2 text-secondary mb-1">
+                              <i class="fa-solid fa-route text-sm"></i>
+                              <span class="font-black uppercase text-xs">Vzdálenost</span>
+                            </div>
+                            <div class="font-black text-xl uppercase"><span x-text="data.directions?.distance"></span> KM</div>
+                          </div>
+                          <div class="w-px h-10 bg-outline-variant/50"></div>
+                          <div>
+                            <div class="flex items-center gap-2 text-secondary mb-1">
+                              <i class="fa-solid fa-clock text-sm"></i>
+                              <span class="font-black uppercase text-xs">Doba jízdy</span>
+                            </div>
+                            <div class="font-black text-xl uppercase"><span x-text="data.directions?.duration"></span> MIN</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- STREET VIEW PANEL -->
+                  <div class="flex-1 relative bg-surface-container overflow-hidden border border-outline-variant/20">
+                    <template x-if="data.directions?.static_streetview">
+                      <img alt="Streetview" class="w-full h-full object-cover" :src="data.directions.static_streetview" />
+                    </template>
+                    <template x-if="!data.directions?.static_streetview">
+                      <div class="w-full h-full flex items-center justify-center bg-surface-container text-tertiary">
+                        <span class="font-bold uppercase tracking-widest">Street View není k dispozici</span>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+            </main>
+          </div>
+        </template>
+
+        <!-- 2. PEACETIME VIEW -->
+        <template x-if="data?.dispatch_status === 'peacetime'">
+          <div class="flex flex-col flex-1 overflow-hidden" x-cloak>
+            <!-- PEACETIME HEADER -->
+            <header class="p-6 flex items-center justify-between border-b-4 border-outline-variant/20 z-50 bg-surface-container text-on-surface">
+              <div class="flex items-center gap-6">
+                <span class="text-4xl text-tertiary">
+                  <i class="fa-solid fa-building-shield"></i>
+                </span>
+                <h1 class="font-black text-4xl uppercase tracking-tighter" x-text="data.unit"></h1>
+              </div>
+              <div class="flex items-center gap-4 bg-black/10 px-6 py-2">
+                <span class="text-secondary font-black uppercase tracking-widest text-sm">Pohotovostní režim</span>
+              </div>
+            </header>
+
+            <!-- PEACETIME CONTENT -->
+            <main class="flex-1 flex flex-col items-center justify-center bg-surface relative overflow-hidden">
+              <div class="absolute inset-0 scanline opacity-5"></div>
+
+              <!-- 1. STANDARD PEACETIME MESSAGE (No Ad) -->
+              <template x-if="!data.ad">
+                <div class="flex flex-col items-center justify-center w-full h-full">
+                  <div class="z-10 text-center px-10">
+                    <h2 class="text-7xl md:text-9xl font-black uppercase tracking-tighter text-outline-variant/20 leading-none mb-4">Klid, bez poplachu</h2>
+                    <p class="text-2xl font-light text-tertiary uppercase tracking-[0.3em]">Systém <strong>PožárníPoplach.cz</strong> monitoruje situaci</p>
+                  </div>
+
+                  <!-- Decorative tactical elements -->
+                  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-200 h-200 border border-outline-variant/5 rounded-full"></div>
+                  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 border border-outline-variant/10 rounded-full"></div>
+                  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-100 h-100 border border-outline-variant/20 rounded-full"></div>
+
+                  <!-- Radar sweep effect -->
+                  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-100 h-100 bg-linear-to-tr from-secondary/5 to-transparent rounded-full animate-[spin_4s_linear_infinite]"></div>
+                </div>
+              </template>
+
+              <!-- 2. AD CONTENT (If exists) -->
+              <template x-if="data.ad">
+                <div class="z-10 w-full h-full flex flex-col md:flex-row items-center justify-center gap-16 p-12 bg-surface">
+                  <!-- Banner Area -->
+                  <div class="flex-1 max-w-5xl flex flex-col items-center justify-center">
+                    <img :src="data.ad.banner_image_url" alt="Advertisement" class="max-w-full max-h-[60vh] h-auto shadow-2xl rounded-xl mb-10 border-4 border-outline-variant/10" />
+
+                    <div class="text-center">
+                      <template x-if="data.ad.ad_text">
+                        <p class="text-2xl font-light text-on-surface italic" x-text="data.ad.ad_text"></p>
+                      </template>
+                    </div>
+                  </div>
+
+                  <!-- Info & QR Area -->
+                  <div class="shrink-0 flex flex-col items-center justify-center text-center bg-surface-container-high p-10 border-t-2 border-secondary shadow-2xl max-w-md">
+                    <span class="text-sm font-black uppercase tracking-widest text-black mb-3">Reklamní nabídka partnera:</span>
+                    <h3 class="text-2xl font-black uppercase tracking-tighter mb-10 text-on-surface leading-tight" x-text="data.ad.name"></h3>
+
+                    <div class="bg-white p-6 mb-10 rounded-2xl shadow-inner border-4 border-outline-variant/5 w-full flex justify-center">
+                      <img :src="data.ad.qr_code_data" alt="QR kód partnera" class="w-64 h-64 object-contain mx-auto" />
+                    </div>
+
+                    <div class="flex items-center justify-center gap-4 text-tertiary">
+                      <i class="fa-solid fa-mobile-screen-button text-2xl animate-bounce"></i>
+                      <p class="text-sm font-bold leading-snug">Naskenuj QR kód pro více informací a uplatnění výhod.</p>
+                    </div>
+
+                    <template x-if="data.ad.promo_code">
+                      <div class="inline-block bg-secondary text-on-secondary mt-8 px-10 py-5 rounded-2xl shadow-2xl transform -rotate-1 w-full max-w-sm mx-auto">
+                        <span class="text-xs uppercase block mb-1">Akční slevový kód:</span>
+                        <span class="text-4xl font-mono font-black tracking-widest" x-text="data.ad.promo_code"></span>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </main>
+          </div>
+        </template>
+
+        <!-- FOOTER METADATA (Constant for both states) -->
+        <footer class="fixed bottom-0 left-0 w-full flex justify-between items-center px-10 z-50 bg-surface-container-high h-12 border-t border-outline-variant/15 text-tertiary font-bold text-xs tracking-widest uppercase" x-cloak x-show="data">
+          <!-- Left Section -->
+          <div class="flex gap-5 items-center h-full">
+            <!-- Dispatch Info (Alarm Only) -->
+            <template x-if="data?.dispatch_status === 'alarm'">
+              <div class="flex items-center gap-5 h-full">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-light-emergency-on"></i>
+                  <span>Vyhlášeno: <span x-text="data?.dispatched_at_ts ? formatDate(data.dispatched_at_ts) : '--:--'" class="text-white"></span></span>
+                </div>
+
+                <div class="w-px h-4 bg-outline-variant/30"></div>
+
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-circle-info"></i>
+                  <span>ID poplachu: <span x-text="data?.dispatch_identification || '---'" class="text-white"></span></span>
+                </div>
+
+                <div class="w-px h-4 bg-outline-variant/30"></div>
+              </div>
+            </template>
+
+            <!-- Station Info (Always) -->
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-building-shield"></i>
+              <span>JSDH: <span x-text="data?.unit" class="text-white"></span></span>
             </div>
 
-            <!-- 1. ALARM VIEW -->
-            <template x-if="data?.dispatch_status === 'alarm'">
-                <div class="flex flex-col flex-1 overflow-hidden" x-cloak>
-                    <!-- TOP ALARM HEADER -->
-                    <header class="p-6 flex items-center justify-between border-b-4 border-secondary z-50 bg-primary-container text-on-primary-container transition-colors duration-500">
-                        <div class="flex items-center gap-6">
-                            <span class="text-5xl text-secondary">
-                                <i :class="data?.event_icon ? data.event_icon : 'fa-solid fa-bell'"></i>
-                            </span>
-                            <h1 class="font-black text-4xl uppercase tracking-tighter">
-                                <span x-text="data?.event || 'VYHLEDÁVÁM UDÁLOST'"></span>
-                                <template x-if="data?.event_subtype">
-                                    <span>- <span x-text="data.event_subtype"></span></span>
-                                </template>
-                            </h1>
-                        </div>
-                        <div class="flex items-center gap-4 bg-black/20 px-6 py-2">
-                            <i class="fa-solid fa-stopwatch text-2xl" :class="timerSeconds > 600 ? 'text-secondary animate-pulse' : 'text-secondary'"></i>
-                            <span class="font-black text-3xl uppercase font-mono tracking-tighter" :class="timerSeconds > 600 ? 'text-error' : 'text-white'" x-text="timerDisplay">00:00</span>
-                        </div>
-                    </header>
-
-                    <!-- MAIN DASHBOARD CONTENT -->
-                    <main class="flex-1 flex overflow-hidden relative">
-                        <!-- DASHBOARD GRID CANVAS -->
-                        <div class="flex-1 p-8 grid grid-cols-12 gap-8 h-full bg-surface relative">
-                            <div class="absolute inset-0 scanline opacity-5"></div>
-
-                            <!-- LEFT PANEL: LOCATION & UNITS (40% / 5 Cols) -->
-                            <div class="col-span-4 flex flex-col gap-8 h-full overflow-hidden z-10">
-
-                                <!-- ADDRESS CARD -->
-                                <section class="bg-surface-container-high p-10 border-l-8 border-secondary flex flex-col shrink-0">
-                                    <span class="text-secondary font-black uppercase tracking-widest text-sm mb-2"><i class="fa-solid fa-location-dot"></i> Primární lokace události</span>
-                                    <h2 class="text-3xl font-black uppercase text-on-surface leading-none mb-4">
-                                        <span x-text="data.address_street || data.address_city"></span> <span x-text="data.address_house_number"></span>
-                                    </h2>
-                                    <div class="flex items-center gap-4 py-4 border-t border-outline-variant/30 mb-4 shrink-0">
-                                        <span class="text-2xl font-bold uppercase text-tertiary">
-                                            <span x-text="data.address_city"></span>
-                                            <template x-if="data.address_city_part">
-                                                <span> - <span x-text="data.address_city_part"></span></span>
-                                            </template>
-                                        </span>
-                                    </div>
-
-                                    <!-- Additional Details Scrollable Area -->
-                                    <div class="flex flex-col gap-3 overflow-y-auto">
-                                        <template x-if="data.object">
-                                            <div class="bg-surface-container p-4 border-l-4 border-tertiary shrink-0">
-                                                <span class="text-tertiary font-black uppercase tracking-widest text-xs block mb-1">Objekt</span>
-                                                <span class="font-extralight text-on-surface" x-text="data.object"></span>
-                                            </div>
-                                        </template>
-                                        <template x-if="data.clarification">
-                                            <div class="bg-surface-container p-4 border-l-4 border-tertiary shrink-0">
-                                                <span class="text-tertiary font-black uppercase tracking-widest text-xs block mb-1">Upřesnění</span>
-                                                <span class="font-extralight text-on-surface" x-text="data.clarification"></span>
-                                            </div>
-                                        </template>
-                                        <template x-if="data.situation">
-                                            <div class="bg-surface-container p-4 border-l-4 border-primary shrink-0">
-                                                <span class="text-primary font-black uppercase tracking-widest text-xs block mb-1">Situace</span>
-                                                <span class="font-extralight text-xl text-on-surface" x-text="data.situation"></span>
-                                            </div>
-                                        </template>
-                                        <template x-if="data.notifier || data.notifier_phone">
-                                            <div class="bg-surface-container p-4 border-l-4 border-secondary shrink-0">
-                                                <span class="text-secondary font-black uppercase tracking-widest text-xs block mb-1">Oznamovatel</span>
-                                                <span class="font-extralight text-on-surface block" x-text="data.notifier"></span>
-                                                <span class="font-extralight text-sm text-tertiary block mt-1" x-show="data.notifier_phone">Tel: <span class="text-on-surface tracking-widest" x-text="data.notifier_phone"></span></span>
-                                            </div>
-                                        </template>
-                                    </div>
-                                </section>
-
-                                <!-- RESPONDING UNITS CARD -->
-                                <section class="flex-1 bg-surface-container-low p-8 flex flex-col overflow-hidden">
-                                    <h3 class="font-black text-2xl uppercase tracking-tighter mb-6 border-b-2 border-outline-variant/30 pb-4 shrink-0">Zasahující jednotky</h3>
-                                    <div class="grid grid-cols-1 gap-4 flex-1 overflow-y-auto content-start">
-
-                                        <!-- Unit Vehicles -->
-                                        <template x-for="vehicle in data.unit_vehicles">
-                                            <div class="bg-surface-container-highest p-5 flex items-center justify-between border-l-8 border-secondary shrink-0">
-                                                <div class="flex items-center gap-5">
-                                                    <i :class="'text-3xl text-secondary fa-solid ' + (vehicle.vehicle_type_icon || 'fa-truck-fire')"></i>
-                                                    <div class="flex flex-col">
-                                                        <span class="text-3xl font-black text-on-surface leading-none mb-1" x-text="vehicle.callsign || '---'"></span>
-                                                        <span class="text-xs font-bold text-tertiary uppercase tracking-widest leading-none" x-text="vehicle.name"></span>
-                                                    </div>
-                                                </div>
-                                                <span class="bg-secondary text-on-secondary px-4 py-1 font-black uppercase text-sm animate-pulse">Výjezd</span>
-                                            </div>
-                                        </template>
-
-                                        <!-- Other Vehicles -->
-                                        <template x-for="vehicle in data.other_vehicles">
-                                            <div class="bg-surface-container p-4 flex items-center justify-between border-l-4 border-tertiary opacity-80 shrink-0">
-                                                <div class="flex items-center gap-4">
-                                                    <i class="fa-solid fa-truck text-2xl text-tertiary"></i>
-                                                    <span class="text-lg font-bold text-tertiary" x-text="vehicle.fullname"></span>
-                                                </div>
-                                                <span class="bg-tertiary text-surface px-3 py-1 font-black uppercase text-xs"  x-text="vehicle.unit_type || 'HZS'"></span>
-                                            </div>
-                                        </template>
-
-                                    </div>
-                                </section>
-                            </div>
-
-                            <!-- RIGHT PANEL: TACTICAL & VISUAL (60% / 7 Cols) -->
-                            <div class="col-span-8 flex flex-col gap-8 h-full overflow-hidden z-10">
-
-                                <!-- MAP CONTAINER -->
-                                <div class="w-full aspect-640/280 shrink-0 relative bg-surface-container-highest overflow-hidden border border-outline-variant/20">
-                                    <template x-if="data.directions?.static_big_map">
-                                        <img alt="Taktická mapa" class="w-full h-full object-cover" :src="data.directions.static_big_map" />
-                                    </template>
-                                    <template x-if="!data.directions?.static_big_map">
-                                        <div class="w-full h-full flex items-center justify-center bg-surface-container-low text-tertiary">
-                                                <span class="font-bold uppercase tracking-widest">Mapa není k dispozici</span>
-                                        </div>
-                                    </template>
-
-                                    <div class="absolute inset-0 bg-linear-to-t from-surface to-transparent opacity-40"></div>
-
-
-                                    <!-- HUD Overlay: Distance & Duration -->
-                                    <div class="absolute bottom-0 right-0 flex flex-col gap-3" x-show="data.directions?.distance">
-                                        <div class="bg-surface/70 p-4 backdrop-blur-sm">
-                                            <div class="flex items-center gap-6">
-                                                <div>
-                                                    <div class="flex items-center gap-2 text-secondary mb-1">
-                                                        <i class="fa-solid fa-route text-sm"></i>
-                                                        <span class="font-black uppercase text-xs">Vzdálenost</span>
-                                                    </div>
-                                                    <div class="font-black text-xl uppercase"><span x-text="data.directions?.distance"></span> KM</div>
-                                                </div>
-                                                <div class="w-px h-10 bg-outline-variant/50"></div>
-                                                <div>
-                                                    <div class="flex items-center gap-2 text-secondary mb-1">
-                                                        <i class="fa-solid fa-clock text-sm"></i>
-                                                        <span class="font-black uppercase text-xs">Doba jízdy</span>
-                                                    </div>
-                                                    <div class="font-black text-xl uppercase"><span x-text="data.directions?.duration"></span> MIN</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- STREET VIEW PANEL -->
-                                <div class="flex-1 relative bg-surface-container overflow-hidden border border-outline-variant/20">
-                                    <template x-if="data.directions?.static_streetview">
-                                        <img alt="Streetview" class="w-full h-full object-cover" :src="data.directions.static_streetview" />
-                                    </template>
-                                    <template x-if="!data.directions?.static_streetview">
-                                        <div class="w-full h-full flex items-center justify-center bg-surface-container text-tertiary">
-                                                <span class="font-bold uppercase tracking-widest">Street View není k dispozici</span>
-                                        </div>
-                                    </template>
-                                </div>
-
-                            </div>
-                        </div>
-                    </main>
+            <template x-if="data?.dispatch_status === 'alarm' && !data?.dispatch_identification && data?.info">
+              <div class="flex items-center gap-6 h-full">
+                <div class="w-px h-4 bg-outline-variant/30"></div>
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-message"></i>
+                  <span x-text="data.info" class="text-white"></span>
                 </div>
+              </div>
             </template>
+          </div>
 
-            <!-- 2. PEACETIME VIEW -->
-            <template x-if="data?.dispatch_status === 'peacetime'">
-                <div class="flex flex-col flex-1 overflow-hidden" x-cloak>
-                    <!-- PEACETIME HEADER -->
-                    <header class="p-6 flex items-center justify-between border-b-4 border-outline-variant/20 z-50 bg-surface-container text-on-surface">
-                        <div class="flex items-center gap-6">
-                            <span class="text-4xl text-tertiary">
-                                <i class="fa-solid fa-building-shield"></i>
-                            </span>
-                            <h1 class="font-black text-4xl uppercase tracking-tighter">
-                                <span class="text-tertiary">JSDH</span> <span x-text="data.unit"></span>
-                            </h1>
-                        </div>
-                        <div class="flex items-center gap-4 bg-black/10 px-6 py-2">
-                             <span class="text-secondary font-black uppercase tracking-widest text-sm">Pohotovostní režim</span>
-                        </div>
-                    </header>
+          <!-- Right Section: System Status -->
+          <div class="flex items-center gap-6 h-full">
+            <div class="flex items-center gap-2 font-mono text-sm">
+              <i class="fa-solid fa-clock"></i>
+              <span x-text="currentTime" class="text-white">00:00:00</span>
+            </div>
 
-                    <!-- PEACETIME CONTENT -->
-                    <main class="flex-1 flex flex-col items-center justify-center bg-surface relative overflow-hidden">
-                        <div class="absolute inset-0 scanline opacity-5"></div>
+            <div class="w-px h-4 bg-outline-variant/30"></div>
 
-                        <div class="z-10 text-center px-10">
-                            <h2 class="text-7xl md:text-9xl font-black uppercase tracking-tighter text-outline-variant/20 leading-none mb-4">
-                                Klid, bez poplachu
-                            </h2>
-                            <p class="text-2xl font-light text-tertiary uppercase tracking-[0.3em]">
-                                Systém <strong>PožárníPoplach.cz</strong> monitoruje situaci
-                            </p>
-                        </div>
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-shield-check text-sm"></i>
+              <span
+                >Systém:
+                <template x-if="isOnline">
+                  <span class="text-secondary">Operativní</span>
+                </template>
+                <template x-if="!isOnline">
+                  <span class="text-primary" x-text="connectionError === 'no_internet' ? 'Bez internetu' : 'Server nedostupný'">Bez připojení</span>
+                </template>
+              </span>
+            </div>
 
-                        <!-- Decorative tactical elements -->
-                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-200 h-200 border border-outline-variant/5 rounded-full"></div>
-                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 border border-outline-variant/10 rounded-full"></div>
-                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-100 h-100 border border-outline-variant/20 rounded-full"></div>
+            <div class="w-px h-4 bg-outline-variant/30"></div>
 
-                        <!-- Radar sweep effect -->
-                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-100 h-100 bg-linear-to-tr from-secondary/5 to-transparent rounded-full animate-[spin_4s_linear_infinite]"></div>
-                    </main>
-                </div>
-            </template>
-
-            <!-- FOOTER METADATA (Constant for both states) -->
-            <footer class="fixed bottom-0 left-0 w-full flex justify-between items-center px-10 z-50 bg-surface-container-high h-12 border-t border-outline-variant/15 text-tertiary font-bold text-xs tracking-widest uppercase" x-cloak x-show="data">
-
-                <!-- Left Section -->
-                <div class="flex gap-5 items-center h-full">
-                    <!-- Dispatch Info (Alarm Only) -->
-                    <template x-if="data?.dispatch_status === 'alarm'">
-                        <div class="flex items-center gap-5 h-full">
-                            <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-light-emergency-on"></i>
-                                <span>Vyhlášeno: <span x-text="data?.dispatched_at_ts ? formatDate(data.dispatched_at_ts) : '--:--'" class="text-white"></span></span>
-                            </div>
-
-                            <div class="w-px h-4 bg-outline-variant/30"></div>
-
-                            <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-circle-info"></i>
-                                <span>ID poplachu: <span x-text="data?.dispatch_identification || '---'" class="text-white"></span></span>
-                            </div>
-
-                            <div class="w-px h-4 bg-outline-variant/30"></div>
-                        </div>
-                    </template>
-
-                    <!-- Station Info (Always) -->
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-building-shield"></i>
-                        <span>JSDH: <span x-text="data?.unit" class="text-white"></span></span>
-                    </div>
-
-                    <template x-if="data?.dispatch_status === 'alarm' && !data?.dispatch_identification && data?.info">
-                        <div class="flex items-center gap-6 h-full">
-                            <div class="w-px h-4 bg-outline-variant/30"></div>
-                            <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-message"></i>
-                                <span x-text="data.info" class="text-white"></span>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-
-                <!-- Right Section: System Status -->
-                <div class="flex items-center gap-6 h-full">
-                    <div class="flex items-center gap-2 font-mono text-sm">
-                        <i class="fa-solid fa-clock"></i>
-                        <span x-text="currentTime" class="text-white">00:00:00</span>
-                    </div>
-
-                    <div class="w-px h-4 bg-outline-variant/30"></div>
-
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-shield-check text-sm"></i>
-                        <span>Systém:
-                            <template x-if="isOnline">
-                                <span class="text-secondary">Operativní</span>
-                            </template>
-                            <template x-if="!isOnline">
-                                <span class="text-primary" x-text="connectionError === 'no_internet' ? 'Bez internetu' : 'Server nedostupný'">Bez připojení</span>
-                            </template>
-                        </span>
-                    </div>
-
-                    <div class="w-px h-4 bg-outline-variant/30"></div>
-
-                    <div class="flex items-center gap-4 text-sm">
-                        <i class="transition-colors duration-300" :class="!isOnline ? 'fa-solid fa-wifi-slash text-error' : (isSyncing ? 'fa-solid fa-arrows-rotate text-secondary animate-pulse' : 'fa-solid fa-wifi')"></i>
-                        <button type="button" @click="toggleAudio()" class="focus:outline-none hover:text-white transition-colors" title="Přepnout zvukové upozornění">
-                            <i :class="audioEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-slash'"></i>
-                        </button>
-                    </div>
-                </div>
-            </footer>
-        </div>
+            <div class="flex items-center gap-4 text-sm">
+              <i class="transition-colors duration-300" :class="!isOnline ? 'fa-solid fa-wifi-slash text-error' : (isSyncing ? 'fa-solid fa-arrows-rotate text-secondary animate-pulse' : 'fa-solid fa-wifi')"></i>
+              <button type="button" @click="toggleAudio()" class="focus:outline-none hover:text-white transition-colors" title="Přepnout zvukové upozornění">
+                <i :class="audioEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-slash'"></i>
+              </button>
+            </div>
+          </div>
+        </footer>
+      </div>
     </template>
 
     <!-- Audio Alerts -->
@@ -408,5 +433,5 @@
     <audio id="alarm-sound-limit" src="{$BASE_URL}/assets/timer-limit.mp3" preload="auto"></audio>
 
     <script src="{$BASE_URL}/ui/alpine.js" crossorigin="anonymous"></script>
-</body>
+  </body>
 </html>

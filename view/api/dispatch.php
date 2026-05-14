@@ -12,6 +12,7 @@ $APPD->setData('PAGE', 'alarm');
 # load up
 require_once(__DIR__ . '/../../include/class.Dispatch.php');
 require_once(__DIR__ . '/../../include/class.DeviceAuth.php');
+require_once(__DIR__ . '/../../include/class.Ad.php');
 
 if (!isset($Dispatch)) {
 	$Dispatch = new \PozarniPoplach\Dispatch($DB);
@@ -58,9 +59,16 @@ if (!empty($data) && isset($data['dispatched_at_ts']) && (time() - $data['dispat
         if ($unit) $unit_name = $unit['fullname'];
     }
 
+    # lets load ad
+    if (!isset($Ad)) {
+	    $Ad = new \PozarniPoplach\Ad($DB);
+    }
+    $ad = $Ad->getAd($unit_id);
+
     $data_parsed = [
         'dispatch_status' => 'peacetime',
-        'unit' => $unit_name
+        'unit' => $unit_name,
+        'ad' => $ad
     ];
 
 }

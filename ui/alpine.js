@@ -59,7 +59,8 @@ function alarmSystem(apiUrl, authBaseUrl) {
           this.isAuthorized = true;
           this.authStatus = 'authorized';
           this.fetchData();
-          setInterval(() => this.fetchData(), 60000);
+          if (this.dataInterval) clearInterval(this.dataInterval);
+          this.dataInterval = setInterval(() => this.fetchData(), 60000);
         } else {
           // Token invalid or expired
           this.refreshToken = null;
@@ -129,7 +130,7 @@ function alarmSystem(apiUrl, authBaseUrl) {
           localStorage.setItem("alarm_refresh_token", this.refreshToken);
           this.isAuthorized = true;
           this.authStatus = 'authorized';
-          
+
           // Cleanup URL if we are on /login or other non-root path
           if (window.location.pathname !== '/' && window.location.pathname !== '') {
             window.location.href = '/';
@@ -176,7 +177,7 @@ function alarmSystem(apiUrl, authBaseUrl) {
             'X-Device-Token': this.refreshToken
           }
         });
-        
+
         if (response.status === 401) {
           // Device was likely deleted or token invalidated
           console.warn("Authorization revoked by server. Restarting auth flow.");
@@ -206,7 +207,7 @@ function alarmSystem(apiUrl, authBaseUrl) {
       } catch (error) {
         console.error("API Error:", error);
         this.isOnline = false;
-        
+
         // Check if it is a general internet issue or specifically our API
         if (!navigator.onLine) {
           this.connectionError = 'no_internet';
@@ -258,3 +259,4 @@ function alarmSystem(apiUrl, authBaseUrl) {
     },
   };
 }
+
