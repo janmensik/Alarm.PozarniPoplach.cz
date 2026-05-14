@@ -42,10 +42,28 @@ if (empty($unit_id)) {
 # *******************************************************************
 
 // In production we would use getLastDispatch($unit_id)
-// For testing we use getRandomDispatch()
-$data = $Dispatch->getRandomDispatch();
+$data = $Dispatch->getLastDispatch($unit_id);
 
-$data_parsed = $Dispatch->beautifulLastDispatch($data);
+# only show dispatch if it is not older than DEFAULT_ALARM_SHOWN minutes (peacetime)
+if (!empty($data) && isset($data['dispatched_at_ts']) && (time() - $data['dispatched_at_ts'] <= ($_ENV['DEFAULT_ALARM_SHOWN'] ?? 60) * 60)) {
+    $data_parsed = $Dispatch->beautifulLastDispatch($data);
+    $data_parsed['dispatch_status'] = 'alarm';
+} else {
+    // Peacetime mode - still try to provide unit name
+    if (!empty($data['unit_fullname'])) {
+        $unit_name = $data['unit_fullname'];
+    } else {
+        // Fallback: load unit name directly if no dispatches exist
+        $unit = $DB->getRow($DB->query("SELECT fullname FROM unit WHERE id = " . (int)$unit_id . " LIMIT 1"));
+        if ($unit) $unit_name = $unit['fullname'];
+    }
+
+    $data_parsed = [
+        'dispatch_status' => 'peacetime',
+        'unit' => $unit_name
+    ];
+
+}
 
 # *******************************************************************
 # OUTPUT
