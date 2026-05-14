@@ -178,16 +178,16 @@ class Dispatch extends Modul {
             $dispatch['streetview_available'] = true;
 
             # Google Maps Static Streetview URL
-            $dispatch['directions']['static_streetview'] = 'https://maps.googleapis.com/maps/api/streetview?size='.($display_width*2).'x'.($display_height_view*2).'&location=' . $dispatch['gps_latitude'] . ',' . $dispatch['gps_longitude'] . '&key=' . $_ENV['GOOGLE_MAPS_API_KEY'] . '&fov=120';
+            $dispatch['directions']['static_streetview'] = 'https://maps.googleapis.com/maps/api/streetview?size=' . ($display_width * 2) . 'x' . ($display_height_view * 2) . '&location=' . $dispatch['gps_latitude'] . ',' . $dispatch['gps_longitude'] . '&key=' . $_ENV['GOOGLE_MAPS_API_KEY'] . '&fov=120';
         } else {
             $dispatch['streetview_available'] = false;
 
             # Mapbox Static map URL
-            $dispatch['directions']['static_streetview'] = 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/pin-s+e44b38(' . $dispatch['gps_longitude'] . ',' . $dispatch['gps_latitude'] . ')/' . $dispatch['gps_longitude'] . ',' . $dispatch['gps_latitude'] . ',17,0/'.$display_width.'x'.$display_height_view.'@2x?access_token=' . $_ENV['MAPBOX_API_KEY'];
+            $dispatch['directions']['static_streetview'] = 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/pin-s+e44b38(' . $dispatch['gps_longitude'] . ',' . $dispatch['gps_latitude'] . ')/' . $dispatch['gps_longitude'] . ',' . $dispatch['gps_latitude'] . ',17,0/' . $display_width . 'x' . $display_height_view . '@2x?access_token=' . $_ENV['MAPBOX_API_KEY'];
         }
 
         # Google Maps Static URL
-        $dispatch['directions']['static_big_map'] = 'https://maps.googleapis.com/maps/api/staticmap?size='.$display_width.'x'.$display_height_map.'&scale=2&markers=color:red|' . $dispatch['gps_latitude'] . ',' . $dispatch['gps_longitude'] . '&key=' . $_ENV['GOOGLE_MAPS_API_KEY'] . ($dispatch['directions']['polyline'] ? '&path=color:0x0000ff|weight:5|enc:' . $dispatch['directions']['polyline'] : '');
+        $dispatch['directions']['static_big_map'] = 'https://maps.googleapis.com/maps/api/staticmap?size=' . $display_width . 'x' . $display_height_map . '&scale=2&markers=color:red|' . $dispatch['gps_latitude'] . ',' . $dispatch['gps_longitude'] . '&key=' . $_ENV['GOOGLE_MAPS_API_KEY'] . ($dispatch['directions']['polyline'] ? '&path=color:0x0000ff|weight:5|enc:' . $dispatch['directions']['polyline'] : '');
 
         // remove plaindata
         unset($dispatch['plaindata']);
@@ -787,6 +787,8 @@ class Dispatch extends Modul {
             return (false);
         }
 
+        $next_id = null;
+
         # separate other vehicles
         $other_vehicles = $set['other_vehicles'];
         unset($set['other_vehicles']);
@@ -802,7 +804,7 @@ class Dispatch extends Modul {
 
         if (!$ids) {
             $ids = $next_id;
-            $new = true;
+            // $new = true;
         }
 
         # _______________________________________________________________

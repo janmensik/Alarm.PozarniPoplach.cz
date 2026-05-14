@@ -11,7 +11,6 @@ use Janmensik\Jmlib\Modul;
  * Links physical devices to Firefighter Units via mobile authorization.
  */
 class DeviceAuth extends Modul {
-
     /**
      * DeviceAuth constructor.
      * @param Database $database
