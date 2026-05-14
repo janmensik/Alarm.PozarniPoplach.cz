@@ -35,9 +35,9 @@ class Dispatch extends Modul {
     public $cache;
 
     // Private properties for caching static data
-    private $vehicle_types;
-    private $regions;
-    private $event_types;
+    private $vehicle_types = [];
+    private $regions = [];
+    private $event_types = [];
 
     # ...................................................................
     public function __construct(Database &$database) {
@@ -532,6 +532,13 @@ class Dispatch extends Modul {
                     $data['other_vehicles'][$key]['unit'] = $matches[1];
                     $data['other_vehicles'][$key]['vehicle'] = $matches[2];
                 }
+                if (preg_match('/(C?HS ).*/', $value)) {
+                    $data['other_vehicles'][$key]['unit_type'] = 'HZS';
+                } elseif (!empty($data['other_vehicles'][$key]['callsign'])) {
+                    $data['other_vehicles'][$key]['unit_type'] = 'JSDH';
+                } else {
+                    $data['other_vehicles'][$key]['unit_type'] = 'OTHER';
+                }
             }
         }
 
@@ -626,7 +633,7 @@ class Dispatch extends Modul {
         if (!empty($data['unit'])) {
             $unit = $this->DB->getRow($this->DB->query('SELECT u.* FROM unit u WHERE u.fullname = "' . mysqli_real_escape_string($this->DB->db, trim($data['unit']))  . '"' . ($unit_registration ? ' AND u.registration = "' . mysqli_real_escape_string($this->DB->db, trim($unit_registration)) . '"' : '') . ' LIMIT 1', __METHOD__ . ' get Unit'));
 
-            if (isset($unit)) {
+            if ($unit) {
                 $data['unit_id'] = $unit['id'];
                 $data['unit'] = $unit['fullname'];
             }
@@ -756,6 +763,9 @@ class Dispatch extends Modul {
                 if (!empty($vehicle['vehicle'])) {
                     $set['other_vehicles'][$key]['vehicle'] = '"' . $this->sanitize($vehicle['vehicle']) . '"';
                 }
+                if (!empty($vehicle['unit_type'])) {
+                    $set['other_vehicles'][$key]['unit_type'] = '"' . $this->sanitize($vehicle['unit_type']) . '"';
+                }
             }
         }
 
@@ -819,11 +829,11 @@ class Dispatch extends Modul {
                 foreach ($other_vehicles as $key => $value) {
                     $sql[] = '(' .
                         (int) $ids . ', ' .
-                        (!empty($value['unit']) ? $value['unit'] : 'null') . ', ' .
-                        (!empty($value['vehicle_type_id']) ? $value['vehicle_type_id'] : 'null') . ', ' .
-                        (!empty($value['vehicle']) ? $value['vehicle'] : 'null') . ', ' .
-                        (!empty($value['callsign']) ? $value['callsign'] : 'null') . ', ' .
-                        (!empty($value['fullname']) ? $value['fullname'] : 'null') . ')';
+                        (!empty($value['unit']) ? '"' . mysqli_real_escape_string($this->DB->db, $value['unit']) . '"' : 'null') . ', ' .
+                        (!empty($value['vehicle_type_id']) ? (int)$value['vehicle_type_id'] : 'null') . ', ' .
+                        (!empty($value['vehicle']) ? '"' . mysqli_real_escape_string($this->DB->db, $value['vehicle']) . '"' : 'null') . ', ' .
+                        (!empty($value['callsign']) ? '"' . mysqli_real_escape_string($this->DB->db, $value['callsign']) . '"' : 'null') . ', ' .
+                        (!empty($value['fullname']) ? '"' . mysqli_real_escape_string($this->DB->db, $value['fullname']) . '"' : 'null') . ')';
                 }
 
                 $this->DB->query('INSERT INTO dispatch_other_vehicle (dispatch_id, unit, vehicle_type_id, vehicle, callsign, fullname) VALUES ' . implode(', ', $sql) . ';');
@@ -841,8 +851,8 @@ class Dispatch extends Modul {
                 foreach ($unit_vehicles as $key => $value) {
                     $sql[] = '(' .
                         (int) $ids . ', ' .
-                        (!empty($value['unit_vehicle_id']) ? $value['unit_vehicle_id'] : 'null') . ', ' .
-                        (!empty($value['fullname']) ? $value['fullname'] : 'null') . ')';
+                        (!empty($value['unit_vehicle_id']) ? (int)$value['unit_vehicle_id'] : 'null') . ', ' .
+                        (!empty($value['fullname']) ? '"' . mysqli_real_escape_string($this->DB->db, $value['fullname']) . '"' : 'null') . ')';
                 }
 
                 $this->DB->query('INSERT INTO dispatch_unit_vehicle (dispatch_id, unit_vehicle_id, fullname) VALUES ' . implode(', ', $sql) . ';');

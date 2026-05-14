@@ -39,6 +39,9 @@ ErrorDocument 404 /404
 # no trailing slash
 RewriteRule ^(.+)/$ $1 [R=301,L]
 
+# email importer (Cron JOB)
+RewriteRule 	^import$	./cron.email_import.php [QSA,L]
+
 # Router Alarm
 #RewriteRule 	^alarm/([a-z0-9_-]+)(/?[a-z0-9_-]+)*$	./index.php?page=alarm/$1&link=$2 [QSA,L]
 RewriteRule 	^([a-z0-9_-]+)(/?[a-z0-9_-]+)*$	./index.php?page=alarm/$1&link=$2 [QSA,L]

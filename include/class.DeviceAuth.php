@@ -112,7 +112,7 @@ class DeviceAuth extends Modul {
 
         if ($session && $session['status'] === 'linked' && !empty($session['unit_id'])) {
             $refreshToken = bin2hex(random_bytes(32));
-            $refreshTokenHash = password_hash($refreshToken, PASSWORD_DEFAULT);
+            $refreshTokenHash = hash('sha256', $refreshToken);
 
             // Move to authorized table
             $query = 'INSERT INTO alarm_device_authorized (device_uuid, unit_id, device_name, refresh_token_hash)
@@ -193,7 +193,7 @@ class DeviceAuth extends Modul {
 
         $device = $this->DB->getRow($this->DB->query($query, __METHOD__));
 
-        if ($device && password_verify($refreshToken, $device['refresh_token_hash'])) {
+        if ($device && hash_equals($device['refresh_token_hash'], hash('sha256', $refreshToken))) {
             // Update last seen
             $this->DB->query('UPDATE alarm_device_authorized SET last_seen = NOW()
                               WHERE device_uuid = "' . mysqli_real_escape_string($this->DB->db, $deviceUuid) . '"');
