@@ -23,10 +23,10 @@ $unit_id = null;
 
 # ...................................................................
 # Access control logic
-$creds = $DeviceAuth->getRequestCredentials();
+$credentials = $DeviceAuth->getRequestCredentials();
 
-if (!empty($creds['uuid']) && !empty($creds['token'])) {
-    $unit_id = $DeviceAuth->validateDevice($creds['uuid'], $creds['token']);
+if (!empty($credentials['uuid']) && !empty($credentials['token'])) {
+    $unit_id = $DeviceAuth->validateDevice($credentials['uuid'], $credentials['token']);
 }
 
 # ...................................................................
