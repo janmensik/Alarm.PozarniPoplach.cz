@@ -15,7 +15,7 @@ require_once(__DIR__ . '/../../include/class.DeviceAuth.php');
 require_once(__DIR__ . '/../../include/class.Ad.php');
 
 if (!isset($Dispatch)) {
-	$Dispatch = new \PozarniPoplach\Dispatch($DB);
+    $Dispatch = new \PozarniPoplach\Dispatch($DB);
 }
 
 $DeviceAuth = new \PozarniPoplach\DeviceAuth($DB);
@@ -35,7 +35,7 @@ if (!empty($credentials['uuid']) && !empty($credentials['token'])) {
 if (empty($unit_id)) {
     http_response_code(401);
     $APPD->setData('OUTPUT_JSON', json_encode(['success' => false, 'error' => 'Unauthorized'], JSON_UNESCAPED_UNICODE));
-	return;
+    return;
 }
 
 # *******************************************************************
@@ -56,12 +56,14 @@ if (!empty($data) && isset($data['dispatched_at_ts']) && (time() - $data['dispat
     } else {
         // Fallback: load unit name directly if no dispatches exist
         $unit = $DB->getRow($DB->query("SELECT fullname FROM unit WHERE id = " . (int)$unit_id . " LIMIT 1"));
-        if ($unit) $unit_name = $unit['fullname'];
+        if ($unit) {
+            $unit_name = $unit['fullname'];
+        }
     }
 
     # lets load ad
     if (!isset($Ad)) {
-	    $Ad = new \PozarniPoplach\Ad($DB);
+        $Ad = new \PozarniPoplach\Ad($DB);
     }
     $ad = $Ad->getAd($unit_id);
 
@@ -70,7 +72,6 @@ if (!empty($data) && isset($data['dispatched_at_ts']) && (time() - $data['dispat
         'unit' => $unit_name,
         'ad' => $ad
     ];
-
 }
 
 # *******************************************************************

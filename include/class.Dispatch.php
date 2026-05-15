@@ -187,7 +187,8 @@ class Dispatch extends Modul {
         }
 
         # Google Maps Static URL
-        $dispatch['directions']['static_big_map'] = 'https://maps.googleapis.com/maps/api/staticmap?size=' . $display_width . 'x' . $display_height_map . '&scale=2&markers=color:red|' . $dispatch['gps_latitude'] . ',' . $dispatch['gps_longitude'] . '&key=' . $_ENV['GOOGLE_MAPS_API_KEY'] . ($dispatch['directions']['polyline'] ? '&path=color:0x0000ff|weight:5|enc:' . $dispatch['directions']['polyline'] : '');
+        $polyline_path = (isset($dispatch['directions']['polyline']) && $dispatch['directions']['polyline']) ? '&path=color:0x0000ff|weight:5|enc:' . $dispatch['directions']['polyline'] : '';
+        $dispatch['directions']['static_big_map'] = 'https://maps.googleapis.com/maps/api/staticmap?size=' . $display_width . 'x' . $display_height_map . '&scale=2&markers=color:red|' . $dispatch['gps_latitude'] . ',' . $dispatch['gps_longitude'] . '&key=' . $_ENV['GOOGLE_MAPS_API_KEY'] . $polyline_path;
 
         // remove plaindata
         unset($dispatch['plaindata']);

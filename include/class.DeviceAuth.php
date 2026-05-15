@@ -90,7 +90,7 @@ class DeviceAuth extends Modul {
      * @param string|null $deviceName Optional name for the device.
      * @return bool Success status.
      */
-    public function linkSessionToUnit(string $deviceCode, int $unitId, string $deviceName = null): bool {
+    public function linkSessionToUnit(string $deviceCode, int $unitId, ?string $deviceName = null): bool {
         $query = 'UPDATE alarm_device_session
                   SET status = "linked", unit_id = ' . intval($unitId) . ',
                       device_name = "' . mysqli_real_escape_string($this->DB->db, $deviceName) . '"
@@ -166,7 +166,7 @@ class DeviceAuth extends Modul {
         }
 
         $uuid = $headers['X-Device-Uuid'] ?? $_REQUEST['uuid'] ?? null;
-        
+
         $token = null;
         if (isset($headers['Authorization']) && preg_match('/Bearer\s+(.*)$/i', $headers['Authorization'], $matches)) {
             $token = $matches[1];

@@ -12,7 +12,7 @@ $APPD->setData('PAGE', 'alarm');
 require_once(__DIR__ . '/../../include/class.Dispatch.php');
 
 if (!isset($Dispatch)) {
-	$Dispatch = new \PozarniPoplach\Dispatch($DB);
+    $Dispatch = new \PozarniPoplach\Dispatch($DB);
 }
 
 # *******************************************************************
@@ -21,7 +21,7 @@ if (!isset($Dispatch)) {
 
 // Legacy pincode support (if needed for some old devices)
 if (!empty($_GET['pincode'])) {
-	$unit_id = $Dispatch->checkUnitPincode($_GET['pincode'], true);
+    $unit_id = $Dispatch->checkUnitPincode($_GET['pincode'], true);
     if ($unit_id) {
         $data = $Dispatch->getLastDispatch($unit_id);
         $data_parsed = $Dispatch->beautifulLastDispatch($data);

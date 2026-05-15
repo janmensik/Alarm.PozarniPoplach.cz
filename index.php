@@ -45,8 +45,9 @@ date_default_timezone_set('Europe/Prague');
 mb_internal_encoding("UTF-8");
 
 # rucni debug (pouze pokud neni ostry provoz)
-if ($_ENV['DEBUGGING'] == 1 && isset($_GET['debug']))
+if ($_ENV['DEBUGGING'] == 1 && isset($_GET['debug'])) {
     $_ENV['DEBUGGING'] = 2;
+}
 $APPD->setData('DEBUG_MODE', $_ENV['DEBUGGING']);
 
 # spusteni tridy Database
@@ -87,10 +88,11 @@ $Smarty->assign('FILTERS', $APPD->getFilters($APPD->getData('PAGE')));
 $Smarty->assign('DEBUG_sql_queries', $DB->messages);
 
 # prefix
-if ($APPD->getData('TYPE') == 'controller')
+if ($APPD->getData('TYPE') == 'controller') {
     $template_prefix = 'ctrl';
-else
+} else {
     $template_prefix = 'page';
+}
 
 if ($APPD->getData('API')) {
     header('Content-Type: application/json');

@@ -19,4 +19,3 @@ if (strpos($serverName, 'localhost') !== false && file_exists($root . '/.env.loc
     $dotenvLocal = Dotenv::createMutable($root, '.env.localhost');
     $dotenvLocal->load();
 }
-
