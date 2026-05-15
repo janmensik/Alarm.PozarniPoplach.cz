@@ -53,8 +53,6 @@ class Dispatch extends Modul {
      */
     public function getRandomDispatch(int|null $unit_id = null): array|null {
         return ($this->getDispatch($this->findRandomId($unit_id ? 'unit_id = "' . mysqli_real_escape_string($this->DB->db, trim($unit_id)) . '"' : null)));
-
-        return null;
     }
 
     # ...................................................................
