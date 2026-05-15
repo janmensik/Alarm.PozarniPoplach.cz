@@ -65,7 +65,7 @@ if (!empty($data) && isset($data['dispatched_at_ts']) && (time() - $data['dispat
     if (!isset($Ad)) {
         $Ad = new \PozarniPoplach\Ad($DB);
     }
-    $ad = $Ad->getAd($unit_id);
+    $ad = $Ad->getAdForDevice($credentials['uuid'], $unit_id);
 
     $data_parsed = [
         'dispatch_status' => 'peacetime',
