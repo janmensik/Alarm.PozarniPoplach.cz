@@ -55,10 +55,14 @@ if (!empty($data) && isset($data['dispatched_at_ts']) && (time() - $data['dispat
         $unit_name = $data['unit_fullname'];
     } else {
         // Fallback: load unit name directly if no dispatches exist
-        $unit = $DB->getRow($DB->query("SELECT fullname FROM unit WHERE id = " . (int)$unit_id . " LIMIT 1"));
-        if ($unit) {
+        $stmt = $DB->db->prepare("SELECT fullname FROM unit WHERE id = ? LIMIT 1");
+        $stmt->bind_param("i", $unit_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($unit = $result->fetch_assoc()) {
             $unit_name = $unit['fullname'];
         }
+        $stmt->close();
     }
 
     # lets load ad
