@@ -52,6 +52,7 @@
             {/if}
 
             <form method="post" action="{$BASE_URL}/activate" class="flex flex-col gap-8">
+                <input type="hidden" name="csrf_token" value="{$csrf_token}">
                 <div class="relative">
                     <label class="block text-xs font-black uppercase tracking-widest text-tertiary mb-4 text-center">Aktivační kód</label>
                     <input type="text" name="manual_code" maxlength="8"
@@ -73,6 +74,7 @@
             {/if}
 
             <form method="post" action="{$BASE_URL}/activate?code={$device_code}" class="flex flex-col gap-6">
+                <input type="hidden" name="csrf_token" value="{$csrf_token}">
                 <div>
                     <label class="block text-xs font-black uppercase tracking-widest text-tertiary mb-2">Název zařízení:</label>
                     <input type="text" name="device_name"
