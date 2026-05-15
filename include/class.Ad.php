@@ -121,16 +121,30 @@ class Ad extends Modul {
 
     # ...................................................................
     public function getAd(int $unit_id): array|null {
-        # Conditions: Only Active ads
-        $where = array('ad.status="active"');
+        $query = "SELECT id, name, type, target_link, status, image_url, image_filename
+                  FROM alarm_ad
+                  WHERE id IN (SELECT advert_id FROM alarm_ad_unit WHERE unit_id = '{$unit_id}')
+                  AND status = 'active'
+                  AND (valid_from IS NULL OR valid_from <= NOW())
+                  AND (valid_to IS NULL OR valid_to >= NOW())";
+        $ads = $this->DB->getAllRows($this->DB->query($query));
 
-        $ad = $this->getRandom($where, 8, 10, null, 1);
+        if (empty($ads)) {
+            # Conditions: Only Active ads
+            $where = array('ad.status="active"');
 
-        if (!empty($ad)) {
-            return $this->getAdData($ad[0]['id'], $unit_id, true);
+            $ad = $this->getRandom($where, 8, 10, null, 1);
+
+            if (!empty($ad)) {
+                return $this->getAdData($ad[0]['id'], $unit_id, true);
+            }
+
+            return null;
         }
 
-        return null;
+        // We pick a random ad from the unit-specific ads
+        $adId = $ads[array_rand($ads)]['id'];
+        return $this->getAdData($adId, $unit_id, true);
     }
 
     # ...................................................................

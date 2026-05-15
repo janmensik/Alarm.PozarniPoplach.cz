@@ -10,3 +10,6 @@
 .env.localhost
 data.txt
 dashboard.html
+
+# phpunit cache
+.phpunit.cache/
