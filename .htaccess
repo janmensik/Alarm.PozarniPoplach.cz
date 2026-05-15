@@ -2,6 +2,15 @@ RewriteEngine On
 
 RewriteBase /
 
+# Security: Deny access to sensitive files
+<FilesMatch "^\.env|composer\.(json|lock)|package(-lock)?\.json|AUTH_FLOW\.md|CHANGELOG\.md|design\.md|README\.md|LICENSE">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Security: Deny access to sensitive directories
+RewriteRule ^(tests|vendor|include|tpl|view|lib|node_modules|cache)\/.*$ - [F,L]
+
 # Komprese
 <IfModule mod_deflate.c>
 	<FilesMatch "\.(js|css|svg)$">
