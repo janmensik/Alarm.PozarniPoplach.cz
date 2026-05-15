@@ -809,7 +809,7 @@ class Dispatch extends Modul {
         unset($set['unit_vehicles']);
 
         # save regular set data
-        if (@count($set) >= 1) {
+        if (is_countable($set) && count($set) >= 1) {
             $next_id = parent::set($set, $ids, $special);
         }
 
