@@ -50,4 +50,11 @@ namespace {
         
         return $APPD;
     }
+
+    function clearAppData() {
+        $refl = new ReflectionClass(\Janmensik\Jmlib\AppData::class);
+        $instance = $refl->getProperty('instance');
+        $instance->setValue(null, null);
+        return \Janmensik\Jmlib\AppData::getInstance();
+    }
 }

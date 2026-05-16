@@ -44,6 +44,9 @@
         }
       }
     </style>
+
+    <!-- Reloads the page every 24 hours -->
+    <meta http-equiv="refresh" content="86400">
   </head>
   <body class="bg-surface text-on-surface overflow-hidden h-screen flex flex-col" x-data="alarmSystem('{$BASE_URL}/api/dispatch?v=1', '{$BASE_URL}/api/auth/device')">
     <!-- AUTHENTICATION SCREEN -->

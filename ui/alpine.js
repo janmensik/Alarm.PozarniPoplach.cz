@@ -10,6 +10,7 @@ function alarmSystem(apiUrl, authBaseUrl) {
     isOnline: true,
     connectionError: null,
     isSyncing: false,
+    appVersion: null,
 
     // Auth State
     isAuthorized: false,
@@ -42,6 +43,28 @@ function alarmSystem(apiUrl, authBaseUrl) {
       }
 
       setInterval(() => this.updateTimer(), 1000);
+
+      // Check for updates every 10 minutes (600,000 ms)
+      this.checkUpdate();
+      setInterval(() => this.checkUpdate(), 600000);
+    },
+
+    async checkUpdate() {
+      try {
+        const response = await fetch(`${window.location.origin}/api/version?t=${Date.now()}`);
+        const result = await response.json();
+
+        if (result.success) {
+          if (!this.appVersion) {
+            this.appVersion = result.version;
+          } else if (this.appVersion !== result.version) {
+            console.log("New version detected, reloading...");
+            window.location.reload(true);
+          }
+        }
+      } catch (e) {
+        // Ignore network errors
+      }
     },
 
     async validateAndStart() {

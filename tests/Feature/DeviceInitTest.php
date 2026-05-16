@@ -5,12 +5,7 @@ use Janmensik\Jmlib\Database;
 use PozarniPoplach\DeviceAuth;
 
 beforeEach(function () {
-    // Reset AppData singleton
-    $refl = new ReflectionClass(AppData::class);
-    $instance = $refl->getProperty('instance');
-    $instance->setValue(null, null);
-    
-    $this->appData = AppData::getInstance();
+    clearAppData();
     
     // Create a mock for Database
     $this->db = $this->createMock(Database::class);
@@ -29,7 +24,7 @@ test('device-init returns error if uuid is missing', function () {
     $_POST = [];
     $_GET = [];
     
-    $APPD = $this->appData;
+    $APPD = AppData::getInstance();
     $DB = $this->db;
     
     include __DIR__ . '/../../view/api/device-init.php';
@@ -43,7 +38,7 @@ test('device-init returns error if uuid is missing', function () {
 test('device-init initializes session with uuid', function () {
     $_POST = ['uuid' => 'test-uuid'];
     
-    $APPD = $this->appData;
+    $APPD = AppData::getInstance();
     $DB = $this->db;
     
     // We expect a query to cleanup and then an insert
