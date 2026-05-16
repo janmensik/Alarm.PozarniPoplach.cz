@@ -30,8 +30,23 @@
   [x-cloak] { display: none !important; }
 
   .scanline {
-    background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.1) 50%);
-    background-size: 100% 4px;
+    width: 100%;
+    height: 100px;
+    z-index: 5;
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(255, 255, 255, 0.2) 50%, rgba(0, 0, 0, 0) 100%);
+    opacity: 0.1;
+    position: absolute;
+    bottom: 100%;
+    animation: scanline 10s linear infinite;
     pointer-events: none;
+  }
+
+  @keyframes scanline {
+    0% {
+      bottom: 100%;
+    }
+    100% {
+      bottom: -100px;
+    }
   }
 }
