@@ -52,7 +52,13 @@ class Dispatch extends Modul {
      *
      */
     public function getRandomDispatch(int|null $unit_id = null): array|null {
-        return ($this->getDispatch($this->findRandomId($unit_id ? 'unit_id = "' . mysqli_real_escape_string($this->DB->db, trim($unit_id)) . '"' : null)));
+        $data = $this->getRandom($unit_id ? 'dis.unit_id = "' . mysqli_real_escape_string($this->DB->db, trim($unit_id)) . '"' : null, null, 100, null, 1);
+
+        if (!empty($data) && is_array($data) && !empty($data[0]) && is_array($data[0])) {
+            return $this->appendVehiclesToDispatch($data[0]);
+        }
+
+        return null;
     }
 
     # ...................................................................
@@ -66,7 +72,8 @@ class Dispatch extends Modul {
         $data = $this->get(($unit_id ? 'dis.unit_id = "' . intval($unit_id) . '"' : null), 'dis.dispatched DESC', 1, null, true);
 
         if (!empty($data) && is_array($data) && !empty($data[0]) && is_array($data[0]) && !empty($data[0]['id'])) {
-            return $this->getDispatch(intval($data[0]['id']));
+            // Optimization: reuse loaded row instead of repeating heavy query in getDispatch
+            return $this->appendVehiclesToDispatch($data[0]);
         }
 
         return null;
@@ -88,18 +95,27 @@ class Dispatch extends Modul {
         $data = $this->getId(intval($dispatch_id));
 
         if (!empty($data) && is_array($data)) {
-            // load unit vehicles
-            // TBD
-            $data['unit_vehicles'] = $this->DB->getAllRows($this->DB->query('SELECT duv.fullname, uv.*, vt.type AS vehicle_type, vt.code AS vehicle_type_code, vt.icon AS vehicle_type_icon FROM dispatch_unit_vehicle duv LEFT JOIN unit_vehicle uv ON uv.id = duv.unit_vehicle_id LEFT JOIN vehicle_type vt ON uv.vehicle_type_id = vt.id WHERE duv.dispatch_id = "' . mysqli_real_escape_string($this->DB->db, trim($data['id'])) . '"', __METHOD__ . ' get Unit vehicles for dispatch'));
-
-            // load other vehicles
-            // TBD
-            $data['other_vehicles'] = $this->DB->getAllRows($this->DB->query('SELECT dov.*, vt.type AS vehicle_type, vt.code AS vehicle_type_code, vt.icon AS vehicle_type_icon FROM dispatch_other_vehicle dov LEFT JOIN vehicle_type vt ON dov.vehicle_type_id = vt.id WHERE dov.dispatch_id = "' . mysqli_real_escape_string($this->DB->db, trim($data['id'])) . '"', __METHOD__ . ' get Other vehicles for dispatch'));
-
-            return $data;
+            return $this->appendVehiclesToDispatch($data);
         }
 
         return null; // Return null if no match is found
+    }
+
+    # ...................................................................
+    /**
+     * Appends unit vehicles and other vehicles to an existing dispatch data array.
+     *
+     * @param array $data Existing full row payload of a dispatch
+     * @return array Complete dispatch payload with vehicles attached
+     */
+    private function appendVehiclesToDispatch(array $data): array {
+        // load unit vehicles
+        $data['unit_vehicles'] = $this->DB->getAllRows($this->DB->query('SELECT duv.fullname, uv.*, vt.type AS vehicle_type, vt.code AS vehicle_type_code, vt.icon AS vehicle_type_icon FROM dispatch_unit_vehicle duv LEFT JOIN unit_vehicle uv ON uv.id = duv.unit_vehicle_id LEFT JOIN vehicle_type vt ON uv.vehicle_type_id = vt.id WHERE duv.dispatch_id = "' . mysqli_real_escape_string($this->DB->db, trim($data['id'])) . '"', __METHOD__ . ' get Unit vehicles for dispatch'));
+
+        // load other vehicles
+        $data['other_vehicles'] = $this->DB->getAllRows($this->DB->query('SELECT dov.*, vt.type AS vehicle_type, vt.code AS vehicle_type_code, vt.icon AS vehicle_type_icon FROM dispatch_other_vehicle dov LEFT JOIN vehicle_type vt ON dov.vehicle_type_id = vt.id WHERE dov.dispatch_id = "' . mysqli_real_escape_string($this->DB->db, trim($data['id'])) . '"', __METHOD__ . ' get Other vehicles for dispatch'));
+
+        return $data;
     }
 
     # ...................................................................

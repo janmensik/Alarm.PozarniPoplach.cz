@@ -1,0 +1,3 @@
+## 2024-05-18 - Modul Base Query Redundancy Optimization
+**Learning:** The custom `Janmensik\Jmlib\Modul` ORM class executes the full `$sql_base` query (which may include multiple heavy `LEFT JOIN` operations) whenever methods like `get()`, `getId()`, or `getRandom()` are called. This means fetching a row and then using its `id` to query relations via another method that also calls `getId()` will execute the exact same heavy query multiple times sequentially.
+**Action:** When adding relations to a base model, pass the already-loaded data array to the relation-appending method rather than passing just the `id` and letting the method re-query the base record.
