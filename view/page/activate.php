@@ -14,6 +14,21 @@ $device_code = $_GET['code'] ?? $_POST['code'] ?? $_POST['manual_code'] ?? null;
 $session = null;
 $error = null;
 
+// Initialize CSRF Token
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$csrf_token = $_SESSION['csrf_token'];
+
+// Validate CSRF token for POST requests
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (empty($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        $error = 'Neplatný bezpečnostní token (CSRF). Zkuste to prosím znovu.';
+        // Clear POST data so we don't process further
+        $_POST = [];
+    }
+}
+
 if (!empty($device_code)) {
     // Normalize code (uppercase, trim)
     $device_code = strtoupper(trim($device_code));
@@ -41,6 +56,7 @@ $Smarty->assign('units', $units);
 $Smarty->assign('device_code', $device_code);
 $Smarty->assign('session_data', $session);
 $Smarty->assign('error', $error);
+$Smarty->assign('csrf_token', $csrf_token);
 
 // If no session and no success, we are in "Manual Entry" mode
 $Smarty->assign('manual_mode', !$session && !isset($Smarty->tpl_vars['success']));
