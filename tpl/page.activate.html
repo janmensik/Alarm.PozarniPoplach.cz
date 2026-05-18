@@ -47,7 +47,7 @@
             {if $error}
                 <div class="bg-error/10 border-l-4 border-error p-4 mb-8 text-error flex items-center gap-3">
                     <i class="fa-solid fa-triangle-exclamation"></i>
-                    <span class="font-bold">{$error}</span>
+                    <span class="font-bold">{$error|escape}</span>
                 </div>
             {/if}
 
@@ -68,11 +68,11 @@
             {if $error}
                 <div class="bg-error/10 border-l-4 border-error p-4 mb-6 text-error flex items-center gap-3">
                     <i class="fa-solid fa-triangle-exclamation"></i>
-                    <span class="font-bold">{$error}</span>
+                    <span class="font-bold">{$error|escape}</span>
                 </div>
             {/if}
 
-            <form method="post" action="{$BASE_URL}/activate?code={$device_code}" class="flex flex-col gap-6">
+            <form method="post" action="{$BASE_URL}/activate?code={$device_code|escape}" class="flex flex-col gap-6">
                 <div>
                     <label class="block text-xs font-black uppercase tracking-widest text-tertiary mb-2">Název zařízení:</label>
                     <input type="text" name="device_name"
@@ -87,7 +87,7 @@
                             required>
                         <option value="" disabled selected>-- Vyberte jednotku --</option>
                         {foreach from=$units item=unit}
-                            <option value="{$unit.id}">{$unit.fullname}</option>
+                            <option value="{$unit.id|escape}">{$unit.fullname|escape}</option>
                         {/foreach}
                     </select>
                 </div>
@@ -99,7 +99,7 @@
 
             <div class="mt-10 pt-8 border-t border-outline-variant/20 flex flex-col items-center text-tertiary font-mono text-xs uppercase">
                 <span class="mb-2">ID zařízení:</span>
-                <div class="tracking-widest">{$session_data.device_uuid}</div>
+                <div class="tracking-widest">{$session_data.device_uuid|escape}</div>
             </div>
         {/if}
     </div>
