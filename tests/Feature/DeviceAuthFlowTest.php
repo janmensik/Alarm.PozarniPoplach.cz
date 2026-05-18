@@ -4,12 +4,7 @@ use Janmensik\Jmlib\AppData;
 use Janmensik\Jmlib\Database;
 
 beforeEach(function () {
-    // Reset AppData singleton
-    $refl = new ReflectionClass(AppData::class);
-    $instance = $refl->getProperty('instance');
-    $instance->setValue(null, null);
-    
-    $this->appData = AppData::getInstance();
+    clearAppData();
     
     // Create a mock for Database
     $this->db = $this->createMock(Database::class);
@@ -33,7 +28,7 @@ test('device-poll returns status', function () {
         ->method('getRow')
         ->willReturn(['status' => 'pending', 'unit_id' => null, 'device_uuid' => 'test-uuid']);
         
-    $APPD = $this->appData;
+    $APPD = AppData::getInstance();
     $DB = $this->db;
     
     include __DIR__ . '/../../view/api/device-poll.php';
@@ -66,7 +61,7 @@ test('device-authorize completes authorization', function () {
             'device_name' => 'Test Kiosk'
         ]);
         
-    $APPD = $this->appData;
+    $APPD = AppData::getInstance();
     $DB = $this->db;
     
     include __DIR__ . '/../../view/api/device-authorize.php';
@@ -91,7 +86,7 @@ test('device-validate validates token', function () {
             'refresh_token_hash' => hash('sha256', 'test-token')
         ]);
         
-    $APPD = $this->appData;
+    $APPD = AppData::getInstance();
     $DB = $this->db;
     
     include __DIR__ . '/../../view/api/device-validate.php';

@@ -4,12 +4,7 @@ use Janmensik\Jmlib\AppData;
 use Janmensik\Jmlib\Database;
 
 beforeEach(function () {
-    // Reset AppData singleton
-    $refl = new ReflectionClass(AppData::class);
-    $instance = $refl->getProperty('instance');
-    $instance->setValue(null, null);
-    
-    $this->appData = AppData::getInstance();
+    clearAppData();
     
     // Create a mock for Database
     $this->db = $this->createMock(Database::class);
@@ -26,7 +21,7 @@ test('dispatch returns 401 if unauthorized', function () {
     $_SERVER['HTTP_X_DEVICE_UUID'] = '';
     $_SERVER['HTTP_X_DEVICE_TOKEN'] = '';
     
-    $APPD = $this->appData;
+    $APPD = AppData::getInstance();
     $DB = $this->db;
     
     include __DIR__ . '/../../view/api/dispatch.php';
@@ -41,7 +36,7 @@ test('dispatch returns peacetime data when no recent dispatch', function () {
     $_SERVER['HTTP_X_DEVICE_UUID'] = 'test-uuid';
     $_SERVER['HTTP_X_DEVICE_TOKEN'] = 'test-token';
     
-    $APPD = $this->appData;
+    $APPD = AppData::getInstance();
     $DB = $this->db;
     
     $this->db->expects($this->any())
@@ -81,7 +76,7 @@ test('dispatch returns alarm data when recent dispatch exists', function () {
     $_ENV['GOOGLE_MAPS_API_KEY'] = 'fake-key';
     $_ENV['MAPBOX_API_KEY'] = 'fake-key';
     
-    $APPD = $this->appData;
+    $APPD = AppData::getInstance();
     $DB = $this->db;
     
     $recent_ts = time() - 60;
