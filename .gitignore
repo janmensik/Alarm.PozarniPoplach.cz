@@ -4,6 +4,7 @@
 
 # cache files
 /cache/
+/.phpunit.cache/
 
 # sensitive files
 .env

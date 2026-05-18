@@ -174,6 +174,14 @@ class DeviceAuth extends Modul {
             $token = $headers['X-Device-Token'];
         }
 
+        // Fallback for custom headers if server processes them differently
+        if (!$uuid && isset($_SERVER['HTTP_DEVICE_UUID'])) {
+            $uuid = $_SERVER['HTTP_DEVICE_UUID'];
+        }
+        if (!$token && isset($_SERVER['HTTP_DEVICE_TOKEN'])) {
+            $token = $_SERVER['HTTP_DEVICE_TOKEN'];
+        }
+
         return [
             'uuid' => $uuid,
             'token' => $token

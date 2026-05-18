@@ -53,8 +53,6 @@ class Dispatch extends Modul {
      */
     public function getRandomDispatch(int|null $unit_id = null): array|null {
         return ($this->getDispatch($this->findRandomId($unit_id ? 'unit_id = "' . mysqli_real_escape_string($this->DB->db, trim($unit_id)) . '"' : null)));
-
-        return null;
     }
 
     # ...................................................................
@@ -228,6 +226,7 @@ class Dispatch extends Modul {
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => 2,
             CURLOPT_FAILONERROR => false,
+            CURLOPT_SSL_VERIFYPEER => true,
         ]);
 
         $resp = curl_exec($ch);
@@ -809,7 +808,7 @@ class Dispatch extends Modul {
         unset($set['unit_vehicles']);
 
         # save regular set data
-        if (@count($set) >= 1) {
+        if (is_countable($set) && count($set) >= 1) {
             $next_id = parent::set($set, $ids, $special);
         }
 
