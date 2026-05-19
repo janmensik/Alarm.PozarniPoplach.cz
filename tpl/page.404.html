@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html class="dark" lang="cs">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>404 Stránka nenalezena - Požární poplach</title>
+    <link rel="icon" href="{$BASE_URL}/favicon.svg" type="image/svg+xml" />
+
+    <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="{$BASE_URL}/ui/alarm.dist.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@100..900&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <script src="https://kit.fontawesome.com/3208d26f35.js" crossorigin="anonymous"></script>
+</head>
+<body class="bg-surface text-on-surface flex flex-col items-center justify-center min-h-screen p-6">
+
+    <div class="max-w-xl w-full bg-surface-container-high p-8 md:p-12 border-t-8 border-primary shadow-2xl">
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-black uppercase tracking-tighter text-primary mb-2">404</h1>
+            <p class="text-lg font-light text-tertiary">Stránka nenalezena</p>
+        </div>
+
+        <div class="flex flex-col items-center py-8">
+            <div class="w-20 h-20 bg-error/20 text-error rounded-full flex items-center justify-center mb-6">
+                <i class="fa-solid fa-map-location-dot text-4xl"></i>
+            </div>
+            
+            <p class="text-tertiary mb-8 text-center leading-relaxed text-xl">
+                Požadovaná stránka neexistuje nebo byla přesunuta.
+            </p>
+            
+            <a href="{$BASE_URL}/" class="bg-primary text-white px-8 py-4 font-black uppercase tracking-widest hover:bg-primary-dim transition-colors shadow-lg">
+                Zpět na hlavní panel
+            </a>
+        </div>
+    </div>
+
+    <footer class="mt-8 text-tertiary font-mono text-[10px] uppercase tracking-widest">
+        &copy; {$smarty.now|date_format:"%Y"} Požární poplach
+    </footer>
+
+</body>
+</html>

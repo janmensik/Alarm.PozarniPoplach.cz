@@ -115,8 +115,7 @@ if ($APPD->getData('API')) {
         echo ($APPD->getData('OUTPUT_JSON'));
     }
 } else {
-    // $Smarty->display($template_prefix . '.' . $APPD->getData('PAGE') . '.html');
-    $Smarty->display($template_prefix . '.alarm.html');
+    $Smarty->display($template_prefix . '.' . ($APPD->getData('PAGE') ?: 'alarm') . '.html');
 }
 
 $APPD->clearMessages();

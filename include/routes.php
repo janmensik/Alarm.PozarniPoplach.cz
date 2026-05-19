@@ -39,6 +39,16 @@ $router->match('GET|POST', '/activate', function () use ($Smarty, $DB) {
     include('./view/page/activate.php');
 });
 
+# Redirection Service (Goto)
+$router->get('/goto/(\w+)/(\d+)', function ($type, $id) use ($DB) {
+    $APPD = AppData::getInstance();
+    $APPD->setData('PAGE', 'goto');
+    $APPD->setData('GOTO_TYPE', $type);
+    $APPD->setData('GOTO_ID', $id);
+
+    include('./view/page/goto.php');
+});
+
 # *******************************************************************
 
 # API

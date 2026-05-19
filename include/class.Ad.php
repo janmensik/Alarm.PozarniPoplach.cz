@@ -101,6 +101,9 @@ class Ad extends Modul {
         $data = $ad[0];
 
         if ($data['target_link']) {
+            $baseUrl = \Janmensik\Jmlib\AppData::getInstance()->getData('BASE_URL') ?: '';
+            $redirectUrl = rtrim($baseUrl, '/') . '/goto/ad/' . $adId;
+
             if (!empty($data['qr_code_svg'])) {
                 $data['qr_code_data'] = $data['qr_code_svg'];
             } else {
@@ -112,7 +115,7 @@ class Ad extends Modul {
                     'svgViewBox'   => true,
                 ]);
 
-                $data['qr_code_data'] = (new \chillerlan\QRCode\QRCode($options))->render($data['target_link']);
+                $data['qr_code_data'] = (new \chillerlan\QRCode\QRCode($options))->render($redirectUrl);
 
                 // Save to cache
                 $this->DB->query('UPDATE advert SET qr_code_svg = "' . mysqli_real_escape_string($this->DB->db, $data['qr_code_data']) . '" WHERE id = ' . intval($adId));
@@ -145,5 +148,20 @@ class Ad extends Modul {
     public function setAdHit(int $unit_id, int $advert_id): void {
         # add advert view +1 hit
         $this->DB->query('INSERT INTO advert_hit (advert_id, unit_id, display_count) VALUES ("' . $advert_id . '", "' . $unit_id . '", 1) ON DUPLICATE KEY UPDATE display_count = display_count + 1, last_displayed_at = CURRENT_TIMESTAMP;');
+    }
+
+    # ...................................................................
+    /**
+     * Log a link click (redirection) hit.
+     */
+    public function logLinkHit(int $adId): void {
+        // Since we don't have unit_id context in the goto link easily without extra params,
+        // we update the global counter if we use a simplified schema,
+        // but the requirements say advert_hit table which is per-unit.
+        // For now, we update the first unit record or implement a general counter.
+        // Given the prompt "it will count into SQL table advert_hit.link_count +1",
+        // and that table uses (advert_id, unit_id) as key, I'll update all units for this ad
+        // or just ensure we have at least one record.
+        $this->DB->query('UPDATE advert_hit SET link_count = link_count + 1 WHERE advert_id = ' . intval($adId));
     }
 }
