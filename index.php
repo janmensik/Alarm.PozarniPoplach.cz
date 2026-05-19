@@ -19,7 +19,20 @@ use Janmensik\Jmlib\Modul;
 $APPD = AppData::getInstance();
 
 $APPD->setData('BASE_URL', getenv('ABSOLUTE_URL'));
-$APPD->setData('APP', $_ENV + $_SERVER); // Merge what we can, but mostly use getenv
+
+// Merge what we can, but filter out sensitive data using a negative list
+$raw_app_data = $_ENV + $_SERVER;
+$filtered_app_data = array_filter($raw_app_data, function ($key) {
+    $block_list = ['PASSWORD', 'API_KEY', 'SECRET']; // Expand this negative list as needed
+    foreach ($block_list as $blocked) {
+        if (stripos($key, $blocked) !== false) {
+            return false; // Exclude if key contains blocked string (case-insensitive)
+        }
+    }
+    return true;
+}, ARRAY_FILTER_USE_KEY);
+
+$APPD->setData('APP', $filtered_app_data);
 $APPD->setData('SOURCE', 'alarm');
 
 # ...................................................................

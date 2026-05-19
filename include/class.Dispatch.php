@@ -471,8 +471,9 @@ class Dispatch extends Modul {
             }
         }
 
+        // Prevent XPath Injection by stripping double quotes from the unit name
         // Unit Vehicles (can be a list)
-        $unitVehiclesNode = $xpath->query('//text()[contains(., "TECHNIKA ' . $data['unit'] . ':")]/following-sibling::big[1]')->item(0);
+        $unitVehiclesNode = $xpath->query('//text()[contains(., "TECHNIKA ' .str_replace('"', '', (string)$data['unit']) . ':")]/following-sibling::big[1]')->item(0);
         if ($unitVehiclesNode) {
             $innerHTML = '';
             foreach ($unitVehiclesNode->childNodes as $child) {
