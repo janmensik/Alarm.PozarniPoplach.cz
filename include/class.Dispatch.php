@@ -676,6 +676,26 @@ class Dispatch extends Modul {
 
         // Link unit vehicles
         if (!empty($data['unit_vehicles'])) {
+            // Pre-fetch all unit vehicles to prevent N+1 queries
+            $unit_vehicles_map = [];
+            if (!empty($data['unit_id'])) {
+                $call_signs = [];
+                foreach ($data['unit_vehicles'] as $vehicle) {
+                    if (!empty($vehicle['callsign'])) {
+                        $call_signs[] = '"' . mysqli_real_escape_string($this->DB->db, trim($vehicle['callsign'])) . '"';
+                    }
+                }
+                if (!empty($call_signs)) {
+                    $query = 'SELECT uv.* FROM unit_vehicle uv WHERE uv.unit_id = "' . mysqli_real_escape_string($this->DB->db, trim($data['unit_id'])) . '" AND uv.callsign IN (' . implode(',', array_unique($call_signs)) . ')';
+                    $fetched_vehicles = $this->DB->getAllRows($this->DB->query($query, __METHOD__ . ' get Unit vehicles batch'));
+                    if (!empty($fetched_vehicles) && is_array($fetched_vehicles)) {
+                        foreach ($fetched_vehicles as $fv) {
+                            $unit_vehicles_map[$fv['callsign']] = $fv;
+                        }
+                    }
+                }
+            }
+
             foreach ($data['unit_vehicles'] as $key => $vehicle) {
                 // Link vehicle type
                 if (!empty($vehicle['vehicle_type_code']) && isset($this->vehicle_types[$vehicle['vehicle_type_code']])) {
@@ -686,9 +706,9 @@ class Dispatch extends Modul {
 
                 // Link Unit vehicle ID if exists
                 if (!empty($data['unit_id']) && !empty($vehicle['callsign'])) {
-                    $unit_vehicle = $this->DB->getRow($this->DB->query('SELECT uv.* FROM unit_vehicle uv WHERE uv.unit_id = "' . mysqli_real_escape_string($this->DB->db, trim($data['unit_id']))  . '" AND uv.callsign = "' . mysqli_real_escape_string($this->DB->db, trim($vehicle['callsign'])) . '" LIMIT 1', __METHOD__ . ' get Unit vehicle'));
-
-                    if (!empty($unit_vehicle) && is_array($unit_vehicle) && is_array($data['unit_vehicles'][$key])) {
+                    $callsign_trimmed = trim($vehicle['callsign']);
+                    if (isset($unit_vehicles_map[$callsign_trimmed]) && is_array($data['unit_vehicles'][$key])) {
+                        $unit_vehicle = $unit_vehicles_map[$callsign_trimmed];
                         $data['unit_vehicles'][$key]['unit_vehicle_id'] = $unit_vehicle['id'];
                         $data['unit_vehicles'][$key]['callsign'] = $unit_vehicle['callsign'];
                         $data['unit_vehicles'][$key]['name'] = $unit_vehicle['name'];
