@@ -6,13 +6,6 @@ namespace {
     if (!defined('TESTING')) {
         define('TESTING', true);
     }
-
-    if (!class_exists('AppData')) {
-        class_alias(\Janmensik\Jmlib\AppData::class, 'AppData');
-    }
-    if (!class_exists('Modul')) {
-        class_alias(\Janmensik\Jmlib\Modul::class, 'Modul');
-    }
 }
 
 namespace PozarniPoplach {

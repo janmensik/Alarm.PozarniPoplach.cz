@@ -10,9 +10,8 @@ require_once(__DIR__ . '/inc.startup.php');
 // require_once(__DIR__ . '/lib/functions/function.pagination.php'); # pagination
 
 use Janmensik\Jmlib\Database;
-// Alias AppData to global namespace for backward compatibility
-class_alias(\Janmensik\Jmlib\AppData::class, 'AppData');
-class_alias(\Janmensik\Jmlib\Modul::class, 'Modul');
+use Janmensik\Jmlib\AppData;
+use Janmensik\Jmlib\Modul;
 
 # *******************************************************************
 # GLOBAL APPDATA

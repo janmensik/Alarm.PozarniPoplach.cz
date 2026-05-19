@@ -7,9 +7,10 @@
     "lib": "lib"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "phpcbf include view index.php cron.email_import.php inc.smarty.php inc.startup.php && vendor\\bin\\pest",
     "dev": "npx @tailwindcss/cli -i ./ui/alarm.css -o ./ui/alarm.dist.css --watch",
-    "build": "npx @tailwindcss/cli -i ./ui/alarm.css -o ./ui/alarm.dist.css --minify"
+    "build": "npx @tailwindcss/cli -i ./ui/alarm.css -o ./ui/alarm.dist.css --minify",
+    "dev:minify": "npx @tailwindcss/cli -i ./ui/alarm.css -o ./ui/alarm.dist.css --watch --minify"
   },
   "keywords": [],
   "author": "",

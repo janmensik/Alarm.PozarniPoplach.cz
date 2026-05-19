@@ -7,12 +7,10 @@ require_once(__DIR__ . '/inc.startup.php');
 
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 
-// require_once(__DIR__ . '/lib/functions/function.parseFloat.php'); # prevod "minuly mesic" na time interval
 
 use Janmensik\Jmlib\Database;
-// Alias AppData to global namespace for backward compatibility
-class_alias(\Janmensik\Jmlib\AppData::class, 'AppData');
-class_alias(\Janmensik\Jmlib\Modul::class, 'Modul');
+use Janmensik\Jmlib\AppData;
+use Janmensik\Jmlib\Modul;
 
 require_once(__DIR__ . '/include/class.Dispatch.php');
 
