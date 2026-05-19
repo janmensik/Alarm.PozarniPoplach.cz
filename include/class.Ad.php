@@ -6,7 +6,7 @@ use Janmensik\Jmlib\Modul;
 use Janmensik\Jmlib\Database;
 
 class Ad extends Modul {
-    protected $sql_base = 'SELECT SQL_CALC_FOUND_ROWS ad.id, ad.status, ad.banner_image_url, ad.target_link, ad.ad_text, ad.promo_code, adc.name, IFNULL(SUM(adh.display_count), 0) AS display_count_total FROM advert ad JOIN advertiser adc ON ad.advertiser_id=adc.id LEFT JOIN advert_hit adh ON ad.id=adh.advert_id GROUP BY ad.id'; # zaklad SQL dotazu
+    protected $sql_base = 'SELECT SQL_CALC_FOUND_ROWS ad.id, ad.status, ad.banner_image_url, ad.target_link, ad.ad_text, ad.promo_code, ad.qr_code_svg, adc.name, IFNULL(SUM(adh.display_count), 0) AS display_count_total FROM advert ad JOIN advertiser adc ON ad.advertiser_id=adc.id LEFT JOIN advert_hit adh ON ad.id=adh.advert_id GROUP BY ad.id'; # zaklad SQL dotazu
     protected $sql_update = 'UPDATE advert ad'; # zaklad SQL dotazu - UPDATE
     protected $sql_insert = 'INSERT INTO advert'; # zaklad SQL dotazu - INSERT
     protected $sql_table = 'ad';
@@ -35,9 +35,9 @@ class Ad extends Modul {
     public function getAdForDevice(string $deviceUuid, int $unitId): array|null {
         // 1. Fetch current state and configuration for this device
         $device = $this->DB->getRow($this->DB->query(
-            'SELECT ad_probability, ad_sticky_duration, current_ad_id, ad_expires_at 
-             FROM alarm_device_authorized 
-             WHERE device_uuid = "' . mysqli_real_escape_string($this->DB->db, $deviceUuid) . '" 
+            'SELECT ad_probability, ad_sticky_duration, current_ad_id, ad_expires_at
+             FROM alarm_device_authorized
+             WHERE device_uuid = "' . mysqli_real_escape_string($this->DB->db, $deviceUuid) . '"
              LIMIT 1'
         ));
 
@@ -73,9 +73,9 @@ class Ad extends Modul {
 
         // 4. Persist the new state
         $this->DB->query(
-            'UPDATE alarm_device_authorized 
-             SET current_ad_id = ' . ($newAdId ? intval($newAdId) : 'NULL') . ', 
-                 ad_expires_at = "' . $expiresAt . '" 
+            'UPDATE alarm_device_authorized
+             SET current_ad_id = ' . ($newAdId ? intval($newAdId) : 'NULL') . ',
+                 ad_expires_at = "' . $expiresAt . '"
              WHERE device_uuid = "' . mysqli_real_escape_string($this->DB->db, $deviceUuid) . '"'
         );
 
@@ -101,15 +101,23 @@ class Ad extends Modul {
         $data = $ad[0];
 
         if ($data['target_link']) {
-            $options = new \chillerlan\QRCode\QROptions([
-                'version'      => \chillerlan\QRCode\Common\Version::AUTO,
-                'outputType'   => \chillerlan\QRCode\Output\QROutputInterface::MARKUP_SVG,
-                'eccLevel'     => \chillerlan\QRCode\Common\EccLevel::L,
-                'addQuietzone' => true,
-                'svgViewBox'   => true,
-            ]);
+            if (!empty($data['qr_code_svg'])) {
+                $data['qr_code_data'] = $data['qr_code_svg'];
+            } else {
+                $options = new \chillerlan\QRCode\QROptions([
+                    'version'      => \chillerlan\QRCode\Common\Version::AUTO,
+                    'outputType'   => \chillerlan\QRCode\Output\QROutputInterface::MARKUP_SVG,
+                    'eccLevel'     => \chillerlan\QRCode\Common\EccLevel::L,
+                    'addQuietzone' => true,
+                    'svgViewBox'   => true,
+                ]);
 
-            $data['qr_code_data'] = (new \chillerlan\QRCode\QRCode($options))->render($data['target_link']);
+                $data['qr_code_data'] = (new \chillerlan\QRCode\QRCode($options))->render($data['target_link']);
+
+                // Save to cache
+                $this->DB->query('UPDATE advert SET qr_code_svg = "' . mysqli_real_escape_string($this->DB->db, $data['qr_code_data']) . '" WHERE id = ' . intval($adId));
+            }
+            unset($data['qr_code_svg']); // Clean up array before returning
         }
 
         if ($logHit) {
