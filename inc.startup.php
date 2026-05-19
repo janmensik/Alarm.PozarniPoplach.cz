@@ -9,13 +9,15 @@ $root = __DIR__;
 
 // Load main .env if present
 if (file_exists($root . '/.env')) {
-    $dotenv = Dotenv::createImmutable($root);
+    $dotenv = Dotenv::createUnsafeImmutable($root);
     $dotenv->load();
 }
 
 // If hostname indicates localhost, also load .env_localhost
 $serverName = $_SERVER['SERVER_NAME'] ?? '';
-if (strpos($serverName, 'localhost') !== false && file_exists($root . '/.env.localhost')) {
-    $dotenvLocal = Dotenv::createMutable($root, '.env.localhost');
+$isLocalhost = str_contains($serverName, 'localhost') || (PHP_SAPI === 'cli' && file_exists($root . '/.env.localhost'));
+
+if ($isLocalhost && file_exists($root . '/.env.localhost')) {
+    $dotenvLocal = Dotenv::createUnsafeMutable($root, '.env.localhost');
     $dotenvLocal->load();
 }

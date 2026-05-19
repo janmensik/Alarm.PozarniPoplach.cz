@@ -56,3 +56,16 @@
 2026-05-19T18:41:30.053Z | INFO | MCP MySQL server exited with code: 1
 2026-05-19T18:41:31.061Z | INFO | CLI process exiting after server shutdown
 2026-05-19T18:41:31.062Z | INFO | CLI process exiting with code: 1
+2026-05-19T19:12:51.257Z | INFO | Starting MCP MySQL server from: C:\Users\jan\AppData\Roaming\npm\node_modules\@liangshanli\mcp-server-mysql\src\server-final.js
+2026-05-19T19:12:51.261Z | INFO | Starting MCP MySQL server with environment: | {"MYSQL_HOST":"localhost","MYSQL_PORT":"3306","MYSQL_USER":"root","MYSQL_DATABASE":"","READONLY":"false","ALLOW_DDL":"false","ALLOW_DROP":"false","ALLOW_DELETE":"false","TOOL_PREFIX":"(not set)","PROJECT_NAME":"(not set)","MCP_LOG_DIR":"./.setting","MCP_DDL_LOG_FILE":"ddl.sql"}
+2026-05-19T19:12:51.268Z | INFO | MCP MySQL server process started with PID: 29524
+2026-05-19T19:12:51.269Z | INFO | Signal handlers registered for SIGINT and SIGTERM
+2026-05-19T19:12:51.269Z | INFO | Press Ctrl+C to gracefully shutdown the server
+2026-05-19T19:34:05.043Z | INFO | Starting MCP MySQL server from: C:\Users\jan\AppData\Roaming\npm\node_modules\@liangshanli\mcp-server-mysql\src\server-final.js
+2026-05-19T19:34:05.045Z | INFO | Starting MCP MySQL server with environment: | {"MYSQL_HOST":"localhost","MYSQL_PORT":"3306","MYSQL_USER":"root","MYSQL_DATABASE":"","READONLY":"false","ALLOW_DDL":"false","ALLOW_DROP":"false","ALLOW_DELETE":"false","TOOL_PREFIX":"(not set)","PROJECT_NAME":"(not set)","MCP_LOG_DIR":"./.setting","MCP_DDL_LOG_FILE":"ddl.sql"}
+2026-05-19T19:34:05.052Z | INFO | MCP MySQL server process started with PID: 17716
+2026-05-19T19:34:05.052Z | INFO | Signal handlers registered for SIGINT and SIGTERM
+2026-05-19T19:34:05.053Z | INFO | Press Ctrl+C to gracefully shutdown the server
+2026-05-19T19:38:03.551Z | INFO | MCP MySQL server exited with code: 1
+2026-05-19T19:38:04.560Z | INFO | CLI process exiting after server shutdown
+2026-05-19T19:38:04.561Z | INFO | CLI process exiting with code: 1
