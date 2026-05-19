@@ -1,6 +1,7 @@
 # dependencies
 /vendor/
 /lib/
+/node_modules/
 
 # cache files
 /cache/
@@ -11,3 +12,7 @@
 .env.localhost
 data.txt
 dashboard.html
+GEMINI.md
+/.vscode/
+/.gemini/
+/.settings/
