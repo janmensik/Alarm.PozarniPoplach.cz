@@ -6,6 +6,7 @@
 # cache files
 /cache/
 /.phpunit.cache/
+/.setting/
 
 # sensitive files
 .env
@@ -15,4 +16,3 @@ dashboard.html
 GEMINI.md
 /.vscode/
 /.gemini/
-/.setting/

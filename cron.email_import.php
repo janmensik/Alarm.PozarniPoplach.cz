@@ -227,12 +227,12 @@ $DB->query("UPDATE import_log SET
             <div class="font-mono text-[11px] text-slate-400 space-y-1 overflow-auto max-h-75 scrollbar-hide">
                 <div class="text-slate-600">[<?php echo $start_time_db; ?>] Initializing email import...</div>
                 <div class="text-slate-600">[<?php echo $start_time_db; ?>] Connection to IMAP established.</div>
-                <?php foreach ($log_entries as $entry): ?>
+                <?php foreach ($log_entries as $entry) : ?>
                     <div class="<?php echo str_contains($entry, '[ERROR]') ? 'text-red-500' : 'text-slate-400'; ?>">
                         <?php echo htmlspecialchars($entry); ?>
                     </div>
                 <?php endforeach; ?>
-                <?php if (empty($log_entries)): ?>
+                <?php if (empty($log_entries)) : ?>
                     <div class="text-slate-500 italic">No activity logs recorded.</div>
                 <?php endif; ?>
                 <div class="text-slate-600">[<?php echo date('H:i:s'); ?>] Execution finished in <?php echo $duration; ?>s.</div>
