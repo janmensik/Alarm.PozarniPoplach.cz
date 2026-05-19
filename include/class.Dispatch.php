@@ -226,6 +226,7 @@ class Dispatch extends Modul {
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => 2,
             CURLOPT_FAILONERROR => false,
+            CURLOPT_SSL_VERIFYPEER => true,
         ]);
 
         $resp = curl_exec($ch);
