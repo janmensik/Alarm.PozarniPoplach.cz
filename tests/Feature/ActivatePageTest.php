@@ -14,7 +14,8 @@ beforeEach(function () {
     // Create a mock for Database
     $this->db = $this->createMock(Database::class);
     $this->mysqli = new class extends mysqli {
-        public function __construct() {}
+        public function __construct() {
+        }
         public function real_escape_string(string $string): string {
             return addslashes($string);
         }

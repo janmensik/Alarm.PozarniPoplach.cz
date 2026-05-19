@@ -63,4 +63,7 @@ $Smarty->assign('manual_mode', !$session && !isset($Smarty->tpl_vars['success'])
 $Smarty->assign('csrf_token', $csrf_token);
 
 $Smarty->display('page.activate.html');
-exit();
+
+if (!defined('TESTING')) {
+    exit();
+}

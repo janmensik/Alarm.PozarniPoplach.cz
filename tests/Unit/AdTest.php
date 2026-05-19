@@ -10,7 +10,8 @@ beforeEach(function () {
     $this->db = $this->createMock(Database::class);
     // Mock the mysqli object for escape string if needed
     $this->mysqli = new class extends mysqli {
-        public function __construct() {}
+        public function __construct() {
+        }
         public function real_escape_string(string $string): string {
             return addslashes($string);
         }

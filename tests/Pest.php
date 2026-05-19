@@ -3,6 +3,10 @@
 namespace {
     require_once __DIR__ . '/../vendor/autoload.php';
 
+    if (!defined('TESTING')) {
+        define('TESTING', true);
+    }
+
     if (!class_exists('AppData')) {
         class_alias(\Janmensik\Jmlib\AppData::class, 'AppData');
     }
@@ -45,9 +49,9 @@ namespace {
     function mockApp() {
         // Setup environment for testing
         $_ENV['ABSOLUTE_URL'] = 'http://localhost';
-        
+
         $APPD = \Janmensik\Jmlib\AppData::getInstance();
-        
+
         return $APPD;
     }
 
