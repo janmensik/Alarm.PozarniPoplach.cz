@@ -157,29 +157,52 @@ class Dispatch extends Modul {
             }
         }
 
-        // get directions
-        $dispatch['directions'] = $this->googleMapsDirection($dispatch['base_latitude'], $dispatch['base_longitude'], $dispatch['gps_latitude'], $dispatch['gps_longitude']);
+        $dispatch_id = $dispatch['id'] ?? null;
+
+        if ($dispatch_id && array_key_exists('has_streetview', $dispatch) && $dispatch['has_streetview'] !== null) {
+            // --- CACHE HIT ---
+            $dispatch['directions'] = [
+                'distance' => isset($dispatch['directions_distance']) ? (float)$dispatch['directions_distance'] : null,
+                'duration' => isset($dispatch['directions_duration']) ? (int)$dispatch['directions_duration'] : null,
+                'polyline' => $dispatch['directions_polyline'] ?? null,
+            ];
+            $streetview_status = (bool)$dispatch['has_streetview'];
+        } else {
+            // --- CACHE MISS: Fetch APIs ---
+            $dispatch['directions'] = $this->googleMapsDirection($dispatch['base_latitude'], $dispatch['base_longitude'], $dispatch['gps_latitude'], $dispatch['gps_longitude']);
+
+            $streetview_url = 'https://maps.googleapis.com/maps/api/streetview/metadata?location=' . $dispatch['gps_latitude'] . ',' . $dispatch['gps_longitude'] . '&key=' . $_ENV['GOOGLE_MAPS_API_KEY'] . '&fov=120&return_error_code=true';
+            $streetview_json = $this->fetchUrlWithTimeout($streetview_url, 2);
+            $streetview_data = $streetview_json ? json_decode($streetview_json, true) : null;
+            $streetview_status = ($streetview_data && isset($streetview_data['status']) && $streetview_data['status'] === 'OK');
+
+            // Save to DB cache
+            if ($dispatch_id) {
+                $upd_distance = isset($dispatch['directions']['distance']) ? (float)$dispatch['directions']['distance'] : 'NULL';
+                $upd_duration = isset($dispatch['directions']['duration']) ? (int)$dispatch['directions']['duration'] : 'NULL';
+                $upd_polyline = !empty($dispatch['directions']['polyline']) ? '"' . mysqli_real_escape_string($this->DB->db, $dispatch['directions']['polyline']) . '"' : 'NULL';
+                $upd_sv = $streetview_status ? 1 : 0;
+
+                $this->DB->query('UPDATE dispatch SET 
+                    directions_distance = ' . $upd_distance . ',
+                    directions_duration = ' . $upd_duration . ',
+                    directions_polyline = ' . $upd_polyline . ',
+                    has_streetview = ' . $upd_sv . '
+                    WHERE id = ' . (int)$dispatch_id);
+            }
+        }
+
+        $dispatch['streetview_available'] = $streetview_status;
 
         // maps and streetview sizes definitions
         $display_width = 640;
         $display_height_map = 268; // 2.39:1
         $display_height_view = 150; // 4.25:1
 
-        // find out if streetview is available
-        $streetview_url = 'https://maps.googleapis.com/maps/api/streetview/metadata?location=' . $dispatch['gps_latitude'] . ',' . $dispatch['gps_longitude'] . '&key=' . $_ENV['GOOGLE_MAPS_API_KEY'] . '&fov=120&return_error_code=true';
-        $streetview_json = @file_get_contents($streetview_url);
-        $streetview_data = null;
-        if ($streetview_json !== false) {
-            $streetview_data = json_decode($streetview_json, true);
-        }
-        if ($streetview_data['status'] === 'OK') {
-            $dispatch['streetview_available'] = true;
-
+        if ($streetview_status) {
             # Google Maps Static Streetview URL
             $dispatch['directions']['static_streetview'] = 'https://maps.googleapis.com/maps/api/streetview?size=' . ($display_width * 2) . 'x' . ($display_height_view * 2) . '&location=' . $dispatch['gps_latitude'] . ',' . $dispatch['gps_longitude'] . '&key=' . $_ENV['GOOGLE_MAPS_API_KEY'] . '&fov=120';
         } else {
-            $dispatch['streetview_available'] = false;
-
             # Mapbox Static map URL
             $dispatch['directions']['static_streetview'] = 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/pin-s+e44b38(' . $dispatch['gps_longitude'] . ',' . $dispatch['gps_latitude'] . ')/' . $dispatch['gps_longitude'] . ',' . $dispatch['gps_latitude'] . ',17,0/' . $display_width . 'x' . $display_height_view . '@2x?access_token=' . $_ENV['MAPBOX_API_KEY'];
         }
@@ -188,6 +211,8 @@ class Dispatch extends Modul {
         $polyline_path = (isset($dispatch['directions']['polyline']) && $dispatch['directions']['polyline']) ? '&path=color:0x0000ff|weight:5|enc:' . $dispatch['directions']['polyline'] : '';
         $dispatch['directions']['static_big_map'] = 'https://maps.googleapis.com/maps/api/staticmap?size=' . $display_width . 'x' . $display_height_map . '&scale=2&markers=color:red|' . $dispatch['gps_latitude'] . ',' . $dispatch['gps_longitude'] . '&key=' . $_ENV['GOOGLE_MAPS_API_KEY'] . $polyline_path;
 
+        // Cleanup cache keys from array so they don't leak into frontend API JSON
+        unset($dispatch['directions_distance'], $dispatch['directions_duration'], $dispatch['directions_polyline'], $dispatch['has_streetview']);
         // remove plaindata
         unset($dispatch['plaindata']);
 
@@ -221,24 +246,9 @@ class Dispatch extends Modul {
         ]);
         $url = "https://maps.googleapis.com/maps/api/directions/json?$params";
 
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 2,
-            CURLOPT_FAILONERROR => false,
-            CURLOPT_SSL_VERIFYPEER => true,
-        ]);
-
-        $resp = curl_exec($ch);
-        if ($resp === false) {
-            $err = curl_error($ch);
-            throw new RuntimeException("cURL error: $err");
-        }
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-        if ($httpCode !== 200) {
+        $resp = $this->fetchUrlWithTimeout($url, 2);
+        if (!$resp) {
             return null;
-            // throw new RuntimeException("HTTP error: $httpCode");
         }
 
         $data = json_decode($resp, true);
@@ -277,6 +287,30 @@ class Dispatch extends Modul {
         $output['polyline'] = $data['routes'][0]['overview_polyline']['points'];
 
         return $output;
+    }
+
+    # ...................................................................
+    /**
+     * Helper to fetch external APIs with a strict timeout to prevent blocking.
+     * @param string $url Target URL
+     * @param int $timeout Timeout in seconds
+     * @return string|null Response body or null on failure
+     */
+    private function fetchUrlWithTimeout(string $url, int $timeout = 2): ?string {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => $timeout,
+            CURLOPT_FAILONERROR => false,
+            CURLOPT_SSL_VERIFYPEER => true,
+        ]);
+        $resp = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        if ($resp !== false && $httpCode === 200) {
+            return $resp;
+        }
+        return null;
     }
 
     # ...................................................................
