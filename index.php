@@ -18,8 +18,8 @@ use Janmensik\Jmlib\Modul;
 # *******************************************************************
 $APPD = AppData::getInstance();
 
-$APPD->setData('BASE_URL', $_ENV['ABSOLUTE_URL']);
-$APPD->setData('APP', $_ENV);
+$APPD->setData('BASE_URL', getenv('ABSOLUTE_URL'));
+$APPD->setData('APP', $_ENV + $_SERVER); // Merge what we can, but mostly use getenv
 $APPD->setData('SOURCE', 'alarm');
 
 # ...................................................................
@@ -44,13 +44,14 @@ date_default_timezone_set('Europe/Prague');
 mb_internal_encoding("UTF-8");
 
 # rucni debug (pouze pokud neni ostry provoz)
-if ($_ENV['DEBUGGING'] == 1 && isset($_GET['debug'])) {
-    $_ENV['DEBUGGING'] = 2;
+if (getenv('DEBUGGING') == 1 && isset($_GET['debug'])) {
+    // Note: putenv doesn't persist across requests but helps in current scope
+    putenv('DEBUGGING=2');
 }
-$APPD->setData('DEBUG_MODE', $_ENV['DEBUGGING']);
+$APPD->setData('DEBUG_MODE', getenv('DEBUGGING'));
 
 # spusteni tridy Database
-$DB = new Database($_ENV['SQL_HOST'], $_ENV['SQL_DATABASE'], $_ENV['SQL_USER'], $_ENV['SQL_PASSWORD']);
+$DB = new Database(getenv('SQL_HOST'), getenv('SQL_DATABASE'), getenv('SQL_USER'), getenv('SQL_PASSWORD'));
 $DB->query('SET CHARACTER SET utf8;');
 
 require_once(__DIR__ . '/inc.smarty.php');

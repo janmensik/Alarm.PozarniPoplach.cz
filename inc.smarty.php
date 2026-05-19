@@ -19,13 +19,13 @@ $smarty_plugins = array(
 use Smarty\Smarty;
 
 $Smarty = new Smarty();
-$Smarty->setTemplateDir($_ENV['SMARTY_TEMPLATE_DIR']);
-$Smarty->setConfigDir($_ENV['SMARTY_TEMPLATE_DIR']);
-$Smarty->setCompileDir($_ENV['SMARTY_COMPILE_DIR']);
+$Smarty->setTemplateDir(getenv('SMARTY_TEMPLATE_DIR'));
+$Smarty->setConfigDir(getenv('SMARTY_TEMPLATE_DIR'));
+$Smarty->setCompileDir(getenv('SMARTY_COMPILE_DIR'));
 
 
-$Smarty->compile_check = $_ENV['DEBUGGING'];
-if ($_ENV['DEBUGGING'] === 2) {
+$Smarty->compile_check = getenv('DEBUGGING');
+if (getenv('DEBUGGING') == 2) {
     $Smarty->debugging = true;
 }
 $Smarty->error_reporting = E_ALL ^ E_WARNING;
@@ -52,4 +52,4 @@ if (is_array($smarty_plugins)) {
 $Smarty->config_overwrite = false;
 $Smarty->configLoad(__DIR__ . '/tpl/app.conf', 'pages');
 
-$APPD->setData('CONFIG', $Smarty->getConfigVars());
+\Janmensik\Jmlib\AppData::getInstance()->setData('CONFIG', $Smarty->getConfigVars());
