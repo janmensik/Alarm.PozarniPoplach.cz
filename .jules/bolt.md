@@ -1,0 +1,8 @@
+
+## 2025-05-20 - [Performance Optimization]
+**Learning:** Found an opportunity to improve database queries and memory usage when fetching `getDispatch()` inside `getRandomDispatch()` and `getLastDispatch()`.
+**Action:** Instead of fetching the entire record just to get the `id` and then making another call to `getDispatch()`, which queries the same data again and then more data, `getRandomDispatch` and `getLastDispatch` can be optimized.
+
+## 2025-05-20 - [Performance Optimization Reflection]
+**Learning:** I initially thought `getRandomDispatch` fetched a whole dispatch row and then passed its id to `getDispatch`. But `findRandomId` only fetches the ID. However, the query inside `findRandomId` (via `getRandom`) is actually `SELECT dis.*, ...` (it selects all the joined columns). So `findRandomId` *does* fetch the entire row, but then it discards everything except the ID, returning just the ID. Then `getDispatch` fetches the *exact same* entire row again using `getId` which translates to `SELECT dis.*, ... WHERE id IN(..)`. So `getRandomDispatch` does execute the huge query twice just like `getLastDispatch`. To fix it correctly, I should use `getRandom` to get the row, and then if it is an array and not empty, populate vehicles on it, instead of calling `findRandomId` and discarding the row.
+**Action:** When a method returns just an ID, check what query it actually runs under the hood. In this ORM, `findRandomId` and `findId` execute the full `SELECT` query defined in `$sql_base` and just pick out the `id` column in PHP. Optimizing it means bypassing `findRandomId` and using `getRandom` directly to grab the full row data, then reusing it.
