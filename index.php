@@ -43,8 +43,27 @@ $User = null; // No user on alarm page
 # Session and redirect handling
 # *******************************************************************
 
+// Security: Set secure session cookie parameters
+$isSecure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ||
+            (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'secure' => $isSecure,
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
+
 session_name('pozarnipoplach_alarm');
 session_start();
+
+// Security: Add basic security headers
+if (!headers_sent()) {
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: SAMEORIGIN');
+    header('X-XSS-Protection: 1; mode=block');
+}
 
 $APPD->loadMessages();
 
