@@ -1,0 +1,3 @@
+## 2024-05-21 - N+1 (or 2x Query) Pattern in ORM
+**Learning:** `Janmensik\Jmlib\Modul` executes the full base SQL query (including all heavy JOINs) even when calling seemingly small methods like `get()` or `getRandom()`. Methods like `getRandomDispatch()` and `getLastDispatch()` in `class.Dispatch.php` were extracting only the ID from these massive queries, then passing that ID to `getDispatch()` which executes the identical massive query again via `getId()`.
+**Action:** When a method already retrieves full row data via `get()` or `getRandom()`, extract the relationship/enrichment logic into a separate method (e.g. `enrichDispatchData()`) and pass the fetched row array to it, avoiding the redundant re-fetch query.
