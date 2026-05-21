@@ -6,7 +6,7 @@ use Janmensik\Jmlib\Modul;
 use Janmensik\Jmlib\Database;
 
 class Ad extends Modul {
-    protected $sql_base = 'SELECT SQL_CALC_FOUND_ROWS ad.id, ad.status, ad.banner_image_url, ad.target_link, ad.ad_text, ad.promo_code, ad.qr_code_svg, adc.name, IFNULL(SUM(adh.display_count), 0) AS display_count_total FROM advert ad JOIN advertiser adc ON ad.advertiser_id=adc.id LEFT JOIN advert_hit adh ON ad.id=adh.advert_id GROUP BY ad.id'; # zaklad SQL dotazu
+    protected $sql_base = 'SELECT SQL_CALC_FOUND_ROWS ad.id, ad.title, ad.status, ad.banner_image_url, ad.target_link, ad.ad_text, ad.promo_code, ad.qr_code_svg, adc.name AS advertiser_name, IFNULL(SUM(adh.display_count), 0) AS display_count_total, IFNULL(SUM(adh.link_count), 0) AS link_count_total, adc.id AS advertiser_id FROM advert ad JOIN advertiser adc ON ad.advertiser_id=adc.id LEFT JOIN advert_hit adh ON ad.id=adh.advert_id GROUP BY ad.id'; # zaklad SQL dotazu
     protected $sql_update = 'UPDATE advert ad'; # zaklad SQL dotazu - UPDATE
     protected $sql_insert = 'INSERT INTO advert'; # zaklad SQL dotazu - INSERT
     protected $sql_table = 'ad';
@@ -14,6 +14,25 @@ class Ad extends Modul {
 
     //protected $fulltext_columns = array('hub.id', 'hub.title', 'hub.pincode');
     protected $limit = -1;
+
+    public $text = array(
+        'cs' => array(
+            'status' =>
+            array('active' => 'Aktivní', 'disabled' => 'Pozastavený', 'deleted' => 'Smazaný')
+        )
+    );
+
+    protected $elements = [
+        'title',
+        'status',
+        'banner_image_url',
+        'target_link',
+        'ad_text',
+        'promo_code',
+        'advertiser_id'
+    ];
+
+    public $data = [];
 
 
     public $cache;
@@ -163,5 +182,75 @@ class Ad extends Modul {
         // and that table uses (advert_id, unit_id) as key, I'll update all units for this ad
         // or just ensure we have at least one record.
         $this->DB->query('UPDATE advert_hit SET link_count = link_count + 1 WHERE advert_id = ' . intval($adId));
+    }
+
+    # ...................................................................
+    public function fillData(?int $id = null): bool {
+        if (!$id) {
+            return false;
+        }
+
+        $item = $this->getId($id);
+
+        foreach ($this->elements as $el) {
+            if (isset($item[$el])) {
+                $this->data[$el] = @$item[$el];
+            }
+        }
+        return true;
+    }
+
+    # ...................................................................
+    /**
+     * Map POST data to internal data array
+     * @param array $post $_POST data
+     * @param array $customMap Optional custom mapping [postKey => dbKey]
+     */
+    public function mapFromPost(array $post, ?array $customMap = []): void {
+        $map = !empty($customMap) ? $customMap : [
+            'title' => 'title',
+            'status' => 'status',
+            'banner_image_url' => 'banner_image_url',
+            'target_link' => 'target_link',
+            'ad_text' => 'ad_text',
+            'promo_code' => 'promo_code',
+            'advertiser_id' => 'advertiser_id'
+        ];
+
+        foreach ($map as $postKey => $dbKey) {
+            if (isset($post[$postKey])) {
+                $this->data[$dbKey] = $this->sanitize($post[$postKey]);
+            }
+        }
+    }
+
+    # ...................................................................
+    public function validate(): array {
+        $errors = [];
+
+        # status
+        if (empty($this->data['status'])) {
+            $errors['status'] = "Status is required";
+        }
+
+        return $errors;
+    }
+
+    # ...................................................................
+    # include all this->data into classic Modul set($set)
+    public function setter(?int $id = null): bool|int {
+        $set = [];
+        foreach ($this->elements as $el) {
+            if (isset($this->data[$el])) {
+                $value = $this->data[$el];
+                if ($value === null) {
+                    $set[$el] = 'NULL';
+                } else {
+                    $set[$el] = '"' . mysqli_real_escape_string($this->DB->db, $value) . '"';
+                }
+            }
+        }
+
+        return ($this->set($set, $id));
     }
 }

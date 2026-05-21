@@ -63,7 +63,13 @@ class Dispatch extends Modul {
      *
      */
     public function getLastDispatch(int|null $unit_id = null): array|null {
-        $data = $this->get(($unit_id ? 'dis.unit_id = "' . intval($unit_id) . '"' : null), 'dis.dispatched DESC', 1, null, true);
+        # where condition
+        if (!empty($unit_id) && (int) $unit_id) {
+            $where[] = 'dis.unit_id = "' . intval($unit_id) . '"';
+        }
+        $where[] = 'dis.dispatched_at < NOW()'; // only already dispatched, not scheduled for the future
+
+        $data = $this->get($where, '-26', 1, null, true);
 
         if (!empty($data) && is_array($data) && !empty($data[0]) && is_array($data[0]) && !empty($data[0]['id'])) {
             return $this->getDispatch(intval($data[0]['id']));
@@ -183,7 +189,7 @@ class Dispatch extends Modul {
                 $upd_polyline = !empty($dispatch['directions']['polyline']) ? '"' . mysqli_real_escape_string($this->DB->db, $dispatch['directions']['polyline']) . '"' : 'NULL';
                 $upd_sv = $streetview_status ? 1 : 0;
 
-                $this->DB->query('UPDATE dispatch SET 
+                $this->DB->query('UPDATE dispatch SET
                     directions_distance = ' . $upd_distance . ',
                     directions_duration = ' . $upd_duration . ',
                     directions_polyline = ' . $upd_polyline . ',
@@ -916,5 +922,95 @@ class Dispatch extends Modul {
         # _______________________________________________________________
 
         return ($ids);
+    }
+
+    # ...................................................................
+    /**
+     * Create test alarm dispatch record to the database.
+     *
+     * @param int $unit_id The ID of the unit for which to create a test alarm.
+     * @param int|null $distance The distance in km (kilometers) for the test alarm.
+     * @param int|null $timeout The timeout in seconds for the test alarm to go on in NOW + timeout.
+     * @return int|false The ID of the newly inserted dispatch, or false on failure.
+     */
+    public function createTestAlarm(int $unit_id, ?int $distance = 5, ?int $timeout = 30): int|false {
+        $test_event_tzp_id = 27; // This should be an ID of a special "Test Alarm" event type in your database.
+
+        # Get/Check if the unit exists with vehicle
+        $unit = $this->DB->getRow($this->DB->query('SELECT ut.id, ut.fullname, ut.base_latitude, ut.base_longitude, uv.id AS unit_vehicle_id, uv.name AS unit_vehicle_name, uv.callsign AS unit_vehicle_callsign, uv.vehicle_type_id AS unit_vehicle_type_id, ut.region_id, reg.title AS region_title FROM unit ut JOIN unit_vehicle uv ON ut.id = uv.unit_id JOIN region reg ON ut.region_id = reg.id WHERE ut.id = "' . (int)$unit_id . '" LIMIT 1', __METHOD__ . ' get Unit for test alarm'));
+        if (!$unit) {
+            return false;
+        }
+
+        # get random coordinates around unit's base location
+        # north/south shift is 1 km ~= 0.009 degrees, east/west shift is 1 km ~= 0.015 degrees, so we multiply distance by 0.015 to get a rough bounding box for the random coordinates.
+        $shift_latitude = $distance * 0.009;
+        $shift_longitude = $distance * 0.015;
+        $latitude = $unit['base_latitude'] + (mt_rand(-$shift_latitude * 1000000, $shift_latitude * 1000000) / 1000000);
+        $longitude = $unit['base_longitude'] + (mt_rand(-$shift_longitude * 1000000, $shift_longitude * 1000000) / 1000000);
+
+        # Prepare dispatch data
+        $test_dispatch_data = [
+            'plaindata' => 'TEST ONLY', // The raw HTML content of the dispatch email
+
+            // Unit Information
+            'unit' => $unit['fullname'], // Fullname of the matched unit (or parsed name if no match)
+            'unit_id' => $unit['id'], // int (Added by linkParsedDispatch - Database ID of the unit)
+
+            // Event Details
+            'event' => 'TEST Poplachu', // The parsed main event type string
+            'event_type' => [ // Added by linkParsedDispatch
+                'id' => $test_event_tzp_id, // int
+                'name' => 'TEST Poplachu',
+                'icon' => 'fa-regular fa-flask-gear',
+                'level' => 1 // int
+            ],
+
+            // Address Details
+            'address' => [
+                'region' => $unit['region_title'], // Originally parsed region string
+                'region_id' => $unit['region_id'], // int (Added by linkParsedDispatch)
+                'region_rzpk' => 'string', // e.g., 'S' for Central Bohemia (Added by linkParsedDispatch)
+                'region_name' => 'string', // Full region name from DB (Added by linkParsedDispatch)
+                'city' => $unit['fullname'], // Originally parsed city string (using unit name for test)
+                'district' => 'Testovací okres', // Originally parsed district string
+                'street' => 'Ulice Testovací', // Originally parsed street string
+                'house_number' => '123',
+                'gps_latitude' => $latitude, // e.g., '50.12345'
+                'gps_longitude' => $longitude // e.g., '14.12345'
+            ],
+
+            // Situation & Context
+            'object_description' => 'Popis objektu pro testovací poplach', // Originally parsed object description string
+            'clarification' => 'Zkušební poplach vyvolaný uživatelem',
+            'situation' => 'Nikam se nejede, pouze TEST!',
+
+            // Notifier Details
+            'notifier' => 'Požární Poplach',
+            'notifier_phone' => 'není k dispozici',
+
+            // Dispatch Meta Information
+            'dispatch_id' => '111111', // E.g., The event number '123456789'
+            'dispatched_by' => 'PožárníPoplach.cz', // Dispatcher name/ID
+            'dispatched_at' => date('d.m.Y H:i:s', strtotime('+' . $timeout . ' seconds')), // Datetime string, e.g., '01.01.2024 12:34:56'
+
+            // Vehicles of the notified unit
+            'unit_vehicles' => [
+                [
+                    'fullname' => $unit['unit_vehicle_name'], // Raw parsed string line
+                    'callsign' => $unit['unit_vehicle_callsign'], // e.g., 'SCA 123'
+
+                    // Following keys are appended by linkParsedDispatch:
+                    'vehicle_type_id' => $unit['unit_vehicle_type_id'], // int
+                    'unit_vehicle_id' => $unit['unit_vehicle_type_id'], // int (If successfully linked to the unit_vehicle DB table)
+                    'name' => $unit['unit_vehicle_name'] // Vehicle name from DB
+                ]
+            ]
+        ];
+
+
+        return ($this->set($this->prepareSave($test_dispatch_data), null, 'IODU'));
+
+        return false;
     }
 }

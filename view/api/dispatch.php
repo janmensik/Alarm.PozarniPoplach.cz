@@ -44,11 +44,18 @@ if (empty($unit_id)) {
 # PROGRAM
 # *******************************************************************
 
-// In production we would use getLastDispatch($unit_id)
 $data = $Dispatch->getLastDispatch($unit_id);
 
+
+// echo ($unit_id . "\r\n----------------------\r\n");
+// print_r($data);
+// echo ("\r\n----------------------\r\n");
+// print_r ($DB->messages);
+// exit ();
+// echo ($data['dispatched_at_ts'] . "\r\n----------------------\r\n".time() - $data['dispatched_at_ts']."\r\n----------------------\r\n".getenv('DEFAULT_ALARM_SHOWN'));exit ();
+
 # only show dispatch if it is not older than DEFAULT_ALARM_SHOWN minutes (peacetime)
-if (!empty($data) && isset($data['dispatched_at_ts']) && (time() - $data['dispatched_at_ts'] <= ($_ENV['DEFAULT_ALARM_SHOWN'] ?? 60) * 60)) {
+if (!empty($data) && isset($data['dispatched_at_ts']) && (time() - $data['dispatched_at_ts'] <= (getenv('DEFAULT_ALARM_SHOWN') ?? 60) * 60)) {
     $data_parsed = $Dispatch->beautifulLastDispatch($data);
     $data_parsed['dispatch_status'] = 'alarm';
 } else {

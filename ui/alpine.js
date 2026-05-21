@@ -1,3 +1,6 @@
+const AUTH_POLL_INTERVAL_MS = 5 * 1000;
+const DISPATCH_POLL_INTERVAL_MS = 30 * 1000;
+
 function alarmSystem(apiUrl, authBaseUrl) {
   return {
     data: null,
@@ -83,7 +86,7 @@ function alarmSystem(apiUrl, authBaseUrl) {
           this.authStatus = 'authorized';
           this.fetchData();
           if (this.dataInterval) clearInterval(this.dataInterval);
-          this.dataInterval = setInterval(() => this.fetchData(), 60000);
+          this.dataInterval = setInterval(() => this.fetchData(), DISPATCH_POLL_INTERVAL_MS);
         } else {
           // Token invalid or expired
           this.refreshToken = null;
@@ -140,7 +143,7 @@ function alarmSystem(apiUrl, authBaseUrl) {
         } catch (e) {
           console.error("Polling error", e);
         }
-      }, 5000);
+      }, AUTH_POLL_INTERVAL_MS);
     },
 
     async finalizeAuthorization(deviceCode) {
@@ -159,7 +162,8 @@ function alarmSystem(apiUrl, authBaseUrl) {
             window.location.href = '/';
           } else {
             this.fetchData();
-            setInterval(() => this.fetchData(), 60000);
+            if (this.dataInterval) clearInterval(this.dataInterval);
+            this.dataInterval = setInterval(() => this.fetchData(), DISPATCH_POLL_INTERVAL_MS);
           }
         }
       } catch (e) {
@@ -282,4 +286,3 @@ function alarmSystem(apiUrl, authBaseUrl) {
     },
   };
 }
-
