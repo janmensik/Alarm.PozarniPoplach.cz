@@ -53,8 +53,6 @@ test('dispatch returns peacetime data when no recent dispatch', function () {
                 'ad_expires_at' => null
             ],
             ['id' => 1, 'status' => 'active', 'target_link' => 'https://example.com'], // getAdForDevice: random pick
-            false, // Modul::get loop end
-            ['id' => 1, 'status' => 'active', 'target_link' => 'https://example.com'], // getAdData lookup
             false // Modul::get loop end
         );
 
@@ -76,6 +74,7 @@ test('dispatch returns alarm data when recent dispatch exists', function () {
     $_SERVER['HTTP_X_DEVICE_TOKEN'] = 'test-token';
     $_ENV['GOOGLE_MAPS_API_KEY'] = 'fake-key';
     $_ENV['MAPBOX_API_KEY'] = 'fake-key';
+    putenv('DEFAULT_ALARM_SHOWN=60');
 
     $APPD = AppData::getInstance();
     $DB = $this->db;
@@ -96,6 +95,25 @@ test('dispatch returns alarm data when recent dispatch exists', function () {
                 'base_latitude' => '50.1',
                 'base_longitude' => '14.1'
             ],
+            false, // Modul::get loop end
+            [ // getDispatch via getId (re-fetch)
+                'id' => 456,
+                'dispatched_at_ts' => $recent_ts,
+                'unit_fullname' => 'Test Unit',
+                'event_name' => 'Fire',
+                'gps_latitude' => '50.0',
+                'gps_longitude' => '14.0',
+                'base_latitude' => '50.1',
+                'base_longitude' => '14.1'
+            ],
+            false, // Modul::get loop end
+            [ // getAdForDevice: device lookup
+                'ad_probability' => 100,
+                'ad_sticky_duration' => 240,
+                'current_ad_id' => null,
+                'ad_expires_at' => null
+            ],
+            ['id' => 1, 'status' => 'active', 'target_link' => 'https://example.com'], // getAdForDevice: random pick
             false // Modul::get loop end
         );
 

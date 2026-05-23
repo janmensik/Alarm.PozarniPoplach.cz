@@ -79,6 +79,7 @@ class Ad extends Modul {
         // 3. Window expired or first run: Roll the dice
         $roll = random_int(1, 100);
         $newAdId = null;
+        $randomAd = null;
         $expiresAt = date('Y-m-d H:i:s', time() + ($device['ad_sticky_duration'] * 60));
 
         if ($roll <= $device['ad_probability']) {
@@ -99,8 +100,12 @@ class Ad extends Modul {
         );
 
         // 5. Return data and log initial hit if we have an ad
-        if ($newAdId) {
-            return $this->getAdData($newAdId, $unitId, true); // Log hit only on the first display of the window
+        if ($randomAd) {
+            // Optimize: Reuse the already fetched ad data instead of making a new query via getAdData
+            // Note: $randomAd represents a single row, but Jmlib getRandom logic means it could be
+            // structured slightly differently based on whether it passed through array_rand or not.
+            // Since we extracted it via $ads[array_rand($ads)] above, $randomAd is exactly one row (1D array).
+            return $this->processAdData($randomAd, $unitId, true); // Log hit only on the first display of the window
         }
 
         return null;
@@ -117,11 +122,17 @@ class Ad extends Modul {
             return null;
         }
 
-        $data = $ad[0];
+        return $this->processAdData($ad[0], $unitId, $logHit);
+    }
 
+    # ...................................................................
+    /**
+     * Internal helper to process full ad data and optionally log a hit.
+     */
+    private function processAdData(array $data, int $unitId, bool $logHit = false): array|null {
         if ($data['target_link']) {
             $baseUrl = \Janmensik\Jmlib\AppData::getInstance()->getData('BASE_URL') ?: '';
-            $redirectUrl = rtrim($baseUrl, '/') . '/goto/ad/' . $adId;
+            $redirectUrl = rtrim($baseUrl, '/') . '/goto/ad/' . $data['id'];
 
             if (!empty($data['qr_code_svg'])) {
                 $data['qr_code_data'] = $data['qr_code_svg'];
@@ -137,13 +148,13 @@ class Ad extends Modul {
                 $data['qr_code_data'] = (new \chillerlan\QRCode\QRCode($options))->render($redirectUrl);
 
                 // Save to cache
-                $this->DB->query('UPDATE advert SET qr_code_svg = "' . mysqli_real_escape_string($this->DB->db, $data['qr_code_data']) . '" WHERE id = ' . intval($adId));
+                $this->DB->query('UPDATE advert SET qr_code_svg = "' . mysqli_real_escape_string($this->DB->db, $data['qr_code_data']) . '" WHERE id = ' . intval($data['id']));
             }
             unset($data['qr_code_svg']); // Clean up array before returning
         }
 
         if ($logHit) {
-            $this->setAdHit($unitId, $adId);
+            $this->setAdHit($unitId, $data['id']);
         }
 
         return $data;
@@ -157,7 +168,8 @@ class Ad extends Modul {
         $ad = $this->getRandom($where, 8, 10, null, 1);
 
         if (!empty($ad)) {
-            return $this->getAdData($ad[0]['id'], $unit_id, true);
+            // Optimize: Reuse the already fetched ad data instead of making a new query via getAdData
+            return $this->processAdData($ad[0], $unit_id, true);
         }
 
         return null;
