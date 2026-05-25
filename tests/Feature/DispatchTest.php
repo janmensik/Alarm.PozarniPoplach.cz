@@ -76,6 +76,7 @@ test('dispatch returns alarm data when recent dispatch exists', function () {
     $_SERVER['HTTP_X_DEVICE_TOKEN'] = 'test-token';
     $_ENV['GOOGLE_MAPS_API_KEY'] = 'fake-key';
     $_ENV['MAPBOX_API_KEY'] = 'fake-key';
+    putenv('DEFAULT_ALARM_SHOWN=60');
 
     $APPD = AppData::getInstance();
     $DB = $this->db;
