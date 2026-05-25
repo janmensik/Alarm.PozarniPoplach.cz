@@ -43,6 +43,21 @@ $User = null; // No user on alarm page
 # Session and redirect handling
 # *******************************************************************
 
+// Security headers
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+
+$isSecure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ||
+            (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'secure' => $isSecure,
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
+
 session_name('pozarnipoplach_alarm');
 session_start();
 
