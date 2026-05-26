@@ -1,0 +1,3 @@
+## 2024-05-26 - Reuse Fetched Data Arrays in Custom ORM
+**Learning:** Passing an already-fetched data array instead of an ID to methods prevents redundant execution of heavy `sql_base` queries with multiple JOINs when using the custom ORM.
+**Action:** When working with the custom `Modul` ORM, prefer passing the loaded data array rather than just the ID if it will subsequently be used to fetch the exact same data using `getId()`.

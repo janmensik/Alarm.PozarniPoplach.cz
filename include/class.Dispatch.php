@@ -52,7 +52,13 @@ class Dispatch extends Modul {
      *
      */
     public function getRandomDispatch(int|null $unit_id = null): array|null {
-        return ($this->getDispatch($this->findRandomId($unit_id ? 'unit_id = "' . mysqli_real_escape_string($this->DB->db, trim($unit_id)) . '"' : null)));
+        $where = $unit_id ? 'unit_id = "' . mysqli_real_escape_string($this->DB->db, trim($unit_id)) . '"' : null;
+        $data = $this->getRandom($where, null, 100, null, 1);
+        if (!empty($data) && is_array($data)) {
+            // optimization: pass the already fetched array directly to avoid re-executing the heavy base query
+            return $this->getDispatch(reset($data));
+        }
+        return null;
     }
 
     # ...................................................................
@@ -72,7 +78,8 @@ class Dispatch extends Modul {
         $data = $this->get($where, '-26', 1, null, true);
 
         if (!empty($data) && is_array($data) && !empty($data[0]) && is_array($data[0]) && !empty($data[0]['id'])) {
-            return $this->getDispatch(intval($data[0]['id']));
+            // optimization: pass the already fetched array directly to avoid re-executing the heavy base query
+            return $this->getDispatch($data[0]);
         }
 
         return null;
@@ -80,18 +87,23 @@ class Dispatch extends Modul {
 
     # ...................................................................
     /**
-     * Return full complete dispatch data by its ID
-     * @param int|null $dispatch_id Unit's ID to check.
+     * Return full complete dispatch data by its ID or from existing array
+     * @param int|array|null $dispatch Unit's ID or array with loaded row to check.
      * @return array|null Full dispatch data for provided ID.
      *
      */
-    public function getDispatch(int|null $dispatch_id = null): array|null {
-        if (empty($dispatch_id)) {
+    public function getDispatch(int|array|null $dispatch = null): array|null {
+        if (empty($dispatch)) {
             return null;
         }
 
         // load the most recent (last) dispatch
-        $data = $this->getId(intval($dispatch_id));
+        // optimization: if we already have the row data, reuse it instead of running the heavy sql_base query again
+        if (is_array($dispatch)) {
+            $data = $dispatch;
+        } else {
+            $data = $this->getId(intval($dispatch));
+        }
 
         if (!empty($data) && is_array($data)) {
             // load unit vehicles
