@@ -1,0 +1,3 @@
+## 2024-05-18 - Eliminating N+1 Fetching in Jmlib/Modul
+**Learning:** The custom `Janmensik\Jmlib\Modul` ORM executes the full `$sql_base` query (including all `JOIN`s) even for simple lookups like `getId()`. When an entity is already fetched (like in `getLastDispatch()`), passing its ID to another getter (`getDispatch()`) triggers a full redundant execution of that heavy query.
+**Action:** When a method needs to load an entity and optionally its relations, modify its signature to accept either the ID `int` OR the already-fetched data `array`. If an array is passed, use it directly and skip the `getId()` call. This eliminates the N+1 problem for the base entity.

@@ -72,7 +72,7 @@ class Dispatch extends Modul {
         $data = $this->get($where, '-26', 1, null, true);
 
         if (!empty($data) && is_array($data) && !empty($data[0]) && is_array($data[0]) && !empty($data[0]['id'])) {
-            return $this->getDispatch(intval($data[0]['id']));
+            return $this->getDispatch($data[0]);
         }
 
         return null;
@@ -80,18 +80,18 @@ class Dispatch extends Modul {
 
     # ...................................................................
     /**
-     * Return full complete dispatch data by its ID
-     * @param int|null $dispatch_id Unit's ID to check.
+     * Return full complete dispatch data by its ID or from existing array
+     * @param int|array|null $dispatch_data Unit's ID to check or already fetched dispatch data array.
      * @return array|null Full dispatch data for provided ID.
      *
      */
-    public function getDispatch(int|null $dispatch_id = null): array|null {
-        if (empty($dispatch_id)) {
+    public function getDispatch(int|array|null $dispatch_data = null): array|null {
+        if (empty($dispatch_data)) {
             return null;
         }
 
-        // load the most recent (last) dispatch
-        $data = $this->getId(intval($dispatch_id));
+        // load the most recent (last) dispatch if ID provided, else use array
+        $data = is_array($dispatch_data) ? $dispatch_data : $this->getId(intval($dispatch_data));
 
         if (!empty($data) && is_array($data)) {
             // load unit vehicles
