@@ -10,10 +10,13 @@
         "dropstart",
         "dropup",
         "extralight",
+        "fullpageos",
         "getmail",
         "hstack",
         "JSDH",
         "KOPIS",
+        "lighttpd",
+        "nmcli",
         "pozarnipoplach",
         "Quietzone",
         "rzpk",
@@ -21,10 +24,15 @@
         "twbs",
         "UPRESNENÍ",
         "vstack",
+        "xrandr",
         "zindex"
     ],
     "postman.settings.dotenv-detection-notification-visibility": false,
     "cSpell.ignoreWords": [
-        "svgz"
+        "custompios",
+        "dnsmasq",
+        "killall",
+        "svgz",
+        "xvzf"
     ]
 }
