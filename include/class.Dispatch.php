@@ -376,7 +376,8 @@ class Dispatch extends Modul {
         libxml_use_internal_errors(true);
         $doc = new DOMDocument();
         // Prepending the XML encoding declaration helps DOMDocument handle UTF-8 characters correctly.
-        $doc->loadHTML('<?xml encoding="utf-8" ?>' . $htmlContent);
+        // LIBXML_NONET prevents network access (XXE). (Note: LIBXML_NOENT *enables* entity expansion, so we do not use it).
+        $doc->loadHTML('<?xml encoding="utf-8" ?>' . $htmlContent, LIBXML_NONET);
         libxml_clear_errors();
 
         $xpath = new DOMXPath($doc);
