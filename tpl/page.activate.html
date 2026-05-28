@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html class="dark" lang="cs">
+<html class="dark" lang="cs" translate="no">
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="google" content="notranslate" />
 
     <title>Aktivace panelu - Požární poplach</title>
     <link rel="icon" href="{$BASE_URL}/favicon.svg" type="image/svg+xml" />
@@ -71,7 +72,7 @@
                     <i class="fa-solid fa-triangle-exclamation"></i>
                     <span class="font-bold">{$error|escape}</span>
                 </div>
-            {/if}            
+            {/if}
 
             <form method="post" action="{$BASE_URL}/activate?code={$device_code|escape}" class="flex flex-col gap-6">
                 <input type="hidden" name="csrf_token" value="{$csrf_token}">

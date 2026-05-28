@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html class="dark" lang="cs">
+<html class="dark" lang="cs" translate="no">
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="google" content="notranslate" />
 
     <title>Přesměrování - Požární poplach</title>
     <link rel="icon" href="{$BASE_URL}/favicon.svg" type="image/svg+xml" />
@@ -30,7 +31,7 @@
             <div class="w-20 h-20 bg-error/20 text-error rounded-full flex items-center justify-center mb-6">
                 <i class="fa-solid fa-triangle-exclamation text-4xl"></i>
             </div>
-            
+
             {if $ERROR}
                 <div class="bg-error/10 border-l-4 border-error p-6 mb-8 text-error w-full text-center">
                     <span class="font-bold text-xl">{$ERROR|escape}</span>
@@ -44,7 +45,7 @@
             <p class="text-tertiary mb-8 text-center leading-relaxed">
                 Tento odkaz je pravděpodobně neplatný, expirovaný nebo reklama již není aktivní.
             </p>
-            
+
             <a href="https://www.pozarnipoplach.cz" class="bg-primary text-white px-8 py-4 font-black uppercase tracking-widest hover:bg-primary-dim transition-colors shadow-lg">
                 Zpět na hlavní stránku
             </a>

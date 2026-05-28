@@ -17,7 +17,21 @@ namespace PozarniPoplach {
             if (is_object($mysqli) && method_exists($mysqli, 'real_escape_string')) {
                 return $mysqli->real_escape_string($string);
             }
-            return addslashes($string);
+            return addslashes((string)$string);
+        }
+    }
+}
+
+namespace Janmensik\Jmlib {
+    /**
+     * Shadowing global mysqli_real_escape_string for tests.
+     */
+    if (!function_exists('Janmensik\Jmlib\mysqli_real_escape_string')) {
+        function mysqli_real_escape_string($mysqli, $string) {
+            if (is_object($mysqli) && method_exists($mysqli, 'real_escape_string')) {
+                return $mysqli->real_escape_string($string);
+            }
+            return addslashes((string)$string);
         }
     }
 }

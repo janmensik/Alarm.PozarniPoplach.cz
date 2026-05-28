@@ -1,5 +1,6 @@
 {
     "require": {
+        "php": ">=8.2",
         "smarty/smarty": "^5.4",
         "bramus/router": "^1.6",
         "chillerlan/php-qrcode": "^5.0",
