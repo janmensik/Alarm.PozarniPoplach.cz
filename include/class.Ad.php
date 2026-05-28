@@ -79,6 +79,7 @@ class Ad extends Modul {
         // 3. Window expired or first run: Roll the dice
         $roll = random_int(1, 100);
         $newAdId = null;
+        $randomAd = null;
         $expiresAt = date('Y-m-d H:i:s', time() + ($device['ad_sticky_duration'] * 60));
 
         if ($roll <= $device['ad_probability']) {
@@ -100,7 +101,7 @@ class Ad extends Modul {
 
         // 5. Return data and log initial hit if we have an ad
         if ($newAdId) {
-            return $this->getAdData($newAdId, $unitId, true); // Log hit only on the first display of the window
+            return $this->getAdData($randomAd ?? $newAdId, $unitId, true); // Log hit only on the first display of the window
         }
 
         return null;
@@ -108,16 +109,22 @@ class Ad extends Modul {
 
     # ...................................................................
     /**
-     * Internal helper to fetch full ad data by ID and optionally log a hit.
+     * Internal helper to fetch full ad data by ID or existing array and optionally log a hit.
      */
-    private function getAdData(int $adId, int $unitId, bool $logHit = false): array|null {
-        $ad = $this->get(['ad.id = ' . intval($adId)], null, 1);
+    private function getAdData(int|array $adInput, int $unitId, bool $logHit = false): array|null {
+        if (is_array($adInput)) {
+            $data = $adInput;
+            $adId = $data['id'];
+        } else {
+            $adId = $adInput;
+            $ad = $this->get(['ad.id = ' . intval($adId)], null, 1);
 
-        if (empty($ad)) {
-            return null;
+            if (empty($ad)) {
+                return null;
+            }
+
+            $data = $ad[0];
         }
-
-        $data = $ad[0];
 
         if ($data['target_link']) {
             $baseUrl = \Janmensik\Jmlib\AppData::getInstance()->getData('BASE_URL') ?: '';
@@ -157,7 +164,7 @@ class Ad extends Modul {
         $ad = $this->getRandom($where, 8, 10, null, 1);
 
         if (!empty($ad)) {
-            return $this->getAdData($ad[0]['id'], $unit_id, true);
+            return $this->getAdData($ad[0], $unit_id, true);
         }
 
         return null;
