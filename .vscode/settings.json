@@ -29,6 +29,7 @@
     ],
     "postman.settings.dotenv-detection-notification-visibility": false,
     "cSpell.ignoreWords": [
+        "NOENT",
         "custompios",
         "dnsmasq",
         "killall",
