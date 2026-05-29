@@ -20,16 +20,21 @@ $APPD = AppData::getInstance();
 
 $APPD->setData('BASE_URL', getenv('ABSOLUTE_URL'));
 
-// Merge what we can, but filter out sensitive data using a negative list
+// Use an explicit allow-list for APP data to prevent sensitive data exposure
 $raw_app_data = $_ENV + $_SERVER;
 $filtered_app_data = array_filter($raw_app_data, function ($key) {
-    $block_list = ['PASSWORD', 'API_KEY', 'SECRET']; // Expand this negative list as needed
-    foreach ($block_list as $blocked) {
-        if (stripos($key, $blocked) !== false) {
-            return false; // Exclude if key contains blocked string (case-insensitive)
-        }
-    }
-    return true;
+    $allow_list = [
+        'BASE_URL',
+        'APP_NAME',
+        'APP_VERSION',
+        'APP_BRAND',
+        'APP_URL',
+        'APP_SHORTNAME',
+        'APP_NAME_APPENDIX',
+        'APP_EMAIL',
+        'APP_ADMIN_EMAIL'
+    ];
+    return in_array($key, $allow_list, true);
 }, ARRAY_FILTER_USE_KEY);
 
 $APPD->setData('APP', $filtered_app_data);
