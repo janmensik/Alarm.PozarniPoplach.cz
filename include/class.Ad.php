@@ -99,8 +99,10 @@ class Ad extends Modul {
         );
 
         // 5. Return data and log initial hit if we have an ad
-        if ($newAdId) {
-            return $this->getAdData($newAdId, $unitId, true); // Log hit only on the first display of the window
+        if ($newAdId && isset($randomAd)) {
+            return $this->getAdData($randomAd, $unitId, true); // Log hit only on the first display of the window
+        } elseif ($newAdId) {
+            return $this->getAdData($newAdId, $unitId, true); // Fallback if $randomAd is not set
         }
 
         return null;
@@ -108,16 +110,21 @@ class Ad extends Modul {
 
     # ...................................................................
     /**
-     * Internal helper to fetch full ad data by ID and optionally log a hit.
+     * Internal helper to process and optionally fetch full ad data by ID and optionally log a hit.
+     * Passing fetched ad data directly prevents redundant queries.
      */
-    private function getAdData(int $adId, int $unitId, bool $logHit = false): array|null {
-        $ad = $this->get(['ad.id = ' . intval($adId)], null, 1);
-
-        if (empty($ad)) {
-            return null;
+    private function getAdData(int|array $adDataOrId, int $unitId, bool $logHit = false): array|null {
+        if (is_array($adDataOrId)) {
+            $data = $adDataOrId;
+        } else {
+            $ad = $this->get(['ad.id = ' . intval($adDataOrId)], null, 1);
+            if (empty($ad)) {
+                return null;
+            }
+            $data = $ad[0];
         }
 
-        $data = $ad[0];
+        $adId = intval($data['id']);
 
         if ($data['target_link']) {
             $baseUrl = \Janmensik\Jmlib\AppData::getInstance()->getData('BASE_URL') ?: '';
@@ -157,7 +164,7 @@ class Ad extends Modul {
         $ad = $this->getRandom($where, 8, 10, null, 1);
 
         if (!empty($ad)) {
-            return $this->getAdData($ad[0]['id'], $unit_id, true);
+            return $this->getAdData($ad[0], $unit_id, true);
         }
 
         return null;
