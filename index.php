@@ -23,13 +23,22 @@ $APPD->setData('BASE_URL', getenv('ABSOLUTE_URL'));
 // Merge what we can, but filter out sensitive data using a negative list
 $raw_app_data = $_ENV + $_SERVER;
 $filtered_app_data = array_filter($raw_app_data, function ($key) {
-    $block_list = ['PASSWORD', 'API_KEY', 'SECRET']; // Expand this negative list as needed
-    foreach ($block_list as $blocked) {
-        if (stripos($key, $blocked) !== false) {
-            return false; // Exclude if key contains blocked string (case-insensitive)
-        }
-    }
-    return true;
+    $allow_list = [
+        'ABSOLUTE_URL',
+        'BASE_URL',
+        'DEBUGGING',
+        'LOCALE',
+        'SYSTEM',
+        'DEFAULT_ITEMS_PER_PAGE',
+        'DEFAULT_ITEMS_PER_PAGE_DOTS',
+        'HTTP_HOST',
+        'HTTPS',
+        'SERVER_NAME',
+        'SERVER_PORT',
+        'REQUEST_URI',
+        'REQUEST_METHOD'
+    ];
+    return in_array(strtoupper($key), $allow_list);
 }, ARRAY_FILTER_USE_KEY);
 
 $APPD->setData('APP', $filtered_app_data);
