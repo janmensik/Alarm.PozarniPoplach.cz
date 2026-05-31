@@ -11,7 +11,7 @@ $APPD->setData('API', true);
 
 $files_to_track = [
     __DIR__ . '/../../tpl/page.alarm.html',
-    __DIR__ . '/../../tpl/page.active.html',
+    __DIR__ . '/../../tpl/page.activate.html',
     __DIR__ . '/../../tpl/app.conf',
     __DIR__ . '/../../ui/alarm.dist.css',
     __DIR__ . '/../../ui/alpine.js',

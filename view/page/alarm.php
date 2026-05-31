@@ -31,5 +31,10 @@ if (!empty($_GET['pincode'])) {
     }
 }
 
+// Assign version for cache busting CSS/JS
+$css_v = file_exists(__DIR__ . '/../../ui/alarm.dist.css') ? filemtime(__DIR__ . '/../../ui/alarm.dist.css') : '1';
+$js_v = file_exists(__DIR__ . '/../../ui/alpine.js') ? filemtime(__DIR__ . '/../../ui/alpine.js') : '1';
+$Smarty->assign('assetsVersion', md5($css_v . $js_v));
+
 // In the new Device Auth flow, the frontend handles the authorized state
 // and fetches data via /api/dispatch. No server-side redirect needed.
