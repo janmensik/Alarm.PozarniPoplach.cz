@@ -52,7 +52,13 @@ class Dispatch extends Modul {
      *
      */
     public function getRandomDispatch(int|null $unit_id = null): array|null {
-        return ($this->getDispatch($this->findRandomId($unit_id ? 'unit_id = "' . mysqli_real_escape_string($this->DB->db, trim($unit_id)) . '"' : null)));
+        $where = $unit_id ? 'unit_id = "' . mysqli_real_escape_string($this->DB->db, trim($unit_id)) . '"' : null;
+        $data = $this->getRandom($where, null, 100, null, 1);
+        if (!empty($data) && is_array($data)) {
+            $row = reset($data);
+            return $this->getDispatch($row);
+        }
+        return null;
     }
 
     # ...................................................................
@@ -72,7 +78,7 @@ class Dispatch extends Modul {
         $data = $this->get($where, '-26', 1, null, true);
 
         if (!empty($data) && is_array($data) && !empty($data[0]) && is_array($data[0]) && !empty($data[0]['id'])) {
-            return $this->getDispatch(intval($data[0]['id']));
+            return $this->getDispatch($data[0]);
         }
 
         return null;
@@ -80,18 +86,18 @@ class Dispatch extends Modul {
 
     # ...................................................................
     /**
-     * Return full complete dispatch data by its ID
-     * @param int|null $dispatch_id Unit's ID to check.
-     * @return array|null Full dispatch data for provided ID.
+     * Return full complete dispatch data by its ID or from existing data
+     * @param int|array|null $dispatch Unit's ID to check or already fetched dispatch data.
+     * @return array|null Full dispatch data for provided ID or data.
      *
      */
-    public function getDispatch(int|null $dispatch_id = null): array|null {
-        if (empty($dispatch_id)) {
+    public function getDispatch(int|array|null $dispatch = null): array|null {
+        if (empty($dispatch)) {
             return null;
         }
 
-        // load the most recent (last) dispatch
-        $data = $this->getId(intval($dispatch_id));
+        // load the most recent (last) dispatch or use provided data array
+        $data = is_array($dispatch) ? $dispatch : $this->getId(intval($dispatch));
 
         if (!empty($data) && is_array($data)) {
             // load unit vehicles
