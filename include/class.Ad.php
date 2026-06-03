@@ -6,23 +6,23 @@ use Janmensik\Jmlib\Modul;
 use Janmensik\Jmlib\Database;
 
 class Ad extends Modul {
-    protected $sql_base = 'SELECT SQL_CALC_FOUND_ROWS ad.id, ad.title, ad.status, ad.banner_image_url, ad.target_link, ad.ad_text, ad.promo_code, ad.qr_code_svg, adc.name AS advertiser_name, IFNULL(SUM(adh.display_count), 0) AS display_count_total, IFNULL(SUM(adh.link_count), 0) AS link_count_total, adc.id AS advertiser_id FROM advert ad JOIN advertiser adc ON ad.advertiser_id=adc.id LEFT JOIN advert_hit adh ON ad.id=adh.advert_id GROUP BY ad.id'; # zaklad SQL dotazu
-    protected $sql_update = 'UPDATE advert ad'; # zaklad SQL dotazu - UPDATE
-    protected $sql_insert = 'INSERT INTO advert'; # zaklad SQL dotazu - INSERT
-    protected $sql_table = 'ad';
-    protected $order = 8;
+    protected ?string $sql_base = 'SELECT SQL_CALC_FOUND_ROWS ad.id, ad.title, ad.status, ad.banner_image_url, ad.target_link, ad.ad_text, ad.promo_code, ad.qr_code_svg, adc.name AS advertiser_name, IFNULL(SUM(adh.display_count), 0) AS display_count_total, IFNULL(SUM(adh.link_count), 0) AS link_count_total, adc.id AS advertiser_id FROM advert ad JOIN advertiser adc ON ad.advertiser_id=adc.id LEFT JOIN advert_hit adh ON ad.id=adh.advert_id GROUP BY ad.id'; # zaklad SQL dotazu
+    protected ?string $sql_update = 'UPDATE advert ad'; # zaklad SQL dotazu - UPDATE
+    protected ?string $sql_insert = 'INSERT INTO advert'; # zaklad SQL dotazu - INSERT
+    protected ?string $sql_table = 'ad';
+    protected int|string $order = 8;
 
     //protected $fulltext_columns = array('hub.id', 'hub.title', 'hub.pincode');
-    protected $limit = -1;
+    protected int $limit = -1;
 
-    public $text = array(
+    public array $text = array(
         'cs' => array(
             'status' =>
             array('active' => 'Aktivní', 'disabled' => 'Pozastavený', 'deleted' => 'Smazaný')
         )
     );
 
-    protected $elements = [
+    protected array $elements = [
         'title',
         'status',
         'banner_image_url',
@@ -31,11 +31,6 @@ class Ad extends Modul {
         'promo_code',
         'advertiser_id'
     ];
-
-    public $data = [];
-
-
-    public $cache;
 
     # ...................................................................
     public function __construct(Database &$database) {
@@ -185,46 +180,6 @@ class Ad extends Modul {
     }
 
     # ...................................................................
-    public function fillData(?int $id = null): bool {
-        if (!$id) {
-            return false;
-        }
-
-        $item = $this->getId($id);
-
-        foreach ($this->elements as $el) {
-            if (isset($item[$el])) {
-                $this->data[$el] = @$item[$el];
-            }
-        }
-        return true;
-    }
-
-    # ...................................................................
-    /**
-     * Map POST data to internal data array
-     * @param array $post $_POST data
-     * @param array $customMap Optional custom mapping [postKey => dbKey]
-     */
-    public function mapFromPost(array $post, ?array $customMap = []): void {
-        $map = !empty($customMap) ? $customMap : [
-            'title' => 'title',
-            'status' => 'status',
-            'banner_image_url' => 'banner_image_url',
-            'target_link' => 'target_link',
-            'ad_text' => 'ad_text',
-            'promo_code' => 'promo_code',
-            'advertiser_id' => 'advertiser_id'
-        ];
-
-        foreach ($map as $postKey => $dbKey) {
-            if (isset($post[$postKey])) {
-                $this->data[$dbKey] = $this->sanitize($post[$postKey]);
-            }
-        }
-    }
-
-    # ...................................................................
     public function validate(): array {
         $errors = [];
 
@@ -234,23 +189,5 @@ class Ad extends Modul {
         }
 
         return $errors;
-    }
-
-    # ...................................................................
-    # include all this->data into classic Modul set($set)
-    public function setter(?int $id = null): bool|int {
-        $set = [];
-        foreach ($this->elements as $el) {
-            if (isset($this->data[$el])) {
-                $value = $this->data[$el];
-                if ($value === null) {
-                    $set[$el] = 'NULL';
-                } else {
-                    $set[$el] = '"' . mysqli_real_escape_string($this->DB->db, $value) . '"';
-                }
-            }
-        }
-
-        return ($this->set($set, $id));
     }
 }

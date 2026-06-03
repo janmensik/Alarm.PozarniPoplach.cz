@@ -34,3 +34,29 @@ test('setAdHit correctly executes insert query', function () {
 
     $this->ad->setAdHit($unitId, $advertId);
 });
+
+test('logLinkHit correctly executes update query', function () {
+    $advertId = 456;
+
+    $expectedQuery = 'UPDATE advert_hit SET link_count = link_count + 1 WHERE advert_id = 456';
+
+    $this->db->expects($this->once())
+        ->method('query')
+        ->with($expectedQuery)
+        ->willReturn(true);
+
+    $this->ad->logLinkHit($advertId);
+});
+
+test('validate returns errors when status is missing', function () {
+    $this->ad->data = ['status' => ''];
+    $errors = $this->ad->validate();
+    expect($errors)->toHaveKey('status', 'Status is required');
+});
+
+test('validate returns empty array when status is present', function () {
+    $this->ad->data = ['status' => 'active'];
+    $errors = $this->ad->validate();
+    expect($errors)->toBeEmpty();
+});
+

@@ -9,15 +9,15 @@ use DOMXPath;
 use RuntimeException;
 
 class Dispatch extends Modul {
-    protected $sql_base = 'SELECT SQL_CALC_FOUND_ROWS dis.*, UNIX_TIMESTAMP(dis.received) AS received_ts, UNIX_TIMESTAMP(dis.dispatched_at) AS dispatched_at_ts, u.fullname AS unit_fullname, u.registration AS unit_registration, u.category AS unit_category, u.base_latitude, u.base_longitude, et.name AS event_name, et.icon AS event_icon, ets.name AS event_subtype_name, ets.icon AS event_subtype_icon, IF(ets.icon IS NOT NULL, ets.icon, et.icon) AS icon, reg.title AS region_title, reg.rzpk AS region_rzpk FROM dispatch dis LEFT JOIN event_type et ON dis.event_id = et.id LEFT JOIN event_type ets ON dis.event_subtype_id = ets.id LEFT JOIN region reg ON dis.address_region_id = reg.id LEFT JOIN unit u ON dis.unit_id = u.id WHERE 1 GROUP BY dis.id'; # zaklad SQL dotazu
-    protected $sql_update = 'UPDATE dispatch dis'; # zaklad SQL dotazu - UPDATE
-    protected $sql_insert = 'INSERT INTO dispatch'; # zaklad SQL dotazu - INSERT
-    protected $sql_table = 'dis';
-    protected $order = '-2'; // Order by received time descending
-    protected $limit = -1;
-    protected $fulltext_columns = array('dis.event', 'dis.event_subtype', 'dis.address_fulltext', 'dis.situation');
+    protected ?string $sql_base = 'SELECT SQL_CALC_FOUND_ROWS dis.*, UNIX_TIMESTAMP(dis.received) AS received_ts, UNIX_TIMESTAMP(dis.dispatched_at) AS dispatched_at_ts, u.fullname AS unit_fullname, u.registration AS unit_registration, u.category AS unit_category, u.base_latitude, u.base_longitude, et.name AS event_name, et.icon AS event_icon, ets.name AS event_subtype_name, ets.icon AS event_subtype_icon, IF(ets.icon IS NOT NULL, ets.icon, et.icon) AS icon, reg.title AS region_title, reg.rzpk AS region_rzpk FROM dispatch dis LEFT JOIN event_type et ON dis.event_id = et.id LEFT JOIN event_type ets ON dis.event_subtype_id = ets.id LEFT JOIN region reg ON dis.address_region_id = reg.id LEFT JOIN unit u ON dis.unit_id = u.id WHERE 1 GROUP BY dis.id'; # zaklad SQL dotazu
+    protected ?string $sql_update = 'UPDATE dispatch dis'; # zaklad SQL dotazu - UPDATE
+    protected ?string $sql_insert = 'INSERT INTO dispatch'; # zaklad SQL dotazu - INSERT
+    protected ?string $sql_table = 'dis';
+    protected int|string $order = '-2'; // Order by received time descending
+    protected int $limit = -1;
+    protected ?array $fulltext_columns = array('dis.event', 'dis.event_subtype', 'dis.address_fulltext', 'dis.situation');
 
-    protected $many_to_many = array(
+    protected array $many_to_many = array(
         'unit_vehicles' => array(
             'table' => 'dispatch_unit_vehicle',
             'main_key' => 'dispatch_id',
@@ -31,8 +31,6 @@ class Dispatch extends Modul {
     );
 
     protected $email_address_pattern = '/notifikace\.([A-Z0-9]{6})@pozarnipoplach\.cz/i';
-
-    public $cache;
 
     // Private properties for caching static data
     private $vehicle_types = [];
