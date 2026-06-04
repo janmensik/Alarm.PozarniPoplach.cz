@@ -20,16 +20,21 @@ $APPD = AppData::getInstance();
 
 $APPD->setData('BASE_URL', getenv('ABSOLUTE_URL'));
 
-// Merge what we can, but filter out sensitive data using a negative list
+// Merge what we can, but filter out sensitive data using a positive list
 $raw_app_data = $_ENV + $_SERVER;
 $filtered_app_data = array_filter($raw_app_data, function ($key) {
-    $block_list = ['PASSWORD', 'API_KEY', 'SECRET']; // Expand this negative list as needed
-    foreach ($block_list as $blocked) {
-        if (stripos($key, $blocked) !== false) {
-            return false; // Exclude if key contains blocked string (case-insensitive)
-        }
-    }
-    return true;
+    // Only allow explicitly safe, non-sensitive variables
+    $allow_list = [
+        'ABSOLUTE_URL',
+        'APP_NAME',
+        'APP_VERSION',
+        'APP_BRAND',
+        'APP_SHORTNAME',
+        'APP_URL',
+        'DEFAULT_ALARM_SHOWN',
+        'DISPATCH_POLL_INTERVAL_MS'
+    ];
+    return in_array($key, $allow_list);
 }, ARRAY_FILTER_USE_KEY);
 
 $APPD->setData('APP', $filtered_app_data);
