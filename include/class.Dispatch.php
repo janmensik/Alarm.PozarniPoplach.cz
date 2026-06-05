@@ -70,7 +70,7 @@ class Dispatch extends Modul {
         $data = $this->get($where, '-26', 1, null, true);
 
         if (!empty($data) && is_array($data) && !empty($data[0]) && is_array($data[0]) && !empty($data[0]['id'])) {
-            return $this->getDispatch(intval($data[0]['id']));
+            return $this->getDispatch($data[0]);
         }
 
         return null;
@@ -78,18 +78,26 @@ class Dispatch extends Modul {
 
     # ...................................................................
     /**
-     * Return full complete dispatch data by its ID
-     * @param int|null $dispatch_id Unit's ID to check.
+     * Return full complete dispatch data by its ID or pre-fetched array
+     * @param int|array|null $dispatch_id Dispatch ID or pre-fetched dispatch data array.
      * @return array|null Full dispatch data for provided ID.
      *
      */
-    public function getDispatch(int|null $dispatch_id = null): array|null {
+    public function getDispatch(int|array|null $dispatch_id = null): array|null {
         if (empty($dispatch_id)) {
             return null;
         }
 
-        // load the most recent (last) dispatch
-        $data = $this->getId(intval($dispatch_id));
+        // load the most recent (last) dispatch or use pre-fetched data
+        // Optimization: if array is passed, avoid redundant database query
+        $data = is_array($dispatch_id) ? $dispatch_id : $this->getId(intval($dispatch_id));
+
+        // When getId() fetches multiple rows via get(), it returns a nested array e.g. [[...]]
+        // But if it's from cache or returned from an array, it might be a flat array.
+        // Let's normalize it to a flat array:
+        if (!empty($data) && is_array($data) && isset($data[0]) && is_array($data[0])) {
+            $data = $data[0];
+        }
 
         if (!empty($data) && is_array($data)) {
             // load unit vehicles

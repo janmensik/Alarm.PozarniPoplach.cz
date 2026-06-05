@@ -76,12 +76,16 @@ class Ad extends Modul {
         $newAdId = null;
         $expiresAt = date('Y-m-d H:i:s', time() + ($device['ad_sticky_duration'] * 60));
 
+        // Will store pre-fetched ad data if available
+        $newAdData = null;
+
         if ($roll <= $device['ad_probability']) {
             // Roll successful: Pick a random active ad
             $ads = $this->get(['ad.status="active"'], null, 20); // Get up to 20 active ads
             if (!empty($ads)) {
                 $randomAd = $ads[array_rand($ads)];
                 $newAdId = $randomAd['id'];
+                $newAdData = $randomAd;
             }
         }
 
@@ -95,7 +99,7 @@ class Ad extends Modul {
 
         // 5. Return data and log initial hit if we have an ad
         if ($newAdId) {
-            return $this->getAdData($newAdId, $unitId, true); // Log hit only on the first display of the window
+            return $this->getAdData($newAdData ?: $newAdId, $unitId, true); // Log hit only on the first display of the window
         }
 
         return null;
@@ -103,16 +107,20 @@ class Ad extends Modul {
 
     # ...................................................................
     /**
-     * Internal helper to fetch full ad data by ID and optionally log a hit.
+     * Internal helper to fetch full ad data by ID or pre-fetched array and optionally log a hit.
      */
-    private function getAdData(int $adId, int $unitId, bool $logHit = false): array|null {
-        $ad = $this->get(['ad.id = ' . intval($adId)], null, 1);
+    private function getAdData(int|array $adId, int $unitId, bool $logHit = false): array|null {
+        if (is_array($adId)) {
+            $data = $adId;
+            $adId = $data['id'];
+        } else {
+            $ad = $this->get(['ad.id = ' . intval($adId)], null, 1);
 
-        if (empty($ad)) {
-            return null;
+            if (empty($ad)) {
+                return null;
+            }
+            $data = $ad[0];
         }
-
-        $data = $ad[0];
 
         if ($data['target_link']) {
             $baseUrl = \Janmensik\Jmlib\AppData::getInstance()->getData('BASE_URL') ?: '';
@@ -152,7 +160,7 @@ class Ad extends Modul {
         $ad = $this->getRandom($where, 8, 10, null, 1);
 
         if (!empty($ad)) {
-            return $this->getAdData($ad[0]['id'], $unit_id, true);
+            return $this->getAdData($ad[0], $unit_id, true);
         }
 
         return null;
