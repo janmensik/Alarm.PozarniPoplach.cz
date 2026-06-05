@@ -32,7 +32,9 @@
         "NOENT",
         "custompios",
         "dnsmasq",
+        "httponly",
         "killall",
+        "nosniff",
         "svgz",
         "xvzf"
     ]
