@@ -23,13 +23,23 @@ $APPD->setData('BASE_URL', getenv('ABSOLUTE_URL'));
 // Merge what we can, but filter out sensitive data using a negative list
 $raw_app_data = $_ENV + $_SERVER;
 $filtered_app_data = array_filter($raw_app_data, function ($key) {
-    $block_list = ['PASSWORD', 'API_KEY', 'SECRET']; // Expand this negative list as needed
-    foreach ($block_list as $blocked) {
-        if (stripos($key, $blocked) !== false) {
-            return false; // Exclude if key contains blocked string (case-insensitive)
-        }
-    }
-    return true;
+    // Only allow explicitly safe, non-sensitive variables
+    $allow_list = [
+        'LOCALE',
+        'DEFAULT_ITEMS_PER_PAGE',
+        'DEFAULT_ITEMS_PER_PAGE_DOTS',
+        'DEFAULT_ALARM_SHOWN',
+        'MASTER_EMAIL',
+        'ABSOLUTE_URL',
+        'APP_NAME',
+        'APP_VERSION',
+        'APP_BRAND',
+        'APP_SHORTNAME',
+        'APP_URL',
+        'MAPBOX_API_KEY',
+        'GOOGLE_MAPS_API_KEY',
+    ];
+    return in_array($key, $allow_list);
 }, ARRAY_FILTER_USE_KEY);
 
 $APPD->setData('APP', $filtered_app_data);
@@ -52,7 +62,7 @@ header("Permissions-Policy: geolocation=(), microphone=(), camera=()");
 header("Content-Security-Policy: default-src 'self'; img-src 'self' data: https://maps.googleapis.com https://api.mapbox.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://kit.fontawesome.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self';");
 
 $isSecure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ||
-            (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+    (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
 
 session_set_cookie_params([
     'lifetime' => 0,
