@@ -12,3 +12,7 @@
 **Vulnerability:** The HTML parser (`DOMDocument::loadHTML()`) was used to parse external dispatch emails without disabling external network access, leaving it vulnerable to XML External Entity (XXE) attacks.
 **Learning:** `DOMDocument` in PHP can be vulnerable to XXE if untrusted content is loaded without explicit flags that disable network access. Note that `LIBXML_NOENT` actually *enables* entity expansion in libxml, which causes XXE vulnerabilities instead of preventing them. It stands for "Substitute Entities". Only `LIBXML_NONET` should be used.
 **Prevention:** Always pass the `LIBXML_NONET` flag when using `loadHTML` or `loadXML` on untrusted input to disable external DTDs and network requests. Never use `LIBXML_NOENT` for security purposes as it enables entity expansion.
+## 2026-06-06 - [Replace Environment Variable Blocklist with Allowlist]
+**Vulnerability:** The application was merging `$_ENV` and `$_SERVER` into the application context using a negative blocklist (e.g., filtering out 'PASSWORD', 'API_KEY'). This is insecure because it fails to catch unanticipated secret names (e.g., 'SQL_USER', 'IMAP_PASSWORD'), potentially leaking them to the frontend via Smarty templates.
+**Learning:** Negative filtering (blocklists) for sensitive data is fragile and error-prone. It's impossible to predict every sensitive key name in a growing application.
+**Prevention:** Always use an explicit allow-list for merging environment or server variables into application-wide contexts. Only explicitly safe, required variables should be exposed.
