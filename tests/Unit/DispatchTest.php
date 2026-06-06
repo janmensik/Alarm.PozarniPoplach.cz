@@ -38,6 +38,9 @@ test('getDispatch returns data with vehicles', function () {
             ['id' => $dispatch_id, 'event' => 'Fire'], // Result of get() loop 1
             false // Result of get() loop end
         );
+
+    // Mock cache setting via get() inside getId()
+    $this->dispatch->cache[$dispatch_id] = ['id' => $dispatch_id, 'event' => 'Fire'];
         
     $this->db->expects($this->any())
         ->method('getAllRows')
