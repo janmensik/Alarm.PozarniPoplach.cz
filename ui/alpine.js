@@ -1,9 +1,10 @@
 const AUTH_POLL_INTERVAL_MS = 5 * 1000;
 const DISPATCH_POLL_INTERVAL_MS = 30 * 1000;
 
-function alarmSystem(apiUrl, authBaseUrl) {
+function alarmSystem(apiUrl, authBaseUrl, calendarUrl) {
   return {
     data: null,
+    calendarEvents: null,
     loading: false,
     currentTime: "00:00:00",
     timerSeconds: 0,
@@ -229,6 +230,14 @@ function alarmSystem(apiUrl, authBaseUrl) {
         }
 
         this.data = newData;
+
+        // If peacetime and no ad, fetch calendar
+        if (this.data.dispatch_status === 'peacetime' && !this.data.ad) {
+          this.fetchCalendar();
+        } else {
+          this.calendarEvents = null;
+        }
+
         this.isOnline = true;
         this.connectionError = null;
       } catch (error) {
@@ -246,6 +255,23 @@ function alarmSystem(apiUrl, authBaseUrl) {
         setTimeout(() => {
           this.isSyncing = false;
         }, 1000);
+      }
+    },
+
+    async fetchCalendar() {
+      try {
+        const response = await fetch(calendarUrl, {
+          headers: {
+            'X-Device-Uuid': this.deviceUuid,
+            'X-Device-Token': this.refreshToken
+          }
+        });
+
+        if (response.ok) {
+          this.calendarEvents = await response.json();
+        }
+      } catch (error) {
+        console.error("Calendar API Error:", error);
       }
     },
 
@@ -283,6 +309,26 @@ function alarmSystem(apiUrl, authBaseUrl) {
       if (!ts) return "";
       const d = new Date(ts * 1000);
       return d.toLocaleString("cs-CZ");
+    },
+
+    isFullDay(event) {
+      const start = new Date(event.start);
+      const end = new Date(event.end);
+      
+      // Check if both times are 00:00:00
+      const hasNoTime = start.getHours() === 0 && start.getMinutes() === 0 && 
+                        end.getHours() === 0 && end.getMinutes() === 0;
+      
+      // If it's exactly 24 hours apart and starts at midnight, it's a full day
+      return hasNoTime && (end - start) === 86400000;
+    },
+
+    isMultiDay(event) {
+      const start = new Date(event.start);
+      const end = new Date(event.end);
+      
+      // Compare dates only
+      return start.toLocaleDateString() !== end.toLocaleDateString();
     },
   };
 }

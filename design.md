@@ -4,7 +4,7 @@
 
 ## 1. Overview & Creative North Star
 
-**Creative North Star: "Kinetic Command"**
+**Creative North Star: "Dispatch Command"**
 
 
 
@@ -12,7 +12,7 @@ This design system moves beyond the "app" aesthetic and into the realm of high-s
 
 
 
-We achieve this through **Kinetic Command**: a layout strategy that uses intentional asymmetry, high-contrast typography scales, and a "HUD-first" (Heads-Up Display) philosophy. By leaning into deep, obsidian surfaces and the visceral intensity of RAL 3000 and 3024, we create an environment where data doesn't just sit on a screen—it commands attention. This is a system for operators, not users.
+We achieve this through **Dispatch Command**: a layout strategy that uses intentional asymmetry, high-contrast typography scales, and a "HUD-first" (Heads-Up Display) philosophy. By leaning into deep, obsidian surfaces and the visceral intensity of RAL 3000 and 3024, we create an environment where data doesn't just sit on a screen—it commands attention. This is a system for operators, not users.
 
 
 
@@ -40,7 +40,7 @@ Treat the UI as a series of physical, stacked layers.
 
 
 
-### The "Glass & Kinetic" Rule
+### The "Glass" Rule
 
 For floating overlays, system alerts, or "always-on" telemetry, use **Glassmorphism**. Apply a semi-transparent `surface_container_high` with a backdrop blur. This allows the high-vis reds of the alert system to glow through the UI layers, maintaining context even when a modal is active.
 
@@ -90,7 +90,7 @@ We reject the standard Material Design shadow. Depth is achieved through **Tonal
 
 - **Secondary:** `surface_container_high` with a `primary` "Ghost Border."
 
-- **Kinetic State:** On hover, primary buttons should shift toward the luminous `secondary_container` (#ff5540) to simulate an "arming" sequence.
+- **Hover State:** On hover, primary buttons should shift toward the luminous `secondary_container` (#ff5540) to simulate an "arming" sequence.
 
 
 

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 + PHP ICS calendar parser johngrogg/ics-parser
++ Display 3 calendar events in case Peacetime and no ad
 + class.Calendar.php
 + class.Unit.php
 + GET /calendar

@@ -62,7 +62,7 @@ $router->mount('/api', function () use ($router, $DB) {
         include('./view/api/version.php');
     });
 
-    $router->get('/calendar', function () {
+    $router->get('/calendar', function () use ($DB) {
         include('./view/api/calendar.php');
     });
 

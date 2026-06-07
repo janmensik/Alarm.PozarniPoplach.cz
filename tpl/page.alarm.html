@@ -25,7 +25,7 @@
     <!-- Reloads the page every 24 hours -->
     <meta http-equiv="refresh" content="86400">
   </head>
-  <body class="bg-surface text-on-surface overflow-hidden h-screen flex flex-col" x-data="alarmSystem('{$BASE_URL}/api/dispatch?v=1', '{$BASE_URL}/api/auth/device')">
+  <body class="bg-surface text-on-surface overflow-hidden h-screen flex flex-col" x-data="alarmSystem('{$BASE_URL}/api/dispatch?v=1', '{$BASE_URL}/api/auth/device', '{$BASE_URL}/api/calendar')">
     <!-- AUTHENTICATION SCREEN -->
     <div x-show="!isAuthorized" class="fixed inset-0 z-100 bg-surface flex flex-col items-center justify-center p-10 text-center" x-cloak>
       <div class="max-w-2xl w-full bg-surface-container-high p-12 border-t-8 border-secondary shadow-2xl">
@@ -274,25 +274,7 @@
             <main class="flex-1 flex flex-col items-center justify-center bg-surface relative overflow-hidden">
               <div class="absolute inset-0 scanline opacity-5"></div>
 
-              <!-- 1. STANDARD PEACETIME MESSAGE (No Ad) -->
-              <template x-if="!data.ad">
-                <div class="flex flex-col items-center justify-center w-full h-full">
-                  <div class="z-10 text-center px-10">
-                    <h2 class="text-7xl md:text-9xl font-black uppercase tracking-tighter text-outline-variant/20 leading-none mb-4">Klid, bez poplachu</h2>
-                    <p class="text-2xl font-light text-tertiary uppercase tracking-[0.3em]">Systém <strong>PožárníPoplach.cz</strong> monitoruje situaci</p>
-                  </div>
-
-                  <!-- Decorative tactical elements -->
-                  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-200 h-200 border border-outline-variant/5 rounded-full"></div>
-                  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 border border-outline-variant/10 rounded-full"></div>
-                  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-100 h-100 border border-outline-variant/20 rounded-full"></div>
-
-                  <!-- Radar sweep effect -->
-                  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-100 h-100 bg-linear-to-tr from-secondary/5 to-transparent rounded-full animate-[spin_4s_linear_infinite]"></div>
-                </div>
-              </template>
-
-              <!-- 2. AD CONTENT (If exists) -->
+              <!-- 1. AD CONTENT (If exists) -->
               <template x-if="data.ad">
                 <div class="z-10 w-full h-full flex flex-col md:flex-row items-center justify-center gap-16 p-12 bg-surface">
                   <!-- Banner Area -->
@@ -327,6 +309,89 @@
                       </div>
                     </template>
                   </div>
+                </div>
+              </template>
+
+              <!-- 2. CALENDAR CONTENT (If exists and no ad) -->
+              <template x-if="!data.ad && calendarEvents && calendarEvents.length > 0">
+                <div class="z-10 w-full h-full flex flex-col items-center justify-start p-16 bg-surface overflow-hidden">
+                   <div class="max-w-5xl w-full flex flex-col h-full">
+                      <!-- Header - More subtle than alarm -->
+                      <div class="flex items-center gap-4 mb-8 border-b border-outline-variant/30 pb-4 shrink-0">
+                         <i class="fa-solid fa-calendar-days text-3xl text-tertiary"></i>
+                         <h2 class="text-3xl font-bold uppercase tracking-tight text-tertiary">Plánované události jednotky</h2>
+                      </div>
+                      
+                      <!-- Vertical Event List -->
+                      <div class="flex flex-col gap-6 flex-1 overflow-y-auto pr-4 custom-scrollbar">
+                         <template x-for="event in calendarEvents">
+                            <div class="bg-surface-container-low border-l-4 border-tertiary/50 p-6 flex flex-col md:flex-row md:items-start gap-6 transition-all hover:bg-surface-container">
+                               <!-- Date/Time Block (Left) -->
+                               <div class="flex flex-col shrink-0 md:w-48">
+                                  <span class="text-secondary font-black uppercase tracking-widest text-xs mb-1" x-text="new Date(event.start).toLocaleDateString('cs-CZ', { weekday: 'long' })"></span>
+                                  <span class="text-2xl font-black text-on-surface leading-none mb-2" x-text="new Date(event.start).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long' })"></span>
+                                  
+                                  <div class="flex items-center gap-2 text-tertiary text-sm font-bold">
+                                     <i class="fa-solid fa-clock-o text-[10px]"></i>
+                                     <span>
+                                        <template x-if="isFullDay(event)">
+                                           <span>Celý den</span>
+                                        </template>
+                                        <template x-if="!isFullDay(event) && !isMultiDay(event)">
+                                           <span>
+                                              <span x-text="new Date(event.start).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })"></span>
+                                              <span> - </span>
+                                              <span x-text="new Date(event.end).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })"></span>
+                                           </span>
+                                        </template>
+                                        <template x-if="!isFullDay(event) && isMultiDay(event)">
+                                           <span>
+                                              <span x-text="new Date(event.start).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })"></span>
+                                              <span> do </span>
+                                              <span x-text="new Date(event.end).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long' })"></span>
+                                           </span>
+                                        </template>
+                                     </span>
+                                  </div>
+                               </div>
+
+                               <!-- Info Block (Right) -->
+                               <div class="flex-1 flex flex-col">
+                                  <h3 class="text-xl font-bold text-on-surface uppercase leading-tight mb-2" x-text="event.title"></h3>
+                                  
+                                  <template x-if="event.description">
+                                     <p class="text-tertiary text-sm font-light leading-relaxed mb-3 line-clamp-2" x-text="event.description"></p>
+                                  </template>
+                                  
+                                  <template x-if="event.location">
+                                     <div class="flex items-center gap-2 text-outline-variant text-xs mt-auto">
+                                        <i class="fa-solid fa-location-dot"></i>
+                                        <span x-text="event.location"></span>
+                                     </div>
+                                  </template>
+                               </div>
+                            </div>
+                         </template>
+                      </div>
+                   </div>
+                </div>
+              </template>
+
+              <!-- 3. STANDARD PEACETIME MESSAGE (No Ad and No Calendar) -->
+              <template x-if="!data.ad && (!calendarEvents || calendarEvents.length === 0)">
+                <div class="flex flex-col items-center justify-center w-full h-full">
+                  <div class="z-10 text-center px-10">
+                    <h2 class="text-7xl md:text-9xl font-black uppercase tracking-tighter text-outline-variant/20 leading-none mb-4">Klid, bez poplachu</h2>
+                    <p class="text-2xl font-light text-tertiary uppercase tracking-[0.3em]">Systém <strong>PožárníPoplach.cz</strong> monitoruje situaci</p>
+                  </div>
+
+                  <!-- Decorative tactical elements -->
+                  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-200 h-200 border border-outline-variant/5 rounded-full"></div>
+                  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 border border-outline-variant/10 rounded-full"></div>
+                  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-100 h-100 border border-outline-variant/20 rounded-full"></div>
+
+                  <!-- Radar sweep effect -->
+                  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-100 h-100 bg-linear-to-tr from-secondary/5 to-transparent rounded-full animate-[spin_4s_linear_infinite]"></div>
                 </div>
               </template>
             </main>
