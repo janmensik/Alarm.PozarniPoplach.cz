@@ -62,6 +62,10 @@ $router->mount('/api', function () use ($router, $DB) {
         include('./view/api/version.php');
     });
 
+    $router->get('/calendar', function () {
+        include('./view/api/calendar.php');
+    });
+
     # Device Auth Flow
     $router->mount('/auth/device', function () use ($router, $DB) {
         $router->match('GET|POST', '/init', function () use ($DB) {
