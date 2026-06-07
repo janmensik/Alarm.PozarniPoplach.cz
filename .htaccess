@@ -57,3 +57,9 @@ RewriteRule 	^([a-z0-9_-]+)(/?[a-z0-9_-]+)*$	./index.php?page=alarm/$1&link=$2 [
 
 # Router
 # RewriteRule 	^([a-z0-9_-]+)(/?[a-z0-9_-]+)*$	./index.php?page=$1&link=$2 [QSA]
+# Cache Control for Static Assets
+<IfModule mod_headers.c>
+    <FilesMatch "\.(js|css|svg|mp3|woff|woff2|png|jpg|jpeg|gif|ico)$">
+        Header set Cache-Control "public, max-age=86400, immutable"
+    </FilesMatch>
+</IfModule>

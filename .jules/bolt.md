@@ -1,0 +1,3 @@
+## 2026-06-07 - Adding HTTP Caching for static assets
+**Learning:** Found out from ANALYSIS.md that the application has poor Raspberry Pi 4 load times due to lack of static assets cache. The application does not specify `Cache-Control` header, which causes Pi to re-evaluate static contents every 24 hours. The existing logic supports `?v=` cache busting with APP_VERSION but it was missing from several HTML inclusions.
+**Action:** Implemented `Cache-Control: public, max-age=86400, immutable` in `.htaccess` and updated script and link tags in Smarty templates to bust cache via `?v={$APP_VERSION}`.
