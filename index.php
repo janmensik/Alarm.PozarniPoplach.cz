@@ -22,25 +22,30 @@ $APPD->setData('BASE_URL', getenv('ABSOLUTE_URL'));
 
 // Merge what we can, but filter out sensitive data using a negative list
 $raw_app_data = $_ENV + $_SERVER;
-$filtered_app_data = array_filter($raw_app_data, function ($key) {
-    // Only allow explicitly safe, non-sensitive variables
-    $allow_list = [
-        'LOCALE',
-        'DEFAULT_ITEMS_PER_PAGE',
-        'DEFAULT_ITEMS_PER_PAGE_DOTS',
-        'DEFAULT_ALARM_SHOWN',
-        'MASTER_EMAIL',
-        'ABSOLUTE_URL',
-        'APP_NAME',
-        'APP_VERSION',
-        'APP_BRAND',
-        'APP_SHORTNAME',
-        'APP_URL',
-        'MAPBOX_API_KEY',
-        'GOOGLE_MAPS_API_KEY',
-    ];
-    return in_array($key, $allow_list);
-}, ARRAY_FILTER_USE_KEY);
+
+// Only allow explicitly safe, non-sensitive variables
+$allow_list = [
+    'LOCALE',
+    'DEFAULT_ITEMS_PER_PAGE',
+    'DEFAULT_ITEMS_PER_PAGE_DOTS',
+    'DEFAULT_ALARM_SHOWN',
+    'MASTER_EMAIL',
+    'ABSOLUTE_URL',
+    'APP_NAME',
+    'APP_VERSION',
+    'APP_BRAND',
+    'APP_SHORTNAME',
+    'APP_URL',
+    'MAPBOX_API_KEY',
+    'GOOGLE_MAPS_API_KEY',
+];
+
+$filtered_app_data = [];
+foreach ($allow_list as $key) {
+    if (isset($raw_app_data[$key])) {
+        $filtered_app_data[$key] = $raw_app_data[$key];
+    }
+}
 
 $APPD->setData('APP', $filtered_app_data);
 $APPD->setData('SOURCE', 'alarm');
