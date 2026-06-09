@@ -9,7 +9,8 @@ require_once __DIR__ . '/../Pest.php';
 beforeEach(function () {
     $this->db = $this->createMock(Database::class);
     // Mock the mysqli object for escape string
-    $this->mysqli = new class {
+    $this->mysqli = new class extends mysqli {
+        public function __construct() {}
         public function real_escape_string(string $string): string {
             return addslashes($string);
         }

@@ -158,20 +158,19 @@ class DeviceAuth extends Modul {
      * UUID is accepted from X-Device-UUID header or request parameter.
      */
     public function getRequestCredentials(): array {
-        $headers = [];
-        foreach ($_SERVER as $name => $value) {
-            if (substr($name, 0, 5) == 'HTTP_') {
-                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
-            }
-        }
+        // ⚡ Bolt: Performance Improvement
+        // What: Avoid iterating over all $_SERVER variables to extract headers.
+        // Why: Using direct lookups instead of dynamically rebuilding the header array via loops,
+        // string manipulations (str_replace, strtolower, ucwords) avoids O(n) overhead on every request.
+        // Impact: Reduces execution time for credential extraction.
 
-        $uuid = $headers['X-Device-Uuid'] ?? $_REQUEST['uuid'] ?? null;
+        $uuid = $_SERVER['HTTP_X_DEVICE_UUID'] ?? $_REQUEST['uuid'] ?? null;
 
         $token = null;
-        if (isset($headers['Authorization']) && preg_match('/Bearer\s+(.*)$/i', $headers['Authorization'], $matches)) {
+        if (isset($_SERVER['HTTP_AUTHORIZATION']) && preg_match('/Bearer\s+(.*)$/i', $_SERVER['HTTP_AUTHORIZATION'], $matches)) {
             $token = $matches[1];
-        } elseif (isset($headers['X-Device-Token'])) {
-            $token = $headers['X-Device-Token'];
+        } elseif (isset($_SERVER['HTTP_X_DEVICE_TOKEN'])) {
+            $token = $_SERVER['HTTP_X_DEVICE_TOKEN'];
         }
 
         return [
