@@ -96,10 +96,12 @@ try {
     }
 } catch (ConnectionException $ex) {
     $DB->query("UPDATE import_log SET status = 'error', finished_at = NOW() WHERE id = " . (int)$log_id);
-    die("IMAP connection failed: " . $ex->getMessage());
+    error_log("IMAP connection failed: " . $ex->getMessage());
+    exit(1);
 } catch (Exception $ex) {
     $DB->query("UPDATE import_log SET status = 'error', finished_at = NOW() WHERE id = " . (int)$log_id);
-    die("An error occurred: " . $ex->getMessage());
+    error_log("An error occurred: " . $ex->getMessage());
+    exit(1);
 }
 
 

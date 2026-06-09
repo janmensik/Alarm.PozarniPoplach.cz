@@ -165,7 +165,7 @@ class DeviceAuth extends Modul {
             }
         }
 
-        $uuid = $headers['X-Device-Uuid'] ?? $_REQUEST['uuid'] ?? null;
+        $uuid = $headers['X-Device-Uuid'] ?? $_GET['uuid'] ?? $_POST['uuid'] ?? null;
 
         $token = null;
         if (isset($headers['Authorization']) && preg_match('/Bearer\s+(.*)$/i', $headers['Authorization'], $matches)) {

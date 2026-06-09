@@ -20,6 +20,8 @@ beforeEach(function () {
     // Clear credentials
     unset($_SERVER['HTTP_X_DEVICE_UUID']);
     unset($_SERVER['HTTP_X_DEVICE_TOKEN']);
+    unset($_GET['uuid']);
+    unset($_POST['uuid']);
 });
 
 test('calendar api returns 401 if unauthorized', function () {
