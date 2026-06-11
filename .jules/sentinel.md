@@ -12,3 +12,8 @@
 **Vulnerability:** The HTML parser (`DOMDocument::loadHTML()`) was used to parse external dispatch emails without disabling external network access, leaving it vulnerable to XML External Entity (XXE) attacks.
 **Learning:** `DOMDocument` in PHP can be vulnerable to XXE if untrusted content is loaded without explicit flags that disable network access. Note that `LIBXML_NOENT` actually *enables* entity expansion in libxml, which causes XXE vulnerabilities instead of preventing them. It stands for "Substitute Entities". Only `LIBXML_NONET` should be used.
 **Prevention:** Always pass the `LIBXML_NONET` flag when using `loadHTML` or `loadXML` on untrusted input to disable external DTDs and network requests. Never use `LIBXML_NOENT` for security purposes as it enables entity expansion.
+
+## 2024-06-25 - [Fix $_REQUEST vulnerability in getRequestCredentials()]
+**Vulnerability:** `$_REQUEST['uuid']` was used to fetch the device UUID. `$_REQUEST` combines `$_GET`, `$_POST`, and potentially `$_COOKIE` data depending on server configuration, making it vulnerable to cookie poisoning.
+**Learning:** Depending on the `request_order` configuration in PHP, `$_COOKIE` data might overwrite `$_GET` and `$_POST` variables in `$_REQUEST`.
+**Prevention:** Avoid `$_REQUEST`. Always explicitly use `$_GET['var'] ?? $_POST['var']` for variables passed from user inputs.
