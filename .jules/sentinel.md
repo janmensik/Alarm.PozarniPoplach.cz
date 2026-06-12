@@ -17,3 +17,8 @@
 **Vulnerability:** The `cron.email_import.php` script used `die($ex->getMessage())` to handle IMAP connection failures.
 **Learning:** Using `die()` or `echo` for errors in CLI scripts prints directly to stdout. In cron environments, these outputs are often captured by hosting providers and sent via email or logged in plain text unmasked, which can leak sensitive data like IMAP credentials present in the exception message.
 **Prevention:** Use `error_log()` combined with `exit(1)` for fatal errors in CLI scripts to ensure errors are written to the configured PHP error log (which is usually secured) rather than stdout.
+
+## 2024-06-12 - Replacing $_REQUEST with $_GET and $_POST
+**Vulnerability:** Use of `$_REQUEST` in `include/class.DeviceAuth.php` to fetch the device UUID.
+**Learning:** `$_REQUEST` merges `$_GET`, `$_POST`, and `$_COOKIE`. This creates a vulnerability where an attacker could spoof the device UUID by injecting a malicious value via a cookie. This happens because depending on the PHP configuration (e.g. `variables_order`), cookies can override GET/POST parameters in `$_REQUEST`.
+**Prevention:** Always explicitly use `$_GET` or `$_POST` (or a combination using the null coalescing operator `??`) when reading expected parameters to avoid untrusted data sources like cookies from polluting the input.

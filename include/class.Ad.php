@@ -106,7 +106,7 @@ class Ad extends Modul {
      * Internal helper to fetch full ad data by ID and optionally log a hit.
      */
     private function getAdData(int $adId, int $unitId, bool $logHit = false): array|null {
-        $ad = $this->get(['ad.id = ' . intval($adId)], null, 1);
+        $ad = $this->get(['ad.id = ' . intval($adId), 'ad.status = "active"'], null, 1);
 
         if (empty($ad)) {
             return null;
