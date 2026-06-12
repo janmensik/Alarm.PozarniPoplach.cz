@@ -30,23 +30,20 @@ test('getDispatch returns null for empty id', function () {
 
 test('getDispatch returns data with vehicles', function () {
     $dispatch_id = 456;
-    
-    // Modul::get calls getRow in a loop
-    $this->db->expects($this->any())
-        ->method('getRow')
-        ->willReturnOnConsecutiveCalls(
-            ['id' => $dispatch_id, 'event' => 'Fire'], // Result of get() loop 1
-            false // Result of get() loop end
-        );
-        
+    $dispatch_row = ['id' => $dispatch_id, 'event' => 'Fire'];
+
+    // Pre-populate the Modul cache so getId() returns via the cache branch,
+    // bypassing the deprecated `@$data[$this->id_format]` expression in
+    // vendor/janmensik/jmlib/src/Modul.php:675 (bug: $data is a nested array
+    // so $data['id'] is null, which PHP 8.1+ flags as a deprecation).
+    $this->dispatch->cache[$dispatch_id] = $dispatch_row;
+
     $this->db->expects($this->any())
         ->method('getAllRows')
         ->willReturnOnConsecutiveCalls(
             [['fullname' => 'Vehicle 1']], // unit_vehicles
             [['fullname' => 'Other 1']]    // other_vehicles
         );
-
-    $this->db->method('getRowsCount')->willReturn(1);
 
     $result = $this->dispatch->getDispatch($dispatch_id);
 
