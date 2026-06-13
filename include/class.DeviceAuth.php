@@ -158,20 +158,15 @@ class DeviceAuth extends Modul {
      * UUID is accepted from X-Device-UUID header or request parameter.
      */
     public function getRequestCredentials(): array {
-        $headers = [];
-        foreach ($_SERVER as $name => $value) {
-            if (substr($name, 0, 5) == 'HTTP_') {
-                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
-            }
-        }
-
-        $uuid = $headers['X-Device-Uuid'] ?? $_GET['uuid'] ?? $_POST['uuid'] ?? null;
+        // Optimization: Access required headers directly via exact keys instead of iterating over entire $_SERVER.
+        // This improves complexity from O(n) relative to $_SERVER size to O(1) and eliminates string manipulation overhead.
+        $uuid = $_SERVER['HTTP_X_DEVICE_UUID'] ?? $_GET['uuid'] ?? $_POST['uuid'] ?? null;
 
         $token = null;
-        if (isset($headers['Authorization']) && preg_match('/Bearer\s+(.*)$/i', $headers['Authorization'], $matches)) {
+        if (isset($_SERVER['HTTP_AUTHORIZATION']) && preg_match('/Bearer\s+(.*)$/i', $_SERVER['HTTP_AUTHORIZATION'], $matches)) {
             $token = $matches[1];
-        } elseif (isset($headers['X-Device-Token'])) {
-            $token = $headers['X-Device-Token'];
+        } elseif (isset($_SERVER['HTTP_X_DEVICE_TOKEN'])) {
+            $token = $_SERVER['HTTP_X_DEVICE_TOKEN'];
         }
 
         return [
