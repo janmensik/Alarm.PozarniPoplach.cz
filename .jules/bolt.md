@@ -1,3 +1,7 @@
 ## 2024-06-13 - O(n) Header Extraction Performance Fix
 **Learning:** The `DeviceAuth::getRequestCredentials` method iteratively loops over the entire `$_SERVER` array and manually reformats all header keys in PHP (doing multiple str_replace/strtolower/ucwords calls) just to extract two specific headers (`X-Device-UUID`, `X-Device-Token`, and `Authorization`). This is O(n) relative to the size of `$_SERVER`.
 **Action:** When extracting HTTP headers in PHP, avoid iterating over `$_SERVER` and manipulating keys dynamically if only specific headers are needed. Directly access the precise keys (e.g., `$_SERVER['HTTP_X_DEVICE_UUID']`) to achieve O(1) time complexity, reducing CPU cycles and string manipulation overhead, which has the added benefit of being cleaner and preventing header spoofing via similar keys.
+
+## 2024-06-16 - O(N) Array Merge Performance Fix for Global Variables
+**Learning:** Merging large superglobal arrays like `$_ENV` and `$_SERVER` into a single array (e.g., `$raw = $_ENV + $_SERVER;`) just to extract a few specific keys is highly inefficient. It forces PHP to allocate new memory and iterate over hundreds of unnecessary elements (O(N) operation).
+**Action:** When extracting a specific, known list of variables from multiple arrays or superglobals, avoid merging them. Instead, iterate over your required keys and look them up directly using `isset()` or `array_key_exists()` (O(1) operation).
