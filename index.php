@@ -20,9 +20,6 @@ $APPD = AppData::getInstance();
 
 $APPD->setData('BASE_URL', getenv('ABSOLUTE_URL'));
 
-// Merge what we can, but filter out sensitive data using a negative list
-$raw_app_data = $_ENV + $_SERVER;
-
 // Only allow explicitly safe, non-sensitive variables
 $allow_list = [
     'LOCALE',
@@ -42,8 +39,10 @@ $allow_list = [
 
 $filtered_app_data = [];
 foreach ($allow_list as $key) {
-    if (isset($raw_app_data[$key])) {
-        $filtered_app_data[$key] = $raw_app_data[$key];
+    if (isset($_ENV[$key])) {
+        $filtered_app_data[$key] = $_ENV[$key];
+    } elseif (isset($_SERVER[$key])) {
+        $filtered_app_data[$key] = $_SERVER[$key];
     }
 }
 
