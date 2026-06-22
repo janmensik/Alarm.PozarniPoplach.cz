@@ -9,3 +9,7 @@
 ## 2024-06-21 - Lazy initialization of ICal parser
 **Learning:** The `Calendar` class was eagerly instantiating the `ICal` parser in its constructor. The `ICal` library performs synchronous network requests to fetch the `.ics` file during instantiation. This blocked the entire request thread every time `Calendar` was instantiated, even before any events were fetched, severely impacting performance for endpoints polled frequently (like `/api/calendar`).
 **Action:** When working with objects that fetch remote data or perform heavy operations upon instantiation (like `ICal`), delay their instantiation (lazy loading) until the specific method requiring the data (e.g., `getCalendar`) is called. This prevents unnecessary blocking during class initialization.
+
+## 2024-06-21 - Prevent frequent remote API calls via frontend cache
+**Learning:** Alpine.js component was fetching the `calendarUrl` every 30 seconds (`DISPATCH_POLL_INTERVAL_MS`) during peacetime, which performs an ICal feed parse over the network each time. This creates unnecessary backend load and risks upstream API rate limits for data that rarely changes.
+**Action:** Implement client-side time-based caching logic directly within the JavaScript components that fetch data repeatedly, ensuring data is only refetched when sufficient time has passed (e.g. 1 hour for calendars).
