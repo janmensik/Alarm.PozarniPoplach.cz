@@ -11,13 +11,14 @@ beforeEach(function () {
     $this->db = $this->createMock(Database::class);
     // Mock the mysqli object for escape string
     $this->mysqli = new class {
-        public function real_escape_string(string $string): string {
+        public function real_escape_string(string $string): string
+        {
             return addslashes($string);
         }
     };
     $this->db->db = $this->mysqli;
     $this->appd = clearAppData();
-    
+
     // Clear credentials
     unset($_SERVER['HTTP_X_DEVICE_UUID']);
     unset($_SERVER['HTTP_X_DEVICE_TOKEN']);
@@ -46,14 +47,14 @@ test('calendar api returns calendar events for authorized device', function () {
     // 1. Mock DeviceAuth validation (getRow called in validateDevice)
     $this->db->method('getRow')
         ->willReturnOnConsecutiveCalls(
-            ['unit_id' => 1, 'refresh_token_hash' => hash('sha256', 'valid_token')]
+            ['unit_id' => 1, 'refresh_token_hash' => hash('sha256', 'valid_token'), 'last_seen_ts' => null]
         );
 
     $this->db->method('query')->willReturn(true);
-    
+
     $_SERVER['HTTP_X_DEVICE_UUID'] = 'test-uuid';
     $_SERVER['HTTP_X_DEVICE_TOKEN'] = 'valid_token';
-    
+
     $DB = $this->db;
 
     // Pre-populate the Unit object's Modul cache so getId() returns via the
