@@ -37,6 +37,13 @@ switch ($type) {
             break;
         }
 
+        // Validate scheme to prevent open redirect / javascript URI injection
+        $scheme = parse_url($ad_data['target_link'], PHP_URL_SCHEME);
+        if (!in_array(strtolower((string)$scheme), ['http', 'https'], true)) {
+            $APPD->setData('ERROR', 'Neplatný odkaz.');
+            break;
+        }
+
         // Log the hit
         $Ad->logLinkHit($id);
 
