@@ -43,7 +43,7 @@ test('dispatch returns peacetime data when no recent dispatch', function () {
     $this->db->expects($this->any())
         ->method('getRow')
         ->willReturnOnConsecutiveCalls(
-            ['unit_id' => 123, 'refresh_token_hash' => hash('sha256', 'test-token')], // validateDevice
+            ['unit_id' => 123, 'refresh_token_hash' => hash('sha256', 'test-token'), 'last_seen_ts' => null], // validateDevice
             false, // getLastDispatch
             ['fullname' => 'Test Unit'], // Fallback unit name
             [ // getAdForDevice: device lookup
@@ -86,7 +86,7 @@ test('dispatch returns alarm data when recent dispatch exists', function () {
     $this->db->expects($this->any())
         ->method('getRow')
         ->willReturnOnConsecutiveCalls(
-            ['unit_id' => 123, 'refresh_token_hash' => hash('sha256', 'test-token')], // validateDevice
+            ['unit_id' => 123, 'refresh_token_hash' => hash('sha256', 'test-token'), 'last_seen_ts' => null], // validateDevice
             [ // getLastDispatch result
                 'id' => 456,
                 'dispatched_at_ts' => $recent_ts,
