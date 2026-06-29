@@ -84,7 +84,8 @@ test('device-validate validates token', function () {
         ->method('getRow')
         ->willReturn([
             'unit_id' => 123,
-            'refresh_token_hash' => hash('sha256', 'test-token')
+            'refresh_token_hash' => hash('sha256', 'test-token'),
+            'last_seen' => null
         ]);
 
     $APPD = AppData::getInstance();
