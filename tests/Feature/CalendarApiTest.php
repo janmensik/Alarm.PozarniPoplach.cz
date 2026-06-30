@@ -46,7 +46,8 @@ test('calendar api returns calendar events for authorized device', function () {
     // 1. Mock DeviceAuth validation (getRow called in validateDevice)
     $this->db->method('getRow')
         ->willReturnOnConsecutiveCalls(
-            ['unit_id' => 1, 'refresh_token_hash' => hash('sha256', 'valid_token')]
+            ['unit_id' => 1, 'refresh_token_hash' => hash('sha256', 'valid_token'), 'last_seen_ts' => null],
+            $unit_row
         );
 
     $this->db->method('query')->willReturn(true);

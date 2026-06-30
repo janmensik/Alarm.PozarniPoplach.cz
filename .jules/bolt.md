@@ -13,3 +13,6 @@
 ## 2024-06-21 - Prevent frequent remote API calls via frontend cache
 **Learning:** Alpine.js component was fetching the `calendarUrl` every 30 seconds (`DISPATCH_POLL_INTERVAL_MS`) during peacetime, which performs an ICal feed parse over the network each time. This creates unnecessary backend load and risks upstream API rate limits for data that rarely changes.
 **Action:** Implement client-side time-based caching logic directly within the JavaScript components that fetch data repeatedly, ensuring data is only refetched when sufficient time has passed (e.g. 1 hour for calendars).
+## 2024-06-25 - PHP vs Database timezone mismatch
+**Learning:** When calculating the time difference between PHP's current time (`time()`) and a database timestamp (e.g., `strtotime($row['last_seen'])`), a difference in timezone configurations between the PHP server and MySQL server can cause massive skewing (e.g., condition always being false).
+**Action:** When comparing database timestamps against PHP's current time, prefer doing it in SQL (e.g., `TIMESTAMPDIFF`) or request the database to return a UNIX timestamp (`UNIX_TIMESTAMP(last_seen) AS last_seen_ts`) to ensure values are in the same reference frame.

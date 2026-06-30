@@ -183,15 +183,20 @@ class DeviceAuth extends Modul {
      * @return int|null Authorized Unit ID if valid, or null.
      */
     public function validateDevice(string $deviceUuid, string $refreshToken): int|null {
-        $query = 'SELECT unit_id, refresh_token_hash FROM alarm_device_authorized
+        $query = 'SELECT unit_id, refresh_token_hash, UNIX_TIMESTAMP(last_seen) AS last_seen_ts FROM alarm_device_authorized
                   WHERE device_uuid = "' . mysqli_real_escape_string($this->DB->db, $deviceUuid) . '" LIMIT 1';
 
         $device = $this->DB->getRow($this->DB->query($query, __METHOD__));
 
         if ($device && hash_equals($device['refresh_token_hash'], hash('sha256', $refreshToken))) {
             // Update last seen
-            $this->DB->query('UPDATE alarm_device_authorized SET last_seen = NOW()
-                              WHERE device_uuid = "' . mysqli_real_escape_string($this->DB->db, $deviceUuid) . '"');
+            // Bolt: Throttle UPDATE queries to reduce write load on high-frequency polled endpoints.
+            // 300 seconds (5 minutes) threshold limits writes to O(1) per interval.
+            // Using UNIX_TIMESTAMP ensures PHP and MySQL timezone mismatches do not skew calculations.
+            if (empty($device['last_seen_ts']) || time() - $device['last_seen_ts'] > 300) {
+                $this->DB->query('UPDATE alarm_device_authorized SET last_seen = NOW()
+                                  WHERE device_uuid = "' . mysqli_real_escape_string($this->DB->db, $deviceUuid) . '"');
+            }
             return (int)$device['unit_id'];
         }
 
