@@ -13,3 +13,7 @@
 ## 2024-06-21 - Prevent frequent remote API calls via frontend cache
 **Learning:** Alpine.js component was fetching the `calendarUrl` every 30 seconds (`DISPATCH_POLL_INTERVAL_MS`) during peacetime, which performs an ICal feed parse over the network each time. This creates unnecessary backend load and risks upstream API rate limits for data that rarely changes.
 **Action:** Implement client-side time-based caching logic directly within the JavaScript components that fetch data repeatedly, ensuring data is only refetched when sufficient time has passed (e.g. 1 hour for calendars).
+
+## 2024-07-01 - Throttle UPDATE statements on high-frequency API endpoints
+**Learning:** For endpoints polled frequently (like `/api/dispatch` every 30 seconds), unconditionally executing an `UPDATE` query on every request (e.g., `UPDATE alarm_device_authorized SET last_seen = NOW()`) creates a significant database write load and lock contention bottleneck.
+**Action:** When tracking `last_seen` or similar metadata on polled endpoints, read the existing timestamp first and apply a time-based debounce (e.g., only update if 5 minutes have passed) to convert O(N) database writes per request into O(1) writes per time interval.
