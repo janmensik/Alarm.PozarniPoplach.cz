@@ -17,3 +17,7 @@
 ## 2024-07-01 - Throttle UPDATE statements on high-frequency API endpoints
 **Learning:** For endpoints polled frequently (like `/api/dispatch` every 30 seconds), unconditionally executing an `UPDATE` query on every request (e.g., `UPDATE alarm_device_authorized SET last_seen = NOW()`) creates a significant database write load and lock contention bottleneck.
 **Action:** When tracking `last_seen` or similar metadata on polled endpoints, read the existing timestamp first and apply a time-based debounce (e.g., only update if 5 minutes have passed) to convert O(N) database writes per request into O(1) writes per time interval.
+
+## 2024-07-04 - Skip full relational data fetching on inactive polled records
+**Learning:** In frequently polled endpoints (like `/api/dispatch` every 30 seconds), the system was calling `getLastDispatch()` which internally called `getDispatch()` to fetch full relational data (vehicles, units) *before* determining if that data was even needed (e.g. if the dispatch was outside the active alarm window). This resulted in unnecessary `N+1` style queries on every poll during peacetime.
+**Action:** When fetching relational records for endpoints that discard inactive data, modify the getter method (e.g., adding a `$full_data = false` flag) to fetch only the base table columns initially. Only trigger the subsequent, heavier relational queries if the base record is confirmed to be active (e.g., within the alarm window). This prevents wasted database execution.
