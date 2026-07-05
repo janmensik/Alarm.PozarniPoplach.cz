@@ -12,14 +12,15 @@
     <!-- Tailwind CSS -->
     <link rel="stylesheet" href="{$BASE_URL}/ui/alarm.dist.css?v={$assetsVersion}" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@100..900&display=swap" rel="stylesheet" />
+    <link rel="preload" href="{$BASE_URL}/ui/webfonts/public-sans.woff2" as="font" type="font/woff2" crossorigin />
 
     <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="{$BASE_URL}/ui/alpine.js?v={$assetsVersion}"></script>
+    <script defer src="{$BASE_URL}/ui/alpine.min.js"></script>
 
     <!-- Font Awesome -->
+    <link rel="preconnect" href="https://kit.fontawesome.com" />
+    <link rel="preconnect" href="https://ka-f.fontawesome.com" crossorigin />
     <script src="https://kit.fontawesome.com/3208d26f35.js" crossorigin="anonymous"></script>
 
     <!-- Reloads the page every 24 hours -->
@@ -171,7 +172,7 @@
                     <h3 class="font-black text-2xl uppercase tracking-tighter mb-6 border-b-2 border-outline-variant/30 pb-4 shrink-0">Zasahující jednotky</h3>
                     <div class="grid grid-cols-1 gap-4 flex-1 overflow-y-auto content-start">
                       <!-- Unit Vehicles -->
-                      <template x-for="vehicle in data.unit_vehicles">
+                      <template x-for="vehicle in data.unit_vehicles" :key="vehicle.callsign">
                         <div class="bg-surface-container-highest p-5 flex items-center justify-between border-l-8 border-secondary shrink-0">
                           <div class="flex items-center gap-5">
                             <i :class="'text-3xl text-secondary fa-solid ' + (vehicle.vehicle_type_icon || 'fa-truck-fire')"></i>
@@ -185,7 +186,7 @@
                       </template>
 
                       <!-- Other Vehicles -->
-                      <template x-for="vehicle in data.other_vehicles">
+                      <template x-for="vehicle in data.other_vehicles" :key="vehicle.fullname">
                         <div class="bg-surface-container p-4 flex items-center justify-between border-l-4 border-tertiary opacity-80 shrink-0">
                           <div class="flex items-center gap-4">
                             <i class="fa-solid fa-truck text-2xl text-tertiary"></i>
@@ -324,7 +325,7 @@
                       
                       <!-- Vertical Event List -->
                       <div class="flex flex-col gap-6 flex-1 overflow-y-auto pr-4 custom-scrollbar">
-                         <template x-for="event in calendarEvents">
+                         <template x-for="event in calendarEvents" :key="event.start + event.title">
                             <div class="bg-surface-container-low border-l-4 border-tertiary/50 p-6 flex flex-col md:flex-row md:items-start gap-6 transition-all hover:bg-surface-container">
                                <!-- Date/Time Block (Left) -->
                                <div class="flex flex-col shrink-0 md:w-48">
@@ -474,9 +475,8 @@
     </template>
 
     <!-- Audio Alerts -->
-    <audio id="alarm-sound-start" src="{$BASE_URL}/assets/timer-start.mp3" preload="auto"></audio>
-    <audio id="alarm-sound-limit" src="{$BASE_URL}/assets/timer-limit.mp3" preload="auto"></audio>
+    <audio id="alarm-sound-start" src="{$BASE_URL}/assets/timer-start.mp3" preload="none"></audio>
+    <audio id="alarm-sound-limit" src="{$BASE_URL}/assets/timer-limit.mp3" preload="none"></audio>
 
-    <script src="{$BASE_URL}/ui/alpine.js?v={$assetsVersion}" crossorigin="anonymous"></script>
   </body>
 </html>

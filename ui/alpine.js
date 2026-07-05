@@ -15,6 +15,7 @@ function alarmSystem(apiUrl, authBaseUrl, calendarUrl) {
     connectionError: null,
     isSyncing: false,
     appVersion: null,
+    dispatchedAtMs: null,
 
     // Auth State
     isAuthorized: false,
@@ -29,13 +30,21 @@ function alarmSystem(apiUrl, authBaseUrl, calendarUrl) {
 
     async init() {
       this.updateClock();
-      setInterval(() => this.updateClock(), 1000);
       this.checkAudioAutoplay();
 
       // Load or generate device UUID
       this.deviceUuid = localStorage.getItem("alarm_device_uuid");
       if (!this.deviceUuid) {
-        this.deviceUuid = crypto.randomUUID();
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+          this.deviceUuid = crypto.randomUUID();
+        } else {
+          // Fallback for older browsers and Android TVs
+          this.deviceUuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+          });
+        }
         localStorage.setItem("alarm_device_uuid", this.deviceUuid);
       }
 
@@ -47,7 +56,11 @@ function alarmSystem(apiUrl, authBaseUrl, calendarUrl) {
         await this.startAuthFlow();
       }
 
-      setInterval(() => this.updateTimer(), 1000);
+      // Single ticker for clock and timer updates to conserve CPU resources
+      setInterval(() => {
+        this.updateClock();
+        this.updateTimer();
+      }, 1000);
 
       // Check for updates every 10 minutes (600,000 ms)
       this.checkUpdate();
@@ -86,6 +99,7 @@ function alarmSystem(apiUrl, authBaseUrl, calendarUrl) {
         if (result.success) {
           this.isAuthorized = true;
           this.authStatus = 'authorized';
+          this.preloadSounds();
           this.fetchData();
           if (this.dataInterval) clearInterval(this.dataInterval);
           this.dataInterval = setInterval(() => this.fetchData(), DISPATCH_POLL_INTERVAL_MS);
@@ -158,6 +172,7 @@ function alarmSystem(apiUrl, authBaseUrl, calendarUrl) {
           localStorage.setItem("alarm_refresh_token", this.refreshToken);
           this.isAuthorized = true;
           this.authStatus = 'authorized';
+          this.preloadSounds();
 
           // Cleanup URL if we are on /login or other non-root path
           if (window.location.pathname !== '/' && window.location.pathname !== '') {
@@ -186,6 +201,13 @@ function alarmSystem(apiUrl, authBaseUrl, calendarUrl) {
 
     toggleAudio() {
       this.audioEnabled = !this.audioEnabled;
+    },
+
+    preloadSounds() {
+      const soundStart = document.getElementById('alarm-sound-start');
+      if (soundStart) soundStart.load();
+      const soundLimit = document.getElementById('alarm-sound-limit');
+      if (soundLimit) soundLimit.load();
     },
 
     updateClock() {
@@ -231,6 +253,7 @@ function alarmSystem(apiUrl, authBaseUrl, calendarUrl) {
         }
 
         this.data = newData;
+        this.dispatchedAtMs = newData.dispatched_at_ts ? newData.dispatched_at_ts * 1000 : null;
 
         // If peacetime and no ad, fetch calendar
         if (this.data.dispatch_status === 'peacetime' && !this.data.ad) {
@@ -282,11 +305,9 @@ function alarmSystem(apiUrl, authBaseUrl, calendarUrl) {
     },
 
     updateTimer() {
-      if (!this.data || !this.data.dispatched_at_ts) return;
+      if (!this.dispatchedAtMs) return;
 
-      const start = new Date(this.data.dispatched_at_ts * 1000);
-      const now = new Date();
-      const diff = Math.floor((now - start) / 1000);
+      const diff = Math.floor((Date.now() - this.dispatchedAtMs) / 1000);
 
       if (diff >= 0) {
         this.timerSeconds = diff;

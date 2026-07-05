@@ -17,10 +17,13 @@ beforeEach(function () {
     };
     $this->db->db = $this->mysqli;
     $this->appd = clearAppData();
-    
+
     // Clear credentials
     unset($_SERVER['HTTP_X_DEVICE_UUID']);
     unset($_SERVER['HTTP_X_DEVICE_TOKEN']);
+
+    // Reset global HTTP response code state for CLI environment
+    http_response_code(200);
 });
 
 test('calendar api returns 401 if unauthorized', function () {
@@ -50,10 +53,10 @@ test('calendar api returns calendar events for authorized device', function () {
         );
 
     $this->db->method('query')->willReturn(true);
-    
+
     $_SERVER['HTTP_X_DEVICE_UUID'] = 'test-uuid';
     $_SERVER['HTTP_X_DEVICE_TOKEN'] = 'valid_token';
-    
+
     $DB = $this->db;
 
     // Pre-populate the Unit object's Modul cache so getId() returns via the

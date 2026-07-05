@@ -9,7 +9,7 @@ require_once __DIR__ . '/../../include/class.Calendar.php';
 beforeEach(function () {
     // Create a temporary .ics file for testing
     $this->tempIcs = tempnam(sys_get_temp_dir(), 'ics');
-    
+
     // Create dates relative to today so they fall within the default 'max_ahead' (+1 year)
     // Use +2 and +3 days to avoid ambiguity with current time and +1 day/36 hours
     $date1 = date('Ymd', strtotime('+2 days'));
@@ -58,15 +58,15 @@ test('it handles null URL in constructor', function () {
 
 test('it fetches and formats events correctly', function () {
     $events = $this->calendar->getCalendar();
-    
+
     expect($events)->toBeArray()
         ->and($events)->toHaveCount(2);
-        
+
     expect($events[0])->toHaveKeys(['title', 'start', 'end', 'location', 'link', 'description', 'status']);
     expect($events[0]['title'])->toBe('Event 1');
     expect($events[0]['location'])->toBe('Location 1');
     expect($events[0]['description'])->toBe('Description 1');
-    
+
     // Check ISO 8601 date format
     expect($events[0]['start'])->toMatch('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/');
 });
@@ -88,7 +88,7 @@ test('it respects the max_ahead parameter', function () {
     // If we look only 1 day ahead, we should find nothing (since events are +2 and +3 days)
     $events = $this->calendar->getCalendar('SORT_ASC', 10, '+1 day');
     expect($events)->toBeEmpty();
-    
+
     // If we look 3 days ahead, we should find the first event (+2 days)
     // rangeEnd becomes D+3 00:00:00. Event 1 (D+2 10:00:00) is < D+3 00:00:00.
     $events = $this->calendar->getCalendar('SORT_ASC', 10, '+3 days');
@@ -109,10 +109,10 @@ SUMMARY:Past Event
 END:VEVENT
 END:VCALENDAR";
     file_put_contents($this->tempIcs, $icsContent);
-    
+
     // Re-instantiate to reload the file (ics-parser loads on construct)
     $this->calendar = new Calendar($this->tempIcs);
-    
+
     $events = $this->calendar->getCalendar();
     expect($events)->toBeEmpty();
 });
@@ -130,7 +130,7 @@ END:VEVENT
 END:VCALENDAR";
     file_put_contents($this->tempIcs, $icsContent);
     $this->calendar = new Calendar($this->tempIcs);
-    
+
     $events = $this->calendar->getCalendar();
     expect($events[0]['location'])->toBe('')
         ->and($events[0]['description'])->toBe('')

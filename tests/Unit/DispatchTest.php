@@ -89,7 +89,7 @@ test('getRandomDispatch returns a dispatch', function () {
             ['id' => 999, 'event' => 'Random'], // Result of getDispatch -> getId loop 1
             false // Result of getDispatch -> getId loop end
         );
-    
+
     $this->db->expects($this->any())
         ->method('getAllRows')
         ->willReturnOnConsecutiveCalls(
@@ -196,11 +196,11 @@ test('parseDispatchHtml correctly parses a sample dispatch email', function () {
     expect($result['dispatch_id'])->toBe('123456789');
     expect($result['dispatched_by'])->toBe('Dispečer 1');
     expect($result['dispatched_at'])->toBe('28.05.2026 14:00:00');
-    
+
     expect($result['unit_vehicles'])->toHaveCount(2);
     expect($result['unit_vehicles'][0]['fullname'])->toBe('CAS 20 - S1R - JSD 123');
     expect($result['unit_vehicles'][0]['callsign'])->toBe('JSD 123');
-    
+
     expect($result['other_vehicles'])->toHaveCount(2);
     expect($result['other_vehicles'][0]['unit'])->toBe('HZS Kladno');
     expect($result['other_vehicles'][0]['callsign'])->toBe('HZS 121');

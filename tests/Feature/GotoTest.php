@@ -8,7 +8,7 @@ require_once __DIR__ . '/../../include/class.Ad.php';
 beforeEach(function () {
     clearAppData();
     AppData::getInstance()->setData('BASE_URL', 'http://localhost');
-    
+
     // Create a mock for Database
     $this->db = $this->createMock(Database::class);
     $this->mysqli = new class extends mysqli {
@@ -24,7 +24,7 @@ beforeEach(function () {
 test('goto ad redirect works and logs hit', function () {
     $adId = 4;
     $targetLink = 'https://example.com/promo';
-    
+
     $appd = AppData::getInstance();
     $appd->setData('GOTO_TYPE', 'ad');
     $appd->setData('GOTO_ID', (string)$adId);
@@ -38,7 +38,7 @@ test('goto ad redirect works and logs hit', function () {
 
     $DB = $this->db;
     $APPD = $appd;
-    
+
     ob_start();
     try {
         include __DIR__ . '/../../view/page/goto.php';
@@ -46,7 +46,7 @@ test('goto ad redirect works and logs hit', function () {
         // Handle potential exit
     }
     ob_end_clean();
-    
+
     expect(true)->toBeTrue();
 });
 

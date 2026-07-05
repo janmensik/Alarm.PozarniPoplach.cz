@@ -46,7 +46,8 @@ if (empty($unit_id)) {
 
 // Fetch base dispatch data only initially to save DB load
 $data = $Dispatch->getLastDispatch($unit_id, false);
-
+// $data = $Dispatch->getRandomDispatch();
+// $data['dispatched_at_ts'] = time() - 60 * 2;
 
 // echo ($unit_id . "\r\n----------------------\r\n");
 // print_r($data);

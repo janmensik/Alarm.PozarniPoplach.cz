@@ -59,4 +59,3 @@ test('validate returns empty array when status is present', function () {
     $errors = $this->ad->validate();
     expect($errors)->toBeEmpty();
 });
-
