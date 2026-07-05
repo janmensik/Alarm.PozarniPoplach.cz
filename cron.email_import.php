@@ -97,11 +97,11 @@ try {
 } catch (ConnectionException $ex) {
     $DB->query("UPDATE import_log SET status = 'error', finished_at = NOW() WHERE id = " . (int)$log_id);
     error_log("IMAP connection failed: " . $ex->getMessage());
-    exit(1);
+    exit();
 } catch (Exception $ex) {
     $DB->query("UPDATE import_log SET status = 'error', finished_at = NOW() WHERE id = " . (int)$log_id);
     error_log("An error occurred: " . $ex->getMessage());
-    exit(1);
+    exit();
 }
 
 
