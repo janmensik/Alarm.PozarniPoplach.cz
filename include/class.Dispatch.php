@@ -57,10 +57,11 @@ class Dispatch extends Modul {
     /**
      * identify unit by its pincode
      * @param int|null $unit_id Unit's ID to check.
+     * @param bool $full_data Whether to fetch full relational data (vehicles).
      * @return array|null Return full dispatch data of the last dispatch for the given unit or any unit if null is provided, or null if not found.
      *
      */
-    public function getLastDispatch(int|null $unit_id = null): array|null {
+    public function getLastDispatch(int|null $unit_id = null, bool $full_data = true): array|null {
         # where condition
         if (!empty($unit_id) && (int) $unit_id) {
             $where[] = 'dis.unit_id = "' . intval($unit_id) . '"';
@@ -70,6 +71,9 @@ class Dispatch extends Modul {
         $data = $this->get($where, '-26', 1, null, true);
 
         if (!empty($data) && is_array($data) && !empty($data[0]) && is_array($data[0]) && !empty($data[0]['id'])) {
+            if (!$full_data) {
+                return $data[0];
+            }
             return $this->getDispatch(intval($data[0]['id']));
         }
 
