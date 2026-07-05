@@ -16,9 +16,9 @@ class Calendar {
     public string $calendar_url = '';
 
     /**
-     * @var ICal The ICal parser instance.
+     * @var ICal|null The ICal parser instance.
      */
-    private ICal $ical;
+    private ?ICal $ical = null;
 
     # ...................................................................
     /**
@@ -32,10 +32,6 @@ class Calendar {
         }
 
         $this->calendar_url = $calendar_url;
-
-        $this->ical = new ICal($this->calendar_url, [
-            'defaultTimeZone' => date_default_timezone_get(),
-        ]);
     }
 
     # ...................................................................
@@ -49,6 +45,10 @@ class Calendar {
      */
     public function getCalendar($sort = SORT_ASC, ?int $limit = 10, ?string $max_ahead = '+1 year'): array {
 
+        if (empty($this->calendar_url)) {
+            return [];
+        }
+
         // Map string sort flags to constants if needed
         switch ($sort) {
             case 'SORT_DESC':
@@ -58,6 +58,13 @@ class Calendar {
             default:
                 $sort = SORT_ASC; // Default to ascending if invalid value provided
                 break;
+        }
+
+        // Delay instantiation of ICal to prevent synchronous network requests in the constructor
+        if ($this->ical === null) {
+            $this->ical = new ICal($this->calendar_url, [
+                'defaultTimeZone' => date_default_timezone_get(),
+            ]);
         }
 
         // Fetch events from today to 1 year in the future

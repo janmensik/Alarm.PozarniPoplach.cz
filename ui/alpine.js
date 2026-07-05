@@ -18,6 +18,7 @@ function alarmSystem(apiUrl, authBaseUrl, calendarUrl) {
 
     // Auth State
     isAuthorized: false,
+    lastCalendarFetchTime: 0,
     deviceUuid: null,
     refreshToken: null,
     qrCodeData: null,
@@ -233,7 +234,11 @@ function alarmSystem(apiUrl, authBaseUrl, calendarUrl) {
 
         // If peacetime and no ad, fetch calendar
         if (this.data.dispatch_status === 'peacetime' && !this.data.ad) {
-          this.fetchCalendar();
+          // Cache calendar events for 1 hour to reduce API calls
+          const now = Date.now();
+          if (!this.calendarEvents || (now - this.lastCalendarFetchTime) > 3600000) {
+            this.fetchCalendar();
+          }
         } else {
           this.calendarEvents = null;
         }
@@ -269,6 +274,7 @@ function alarmSystem(apiUrl, authBaseUrl, calendarUrl) {
 
         if (response.ok) {
           this.calendarEvents = await response.json();
+          this.lastCalendarFetchTime = Date.now();
         }
       } catch (error) {
         console.error("Calendar API Error:", error);

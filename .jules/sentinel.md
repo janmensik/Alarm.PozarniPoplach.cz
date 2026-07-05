@@ -22,3 +22,8 @@
 **Vulnerability:** Use of `$_REQUEST` in `include/class.DeviceAuth.php` to fetch the device UUID.
 **Learning:** `$_REQUEST` merges `$_GET`, `$_POST`, and `$_COOKIE`. This creates a vulnerability where an attacker could spoof the device UUID by injecting a malicious value via a cookie. This happens because depending on the PHP configuration (e.g. `variables_order`), cookies can override GET/POST parameters in `$_REQUEST`.
 **Prevention:** Always explicitly use `$_GET` or `$_POST` (or a combination using the null coalescing operator `??`) when reading expected parameters to avoid untrusted data sources like cookies from polluting the input.
+
+## 2024-06-27 - [Fix Open Redirect in Redirect Service]
+**Vulnerability:** The redirect service (`view/page/goto.php`) blindly trusted the `target_link` fetched from the database, allowing potential open redirects or execution of `javascript:` URIs if an attacker could inject malicious data into the database.
+**Learning:** Even when data originates from a trusted source like a database, it should be validated before use in sensitive operations like `header('Location: ...')` to uphold defense in depth and prevent stored injection vulnerabilities.
+**Prevention:** Always validate the scheme of URLs fetched from the database before redirecting to them. Only allow `http` and `https` schemes.
