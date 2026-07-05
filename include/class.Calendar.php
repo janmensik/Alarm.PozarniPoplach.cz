@@ -9,7 +9,8 @@ use ICal\ICal;
  *
  * Handles parsing and retrieving upcoming events from an iCalendar (.ics) feed.
  */
-class Calendar {
+class Calendar
+{
     /**
      * @var string The URL to the .ics calendar feed.
      */
@@ -26,7 +27,8 @@ class Calendar {
      *
      * @param string|null $calendar_url Optional URL of the iCalendar feed to parse.
      */
-    public function __construct(?string $calendar_url = null) {
+    public function __construct(?string $calendar_url = null)
+    {
         if (!$calendar_url) {
             return;
         }
@@ -43,7 +45,8 @@ class Calendar {
      * @param string|null $max_ahead The maximum date range in the future to look for events (default: '+1 year').
      * @return array Returns an array of formatted events containing title, start, end, location, link, description, and status.
      */
-    public function getCalendar($sort = SORT_ASC, ?int $limit = 10, ?string $max_ahead = '+1 year'): array {
+    public function getCalendar($sort = SORT_ASC, ?int $limit = 10, ?string $max_ahead = '+1 year'): array
+    {
 
         if (empty($this->calendar_url)) {
             return [];
@@ -79,19 +82,31 @@ class Calendar {
             $events = array_slice($events, 0, (int) $limit);
 
             foreach ($events as $event) {
-                $output[] = [
-                    'title'    => $event->summary,
-                    // Convert dtstart to ISO 8601 so JS parses it flawlessly
-                    'start'    => date('c', strtotime($event->dtstart)),
-                    'end'    => date('c', strtotime($event->dtend)),
-                    'location' => $event->location ?? '',
-                    'link'     => '', // .ics feeds rarely provide a direct HTML link back to Google
-                    'description' => $event->description ?? '',
-                    'status' => $event->status ?? ''
-                ];
+                $output[] = $this->formatEvent($event);
             }
         }
 
         return $output;
+    }
+
+    # ...................................................................
+    /**
+     * Formats a single calendar event.
+     *
+     * @param \ICal\Event $event The raw event object from ICal.
+     * @return array The formatted event array.
+     */
+    private function formatEvent(\ICal\Event $event): array
+    {
+        return [
+            'title'       => $event->summary,
+            // Convert dtstart to ISO 8601 so JS parses it flawlessly
+            'start'       => date('c', strtotime($event->dtstart)),
+            'end'         => date('c', strtotime($event->dtend)),
+            'location'    => $event->location ?? '',
+            'link'        => '', // .ics feeds rarely provide a direct HTML link back to Google
+            'description' => $event->description ?? '',
+            'status'      => $event->status ?? ''
+        ];
     }
 }
