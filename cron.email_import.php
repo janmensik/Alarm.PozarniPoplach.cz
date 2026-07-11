@@ -18,6 +18,8 @@ require_once(__DIR__ . '/include/class.Dispatch.php');
 # DEFINICE, INICIALIZACE
 # *******************************************************************
 
+const MAX_EMAILS_PER_RUN = 10;
+
 date_default_timezone_set('Europe/Prague');
 mb_internal_encoding("UTF-8");
 
@@ -65,7 +67,7 @@ try {
 
     // 2. If we have room, get SEEN emails that are still in INBOX (to clean up)
     $seen_ids = [];
-    if (count($unseen_ids) < 20) {
+    if (count($unseen_ids) < MAX_EMAILS_PER_RUN) {
         $seen_ids = $mailbox->searchMailbox('SEEN');
         // Filter out any IDs already in unseen (shouldn't happen but safe)
         $seen_ids = array_diff($seen_ids, $unseen_ids);
@@ -75,8 +77,8 @@ try {
     // Both lists are typically returned oldest-to-newest by IMAP.
     $mail_ids = array_merge($unseen_ids, $seen_ids);
 
-    // Limit to max 20 emails per run for stability
-    $mail_ids = array_slice($mail_ids, 0, 20);
+    // Limit to max emails per run for stability
+    $mail_ids = array_slice($mail_ids, 0, MAX_EMAILS_PER_RUN);
 
     // Ensure target folders exist
     $folders = $mailbox->getListingFolders();
