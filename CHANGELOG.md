@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.16.0] - 2026-07-11
 
 ### Changed
-- Email Import crongjob - lower limet on emails per run and moved it into constant
+- Email Import cronjob - lower limit on emails per run and moved it into constant
 
 ## [0.15.0] - 2026-07-05
 
