@@ -106,13 +106,20 @@ class Ad extends Modul {
      * Internal helper to fetch full ad data by ID and optionally log a hit.
      */
     private function getAdData(int $adId, int $unitId, bool $logHit = false): array|null {
-        $ad = $this->get(['ad.id = ' . intval($adId), 'ad.status = "active"'], null, 1);
+        // OPTIMIZATION: Avoid Modul::get() which executes the expensive $sql_base
+        // containing SQL_CALC_FOUND_ROWS, LEFT JOIN on advert_hit, and SUM()/GROUP BY
+        // which caused high DB load when polled every 30s during peacetime.
+        $query = 'SELECT ad.id, ad.title, ad.status, ad.banner_image_url, ad.target_link, ad.ad_text, ad.promo_code, ad.qr_code_svg, adc.name AS advertiser_name, adc.id AS advertiser_id ' .
+                 'FROM advert ad JOIN advertiser adc ON ad.advertiser_id = adc.id ' .
+                 'WHERE ad.id = ' . intval($adId) . ' AND ad.status = "active" LIMIT 1';
 
-        if (empty($ad)) {
+        $row = $this->DB->getRow($this->DB->query($query, __METHOD__));
+
+        if (empty($row)) {
             return null;
         }
 
-        $data = $ad[0];
+        $data = $row;
 
         if ($data['target_link']) {
             $baseUrl = \Janmensik\Jmlib\AppData::getInstance()->getData('BASE_URL') ?: '';
