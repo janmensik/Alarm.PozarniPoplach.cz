@@ -78,7 +78,8 @@ class Ad extends Modul {
 
         if ($roll <= $device['ad_probability']) {
             // Roll successful: Pick a random active ad
-            $ads = $this->get(['ad.status="active"'], null, 20); // Get up to 20 active ads
+            // Optimization: Used getNoCalcRows to avoid expensive SQL_CALC_FOUND_ROWS overhead
+            $ads = $this->getNoCalcRows(['ad.status="active"'], null, 20); // Get up to 20 active ads
             if (!empty($ads)) {
                 $randomAd = $ads[array_rand($ads)];
                 $newAdId = $randomAd['id'];
@@ -106,7 +107,8 @@ class Ad extends Modul {
      * Internal helper to fetch full ad data by ID and optionally log a hit.
      */
     private function getAdData(int $adId, int $unitId, bool $logHit = false): array|null {
-        $ad = $this->get(['ad.id = ' . intval($adId), 'ad.status = "active"'], null, 1);
+        // Optimization: Used getNoCalcRows to avoid expensive SQL_CALC_FOUND_ROWS overhead
+        $ad = $this->getNoCalcRows(['ad.id = ' . intval($adId), 'ad.status = "active"'], null, 1);
 
         if (empty($ad)) {
             return null;
