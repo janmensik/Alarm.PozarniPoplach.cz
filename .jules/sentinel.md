@@ -27,3 +27,8 @@
 **Vulnerability:** The redirect service (`view/page/goto.php`) blindly trusted the `target_link` fetched from the database, allowing potential open redirects or execution of `javascript:` URIs if an attacker could inject malicious data into the database.
 **Learning:** Even when data originates from a trusted source like a database, it should be validated before use in sensitive operations like `header('Location: ...')` to uphold defense in depth and prevent stored injection vulnerabilities.
 **Prevention:** Always validate the scheme of URLs fetched from the database before redirecting to them. Only allow `http` and `https` schemes.
+
+## 2026-07-18 - [Fix SSRF and LFI Vulnerabilities in iCalendar Fetcher]
+**Vulnerability:** The `Calendar` class instantiated the `ICal` parser using a URL fetched directly from the database without validating its scheme, which could allow Server-Side Request Forgery (SSRF) and Local File Inclusion (LFI) (e.g. using `file://`).
+**Learning:** External libraries like `ICal` often use functions like `file_get_contents` internally which respect PHP streams and can access local files or make unintended network requests if the URL is not restricted to safe schemes.
+**Prevention:** Always validate the URL scheme (allowing only `http` and `https`) before passing URLs from the database to external fetchers or libraries to prevent SSRF and LFI vulnerabilities.

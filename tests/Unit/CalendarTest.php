@@ -36,19 +36,19 @@ DESCRIPTION:Description 2
 END:VEVENT
 END:VCALENDAR";
 
-    file_put_contents($this->tempIcs, $icsContent);
-    $this->calendar = new Calendar($this->tempIcs);
+    // Instead of using a file, we pass the raw ICS content directly because
+    // Calendar class now enforces HTTP/HTTPS or raw ICS content (starting with BEGIN:VCALENDAR).
+    $this->icsContent = $icsContent;
+    $this->calendar = new Calendar($this->icsContent);
 });
 
 afterEach(function () {
-    if (file_exists($this->tempIcs)) {
-        unlink($this->tempIcs);
-    }
+    // No temp file to clean up anymore
 });
 
 test('it can be instantiated', function () {
     expect($this->calendar)->toBeInstanceOf(Calendar::class);
-    expect($this->calendar->calendar_url)->toBe($this->tempIcs);
+    expect($this->calendar->calendar_url)->toBe($this->icsContent);
 });
 
 test('it handles null URL in constructor', function () {
@@ -108,12 +108,17 @@ DTEND:{$datePast}T110000Z
 SUMMARY:Past Event
 END:VEVENT
 END:VCALENDAR";
-    file_put_contents($this->tempIcs, $icsContent);
 
-    // Re-instantiate to reload the file (ics-parser loads on construct)
-    $this->calendar = new Calendar($this->tempIcs);
+    // Re-instantiate with new content
+    $this->calendar = new Calendar($icsContent);
 
     $events = $this->calendar->getCalendar();
+    expect($events)->toBeEmpty();
+});
+
+test('it handles invalid scheme to prevent SSRF', function () {
+    $calendar = new Calendar('ftp:///etc/passwd');
+    $events = $calendar->getCalendar();
     expect($events)->toBeEmpty();
 });
 
@@ -128,8 +133,7 @@ DTEND:{$date}T110000Z
 SUMMARY:Minimal Event
 END:VEVENT
 END:VCALENDAR";
-    file_put_contents($this->tempIcs, $icsContent);
-    $this->calendar = new Calendar($this->tempIcs);
+    $this->calendar = new Calendar($icsContent);
 
     $events = $this->calendar->getCalendar();
     expect($events[0]['location'])->toBe('')
