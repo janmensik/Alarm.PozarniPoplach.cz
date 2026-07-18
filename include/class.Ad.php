@@ -77,8 +77,9 @@ class Ad extends Modul {
         $expiresAt = date('Y-m-d H:i:s', time() + ($device['ad_sticky_duration'] * 60));
 
         if ($roll <= $device['ad_probability']) {
-            // Roll successful: Pick a random active ad
-            $ads = $this->get(['ad.status="active"'], null, 20); // Get up to 20 active ads
+            // Roll successful: Pick a random active ad.
+            // Optimization: use getNoCalcRows to prevent the expensive SQL_CALC_FOUND_ROWS execution
+            $ads = $this->getNoCalcRows(['ad.status="active"'], null, 20);
             if (!empty($ads)) {
                 $randomAd = $ads[array_rand($ads)];
                 $newAdId = $randomAd['id'];
@@ -106,7 +107,8 @@ class Ad extends Modul {
      * Internal helper to fetch full ad data by ID and optionally log a hit.
      */
     private function getAdData(int $adId, int $unitId, bool $logHit = false): array|null {
-        $ad = $this->get(['ad.id = ' . intval($adId), 'ad.status = "active"'], null, 1);
+        // Optimization: use getNoCalcRows to prevent the expensive SQL_CALC_FOUND_ROWS execution when fetching a single record
+        $ad = $this->getNoCalcRows(['ad.id = ' . intval($adId), 'ad.status = "active"'], null, 1);
 
         if (empty($ad)) {
             return null;
