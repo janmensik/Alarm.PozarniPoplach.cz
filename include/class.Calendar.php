@@ -52,6 +52,18 @@ class Calendar
             return [];
         }
 
+        // Validate scheme to prevent SSRF and LFI vulnerabilities.
+        // The input must either be a valid HTTP/HTTPS URL, or raw iCalendar string content.
+        if (str_starts_with(trim($this->calendar_url), 'BEGIN:VCALENDAR')) {
+            // It's a raw iCalendar string, safe to parse directly
+        } else {
+            // Treat as a URL and validate the scheme
+            $scheme = parse_url($this->calendar_url, PHP_URL_SCHEME);
+            if (empty($scheme) || !in_array(strtolower((string)$scheme), ['http', 'https'], true)) {
+                return [];
+            }
+        }
+
         // Map string sort flags to constants if needed
         switch ($sort) {
             case 'SORT_DESC':
