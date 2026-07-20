@@ -27,3 +27,8 @@
 **Vulnerability:** The redirect service (`view/page/goto.php`) blindly trusted the `target_link` fetched from the database, allowing potential open redirects or execution of `javascript:` URIs if an attacker could inject malicious data into the database.
 **Learning:** Even when data originates from a trusted source like a database, it should be validated before use in sensitive operations like `header('Location: ...')` to uphold defense in depth and prevent stored injection vulnerabilities.
 **Prevention:** Always validate the scheme of URLs fetched from the database before redirecting to them. Only allow `http` and `https` schemes.
+
+## 2024-10-27 - [Fix SSRF/LFI in Calendar Parsing]
+**Vulnerability:** The `$calendar_url` was passed directly to the `ICal` constructor in `include/class.Calendar.php` without validating the scheme, allowing an attacker to parse local files (e.g., via `file://`) or internal endpoints if they could control the calendar URL.
+**Learning:** External parsing libraries often support multiple input methods (remote URLs, local files, raw strings). When accepting URLs from potentially untrusted sources or databases, you must explicitly restrict the input to safe web schemes (`http`, `https`) or explicitly check for valid raw content (e.g., checking if it starts with `BEGIN:VCALENDAR`) before passing it to the library. Relying on the library's default behavior can inadvertently enable LFI or SSRF.
+**Prevention:** Always validate the scheme of a URL (allow-listing only `http` and `https`) or explicitly check for raw content before passing it to external libraries or functions like `file_get_contents` that process URLs.
