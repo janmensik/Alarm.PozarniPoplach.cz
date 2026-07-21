@@ -27,3 +27,8 @@
 **Vulnerability:** The redirect service (`view/page/goto.php`) blindly trusted the `target_link` fetched from the database, allowing potential open redirects or execution of `javascript:` URIs if an attacker could inject malicious data into the database.
 **Learning:** Even when data originates from a trusted source like a database, it should be validated before use in sensitive operations like `header('Location: ...')` to uphold defense in depth and prevent stored injection vulnerabilities.
 **Prevention:** Always validate the scheme of URLs fetched from the database before redirecting to them. Only allow `http` and `https` schemes.
+
+## 2024-07-21 - [Fix DEFAULT_ALARM_SHOWN env fallback issue]
+**Vulnerability:** The `view/api/dispatch.php` script used `getenv('DEFAULT_ALARM_SHOWN') ?? 60` to fallback to 60 minutes if the environment variable was not set. However, `getenv()` returns `false` (not `null`) if the variable is not set. The null-coalescing operator `??` evaluates to `false` in this case. `false * 60` equals `0`, meaning the alarm would never show if the variable was missing from `.env`.
+**Learning:** In PHP, `getenv()` returns `false` if an environment variable is not set. The null-coalescing operator (`??`) is unsafe to use with `getenv()` because it only checks for `null`, leading to logical errors and unintended falsy evaluations.
+**Prevention:** Always use the Elvis operator (`?:`) or explicit strict checks (`!== false`) instead of the null-coalescing operator (`??`) to provide fallback values for environment variables fetched via `getenv()`.
