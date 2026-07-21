@@ -21,3 +21,6 @@ if ($isLocalhost && file_exists($root . '/.env.localhost')) {
     $dotenvLocal = Dotenv::createUnsafeMutable($root, '.env.localhost');
     $dotenvLocal->load();
 }
+
+// Disable displaying errors in production to prevent leaking sensitive information
+ini_set('display_errors', getenv('DEBUGGING') ? '1' : '0');

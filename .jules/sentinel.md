@@ -27,3 +27,8 @@
 **Vulnerability:** The redirect service (`view/page/goto.php`) blindly trusted the `target_link` fetched from the database, allowing potential open redirects or execution of `javascript:` URIs if an attacker could inject malicious data into the database.
 **Learning:** Even when data originates from a trusted source like a database, it should be validated before use in sensitive operations like `header('Location: ...')` to uphold defense in depth and prevent stored injection vulnerabilities.
 **Prevention:** Always validate the scheme of URLs fetched from the database before redirecting to them. Only allow `http` and `https` schemes.
+
+## YYYY-MM-DD - [Prevent Leakage of Errors in Production]
+**Vulnerability:** The application was not disabling PHP error display in production natively in the bootstrap file.
+**Learning:** If `display_errors` is not explicitly turned off, PHP exceptions or warnings could leak sensitive system information (like file paths, credentials, or DB structure) to the kiosk or end users.
+**Prevention:** Always set `ini_set('display_errors', '0');` or tie it to a `DEBUGGING` environment variable in the initial bootstrap file to fail securely.
