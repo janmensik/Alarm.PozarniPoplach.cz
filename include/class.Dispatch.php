@@ -64,8 +64,7 @@ class Dispatch extends Modul
      * @return array|null Return full dispatch data of the last dispatch for the given unit or any unit if null is provided, or null if not found.
      *
      */
-    public function getLastDispatch(int|null $unit_id = null, bool $full_data = true): array|null
-    {
+    public function getLastDispatch(int|null $unit_id = null, bool $full_data = true): array|null {
         if (!$full_data) {
             // Optimization: Lightweight query to avoid massive joins and GROUP BY during high-frequency peacetime polling
             $where_sql = 'dis.dispatched_at < NOW()';
