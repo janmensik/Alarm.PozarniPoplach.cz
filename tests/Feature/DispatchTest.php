@@ -87,7 +87,12 @@ test('dispatch returns alarm data when recent dispatch exists', function () {
         ->method('getRow')
         ->willReturnOnConsecutiveCalls(
             ['unit_id' => 123, 'refresh_token_hash' => hash('sha256', 'test-token'), 'last_seen_ts' => null], // validateDevice
-            [ // getLastDispatch result
+            [ // getLastDispatch base lookup
+                'id' => 456,
+                'dispatched_at_ts' => $recent_ts,
+                'unit_fullname' => 'Test Unit',
+            ],
+            [ // getDispatch result inside getDispatch via getId (Modul cache hit or fetch)
                 'id' => 456,
                 'dispatched_at_ts' => $recent_ts,
                 'unit_fullname' => 'Test Unit',
