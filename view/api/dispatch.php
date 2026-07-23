@@ -50,7 +50,7 @@ $data = $Dispatch->getLastDispatch($unit_id, false);
 //  $data['dispatched_at_ts'] = time() - 60 * 2;
 
 # only show dispatch if it is not older than DEFAULT_ALARM_SHOWN minutes (peacetime)
-if (!empty($data) && isset($data['dispatched_at_ts']) && (time() - $data['dispatched_at_ts'] <= (getenv('DEFAULT_ALARM_SHOWN') ?? 60) * 60)) {
+if (!empty($data) && isset($data['dispatched_at_ts']) && (time() - $data['dispatched_at_ts'] <= (getenv('DEFAULT_ALARM_SHOWN') !== false ? getenv('DEFAULT_ALARM_SHOWN') : 60) * 60)) {
     // We are in an active alarm state, now fetch the heavier relational data
     $full_data = $Dispatch->getDispatch((int)$data['id']);
     $data_parsed = $Dispatch->beautifulLastDispatch($full_data);
