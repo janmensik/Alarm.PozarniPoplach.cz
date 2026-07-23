@@ -8,7 +8,8 @@ use DOMDocument;
 use DOMXPath;
 use RuntimeException;
 
-class Dispatch extends Modul {
+class Dispatch extends Modul
+{
     protected ?string $sql_base = 'SELECT SQL_CALC_FOUND_ROWS dis.*, UNIX_TIMESTAMP(dis.received) AS received_ts, UNIX_TIMESTAMP(dis.dispatched_at) AS dispatched_at_ts, u.fullname AS unit_fullname, u.registration AS unit_registration, u.category AS unit_category, u.base_latitude, u.base_longitude, et.name AS event_name, et.icon AS event_icon, ets.name AS event_subtype_name, ets.icon AS event_subtype_icon, IF(ets.icon IS NOT NULL, ets.icon, et.icon) AS icon, reg.title AS region_title, reg.rzpk AS region_rzpk FROM dispatch dis LEFT JOIN event_type et ON dis.event_id = et.id LEFT JOIN event_type ets ON dis.event_subtype_id = ets.id LEFT JOIN region reg ON dis.address_region_id = reg.id LEFT JOIN unit u ON dis.unit_id = u.id WHERE 1 GROUP BY dis.id'; # zaklad SQL dotazu
     protected ?string $sql_update = 'UPDATE dispatch dis'; # zaklad SQL dotazu - UPDATE
     protected ?string $sql_insert = 'INSERT INTO dispatch'; # zaklad SQL dotazu - INSERT
@@ -38,7 +39,8 @@ class Dispatch extends Modul {
     private $event_types = [];
 
     # ...................................................................
-    public function __construct(Database &$database) {
+    public function __construct(Database &$database)
+    {
         parent::__construct($database);
     }
 
@@ -49,7 +51,8 @@ class Dispatch extends Modul {
      * @return array|null Return full dispatch data of a random dispatch for the given unit or any unit if null is provided, or null if not found.
      *
      */
-    public function getRandomDispatch(int|null $unit_id = null): array|null {
+    public function getRandomDispatch(int|null $unit_id = null): array|null
+    {
         return ($this->getDispatch($this->findRandomId($unit_id ? 'unit_id = "' . mysqli_real_escape_string($this->DB->db, trim($unit_id)) . '"' : null)));
     }
 
@@ -62,6 +65,21 @@ class Dispatch extends Modul {
      *
      */
     public function getLastDispatch(int|null $unit_id = null, bool $full_data = true): array|null {
+        if (!$full_data) {
+            // Optimization: Lightweight query to avoid massive joins and GROUP BY during high-frequency peacetime polling
+            $where_sql = 'dis.dispatched_at < NOW()';
+            if (!empty($unit_id) && (int) $unit_id) {
+                $where_sql .= ' AND dis.unit_id = "' . intval($unit_id) . '"';
+            }
+            $query = 'SELECT dis.id, UNIX_TIMESTAMP(dis.dispatched_at) AS dispatched_at_ts, u.fullname AS unit_fullname '
+                   . 'FROM dispatch dis '
+                   . 'LEFT JOIN unit u ON dis.unit_id = u.id '
+                   . 'WHERE ' . $where_sql . ' '
+                   . 'ORDER BY dis.dispatched_at DESC LIMIT 1';
+            $row = $this->DB->getRow($this->DB->query($query, __METHOD__ . ' get lightweight base dispatch'));
+            return $row ?: null;
+        }
+
         # where condition
         if (!empty($unit_id) && (int) $unit_id) {
             $where[] = 'dis.unit_id = "' . intval($unit_id) . '"';
@@ -71,9 +89,6 @@ class Dispatch extends Modul {
         $data = $this->get($where, '-26', 1, null, true);
 
         if (!empty($data) && is_array($data) && !empty($data[0]) && is_array($data[0]) && !empty($data[0]['id'])) {
-            if (!$full_data) {
-                return $data[0];
-            }
             return $this->getDispatch(intval($data[0]['id']));
         }
 
@@ -87,7 +102,8 @@ class Dispatch extends Modul {
      * @return array|null Full dispatch data for provided ID.
      *
      */
-    public function getDispatch(int|null $dispatch_id = null): array|null {
+    public function getDispatch(int|null $dispatch_id = null): array|null
+    {
         if (empty($dispatch_id)) {
             return null;
         }
@@ -117,7 +133,8 @@ class Dispatch extends Modul {
      * @return array|null dispatch data ready to be shown or null if input is empty.
      *
      */
-    public function beautifulLastDispatch(array|null $dispatch): array|null {
+    public function beautifulLastDispatch(array|null $dispatch): array|null
+    {
         // global $LOCAL;
 
         if (empty($dispatch) || !is_array($dispatch)) {
@@ -237,7 +254,8 @@ class Dispatch extends Modul {
      * @return array|null summary and polyline for direction
      *
      */
-    private function googleMapsDirection(string|null $origin_latitude = null, string|null $origin_longitude = null, string|null $destination_latitude = null, string|null $destination_longitude = null): array|null {
+    private function googleMapsDirection(string|null $origin_latitude = null, string|null $origin_longitude = null, string|null $destination_latitude = null, string|null $destination_longitude = null): array|null
+    {
         // global $LOCAL;
 
         if (empty($origin_latitude) || empty($origin_longitude) || empty($destination_latitude) || empty($destination_longitude) || empty($_ENV['GOOGLE_MAPS_API_KEY'])) {
@@ -304,7 +322,8 @@ class Dispatch extends Modul {
      * @param int $timeout Timeout in seconds
      * @return string|null Response body or null on failure
      */
-    private function fetchUrlWithTimeout(string $url, int $timeout = 2): ?string {
+    private function fetchUrlWithTimeout(string $url, int $timeout = 2): ?string
+    {
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
@@ -329,7 +348,8 @@ class Dispatch extends Modul {
      * @return int|null Unit's ID or null if not found.
      *
      */
-    public function checkUnitPincode(string|null $unit_pincode, bool|null $hashed = false): int|null {
+    public function checkUnitPincode(string|null $unit_pincode, bool|null $hashed = false): int|null
+    {
         if (empty($unit_pincode)) {
             return null; // Return null if the input is empty
         }
@@ -351,7 +371,8 @@ class Dispatch extends Modul {
      * @return string|null Unit's registration number or null if not found.
      *
      */
-    public function extractUnitRegistration(array|string|null $email_addresses): string|null {
+    public function extractUnitRegistration(array|string|null $email_addresses): string|null
+    {
         if (empty($email_addresses)) {
             return null; // Return null if the input array is empty
         } elseif (!is_array($email_addresses)) {
@@ -373,7 +394,8 @@ class Dispatch extends Modul {
      * @return array Parsed data from the dispatch email.
      *
      */
-    public function parseDispatchHtml(string $htmlContent): array {
+    public function parseDispatchHtml(string $htmlContent): array
+    {
         // The HTML is not well-formed, so we suppress warnings from the parser.
         libxml_use_internal_errors(true);
         $doc = new DOMDocument();
@@ -597,7 +619,8 @@ class Dispatch extends Modul {
      * @param array $array The array to filter.
      * @return array The filtered array.
      */
-    private static function arrayFilterTrimRecursive(array $array): array {
+    private static function arrayFilterTrimRecursive(array $array): array
+    {
         foreach ($array as $key => &$value) { // Use a reference to modify the array in place
             if (is_array($value)) {
                 // If the value is an array, recurse into it
@@ -622,7 +645,8 @@ class Dispatch extends Modul {
      * @return array Parsed data from the dispatch with ENUMs linked.
      *
      */
-    public function linkParsedDispatch(array $data, string|null $unit_registration = null): array {
+    public function linkParsedDispatch(array $data, string|null $unit_registration = null): array
+    {
         // Lazy load vehicle types only if they haven't been loaded yet.
         if (empty($this->vehicle_types)) {
             $this->vehicle_types = $this->DB->getAllRows($this->DB->query('SELECT vt.id, vt.code, vt.type, vt.icon FROM vehicle_type vt', __METHOD__ . ' get Vehicle types'), 'code');
@@ -748,7 +772,8 @@ class Dispatch extends Modul {
      * @param array $data The structured data array from linkParsedDispatch.
      * @return array|false The ID of the newly inserted dispatch, or false on failure.
      */
-    public function prepareSave(array $data): array|false {
+    public function prepareSave(array $data): array|false
+    {
         // Basic check for essential data
         if (empty($data['dispatch_id'])) {
             return false;
@@ -856,7 +881,8 @@ class Dispatch extends Modul {
      * @param int|null $timeout The timeout in seconds for the test alarm to go on in NOW + timeout.
      * @return int|false The ID of the newly inserted dispatch, or false on failure.
      */
-    public function createTestAlarm(int $unit_id, ?int $distance = 5, ?int $timeout = 30): int|false {
+    public function createTestAlarm(int $unit_id, ?int $distance = 5, ?int $timeout = 30): int|false
+    {
         $test_event_tzp_id = 27; // This should be an ID of a special "Test Alarm" event type in your database.
 
         # Get/Check if the unit exists with vehicle
