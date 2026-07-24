@@ -36,3 +36,7 @@
 **Vulnerability:** The `display_errors` setting was not explicitly configured in production. If a fatal error or uncaught exception occurs, PHP would output the error details to the screen, which could leak stack traces, internal file paths, and sensitive configuration information like database credentials.
 **Learning:** PHP's default `display_errors` behavior might be 'On' depending on the environment setup. Relying on default configurations for sensitive settings can lead to unintended information disclosure.
 **Prevention:** Always explicitly set `ini_set('display_errors', '0')` in production environments to prevent sensitive error details from being exposed to end-users.
+## 2025-02-27 - Properly signal cron failures
+**Vulnerability:** Masked failures in cron scripts due to incorrect exit codes (`exit()`).
+**Learning:** `exit()` in PHP defaults to `0` (success), hiding critical failures (e.g., IMAP connection errors in `cron.email_import.php`) from the OS and monitoring tools.
+**Prevention:** Always use `exit(1)` or `exit(<error_code>)` in error handling blocks within CLI/cron scripts to fail securely and ensure failures are logged and handled by orchestration tools.
