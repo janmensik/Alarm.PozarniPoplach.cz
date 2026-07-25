@@ -36,3 +36,8 @@
 **Vulnerability:** The `display_errors` setting was not explicitly configured in production. If a fatal error or uncaught exception occurs, PHP would output the error details to the screen, which could leak stack traces, internal file paths, and sensitive configuration information like database credentials.
 **Learning:** PHP's default `display_errors` behavior might be 'On' depending on the environment setup. Relying on default configurations for sensitive settings can lead to unintended information disclosure.
 **Prevention:** Always explicitly set `ini_set('display_errors', '0')` in production environments to prevent sensitive error details from being exposed to end-users.
+
+## 2026-07-25 - [Fix SSRF via ICal Instantiation]
+**Vulnerability:** The `Calendar` class instantiated the `ICal` parser using an unvalidated `$calendar_url`.
+**Learning:** The `johngrogg/ics-parser` library will blindly pass whatever it's given to `file_get_contents` if it is not raw string content. If an attacker controls the URL, they could provide a local file path (e.g. `/etc/passwd`) or an internal network URL to exploit Local File Inclusion (LFI) or Server-Side Request Forgery (SSRF).
+**Prevention:** When passing user-controlled or database-sourced strings to libraries that perform network requests or file reads, explicitly validate the URL scheme (allow-listing only `http` and `https`) or verify that the input is the expected raw file format.
