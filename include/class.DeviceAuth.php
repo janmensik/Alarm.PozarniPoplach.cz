@@ -93,7 +93,7 @@ class DeviceAuth extends Modul {
     public function linkSessionToUnit(string $deviceCode, int $unitId, ?string $deviceName = null): bool {
         $query = 'UPDATE alarm_device_session
                   SET status = "linked", unit_id = ' . intval($unitId) . ',
-                      device_name = "' . mysqli_real_escape_string($this->DB->db, $deviceName) . '"
+                      device_name = "' . mysqli_real_escape_string($this->DB->db, (string)$deviceName) . '"
                   WHERE device_code = "' . mysqli_real_escape_string($this->DB->db, $deviceCode) . '"
                   AND status = "pending" AND expires_at > NOW()';
 
