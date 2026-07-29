@@ -26,3 +26,7 @@
 ## 2024-07-23 - Fast lightweight query on polling endpoint
 **Learning:** High-frequency polling endpoints checking for changes often invoke methods designed to fetch full data objects. Even when bypassing full data retrieval using parameters, they often fall back to base query structures built for general use (e.g., using a heavyweight `Modul::get` that contains multi-table `JOIN`s, `GROUP BY`, or deprecated `SQL_CALC_FOUND_ROWS`).
 **Action:** When an endpoint frequently polls for state changes (like waiting for an alarm), ensure the lightweight path executes a directly optimized query targeting only the base fields (`id`, `timestamp`) necessary to determine state, completely avoiding the application ORM's complex base query structure for performance.
+
+## 2024-07-29 - O(1) Fetch Cached Row Parameters
+**Learning:** High-frequency polling endpoints like `/api/dispatch` often invoke multiple service classes that require the same configuration data from the database (e.g., `DeviceAuth` and `Ad` both querying `alarm_device_authorized` for the same `device_uuid`). Fetching the same record multiple times in one request cycle creates a redundant database hit bottleneck.
+**Action:** To prevent redundant database queries for the same record across different modules during a single request cycle, fetch all necessary columns in the initial query (e.g. `validateDevice`), cache the row in a class property, and pass it as an optional parameter to subsequent methods (e.g. `getAdForDevice`).
