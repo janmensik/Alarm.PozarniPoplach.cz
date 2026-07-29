@@ -36,3 +36,7 @@
 **Vulnerability:** The `display_errors` setting was not explicitly configured in production. If a fatal error or uncaught exception occurs, PHP would output the error details to the screen, which could leak stack traces, internal file paths, and sensitive configuration information like database credentials.
 **Learning:** PHP's default `display_errors` behavior might be 'On' depending on the environment setup. Relying on default configurations for sensitive settings can lead to unintended information disclosure.
 **Prevention:** Always explicitly set `ini_set('display_errors', '0')` in production environments to prevent sensitive error details from being exposed to end-users.
+## 2024-06-28 - [Fix Authorization Bypass in Device Activation]
+**Vulnerability:** The device activation page (`view/page/activate.php`) allowed linking a device to any unit by simply sending a POST request with the target `unit_id`, without verifying if the user actually belonged to or had access to that unit (Missing Access Control / IDOR).
+**Learning:** Any endpoint that associates a critical resource (like an alarm kiosk display) with a secure entity (like a fire department unit) must authenticate the user's authority to make that association, not just rely on the user interface dropdown.
+**Prevention:** As a defense-in-depth measure, always require a shared secret (like the unit's `pincode`) or a fully authenticated user session before allowing the modification of unit-level configurations or device associations.

@@ -10,7 +10,9 @@ $APPD = AppData::getInstance();
 $APPD->setData('PAGE', 'activate');
 
 require_once(__DIR__ . '/../../include/class.DeviceAuth.php');
+require_once(__DIR__ . '/../../include/class.Dispatch.php');
 $DeviceAuth = new \PozarniPoplach\DeviceAuth($DB);
+$Dispatch = new \PozarniPoplach\Dispatch($DB);
 
 // CSRF Protection
 if (empty($_SESSION['csrf_token'])) {
@@ -45,10 +47,17 @@ if (!empty($device_code)) {
 
 // Handle Authorization form submission
 if ($session && !empty($_POST['unit_id'])) {
-    if ($DeviceAuth->linkSessionToUnit($device_code, intval($_POST['unit_id']), $_POST['device_name'] ?? null)) {
-        $Smarty->assign('success', true);
+    $pincode = $_POST['pincode'] ?? '';
+    $authorized_unit_id = $Dispatch->checkUnitPincode($pincode, false);
+
+    if ($authorized_unit_id !== intval($_POST['unit_id'])) {
+        $error = 'Neplatný PIN kód jednotky.';
     } else {
-        $error = 'Nepodařilo se autorizovat zařízení.';
+        if ($DeviceAuth->linkSessionToUnit($device_code, intval($_POST['unit_id']), $_POST['device_name'] ?? null)) {
+            $Smarty->assign('success', true);
+        } else {
+            $error = 'Nepodařilo se autorizovat zařízení.';
+        }
     }
 }
 
