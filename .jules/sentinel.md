@@ -36,3 +36,8 @@
 **Vulnerability:** The `display_errors` setting was not explicitly configured in production. If a fatal error or uncaught exception occurs, PHP would output the error details to the screen, which could leak stack traces, internal file paths, and sensitive configuration information like database credentials.
 **Learning:** PHP's default `display_errors` behavior might be 'On' depending on the environment setup. Relying on default configurations for sensitive settings can lead to unintended information disclosure.
 **Prevention:** Always explicitly set `ini_set('display_errors', '0')` in production environments to prevent sensitive error details from being exposed to end-users.
+
+## 2024-08-01 - [Fix Missing PIN Code Validation to Prevent IDOR]
+**Vulnerability:** The device authorization flow (`view/page/activate.php`) allowed users to link any unit to a device by simply selecting the unit from a dropdown, without any authentication of the unit's PIN code. This created an Insecure Direct Object Reference (IDOR) / authorization bypass vulnerability where an attacker could bind a device to any unit.
+**Learning:** During kiosk device authorization, simply having the device code is not enough security, as the user must also prove they have the right to bind to the selected unit. Defense-in-depth requires explicit authentication for sensitive actions.
+**Prevention:** Always require and validate the unit's PIN code as a defense-in-depth measure during device authorization to prevent IDOR and authorization bypass vulnerabilities.
