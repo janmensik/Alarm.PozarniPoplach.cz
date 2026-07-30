@@ -71,7 +71,9 @@ if (!empty($data) && isset($data['dispatched_at_ts']) && (time() - $data['dispat
     if (!isset($Ad)) {
         $Ad = new \PozarniPoplach\Ad($DB);
     }
-    $ad = $Ad->getAdForDevice($credentials['uuid'], $unit_id);
+    // Optimization: Pass cached device data to avoid redundant DB query
+    $cachedDeviceData = $DeviceAuth->getCachedDevice($credentials['uuid']);
+    $ad = $Ad->getAdForDevice($credentials['uuid'], $unit_id, $cachedDeviceData);
 
     $data_parsed = [
         'dispatch_status' => 'peacetime',

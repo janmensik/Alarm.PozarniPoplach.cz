@@ -26,3 +26,7 @@
 ## 2024-07-23 - Fast lightweight query on polling endpoint
 **Learning:** High-frequency polling endpoints checking for changes often invoke methods designed to fetch full data objects. Even when bypassing full data retrieval using parameters, they often fall back to base query structures built for general use (e.g., using a heavyweight `Modul::get` that contains multi-table `JOIN`s, `GROUP BY`, or deprecated `SQL_CALC_FOUND_ROWS`).
 **Action:** When an endpoint frequently polls for state changes (like waiting for an alarm), ensure the lightweight path executes a directly optimized query targeting only the base fields (`id`, `timestamp`) necessary to determine state, completely avoiding the application ORM's complex base query structure for performance.
+
+## 2024-07-29 - O(1) Fetch caching via property
+**Learning:** During one request cycle, `DeviceAuth::validateDevice` and `Ad::getAdForDevice` were executing nearly identical select queries for configuration settings like `ad_probability` and `ad_sticky_duration`. This was causing redundant round trips to the database.
+**Action:** When different modules need the exact same record during a request cycle (like polling), fetch all required columns initially and cache the record within a property (e.g. `$this->cachedDeviceRecords`). Then inject that cached data array as an optional parameter to subsequent methods, converting multiple `O(1)` database hits into an `O(1)` memory access.
