@@ -36,3 +36,7 @@
 **Vulnerability:** The `display_errors` setting was not explicitly configured in production. If a fatal error or uncaught exception occurs, PHP would output the error details to the screen, which could leak stack traces, internal file paths, and sensitive configuration information like database credentials.
 **Learning:** PHP's default `display_errors` behavior might be 'On' depending on the environment setup. Relying on default configurations for sensitive settings can lead to unintended information disclosure.
 **Prevention:** Always explicitly set `ini_set('display_errors', '0')` in production environments to prevent sensitive error details from being exposed to end-users.
+## 2026-08-01 - [Prevent SSRF in Calendar iCal Parsing]
+**Vulnerability:** The `$calendar_url` property in `Calendar` was passed directly to the `ICal` constructor. Under the hood, this library uses functions equivalent to `file_get_contents()` which support PHP stream wrappers (e.g. `file://`). This allowed an attacker to supply a local path (like `file:///etc/passwd`) causing the server to read arbitrary local files.
+**Learning:** External libraries that fetch URLs often do not restrict the URL schemes they accept. Passing untrusted input to URL fetchers can easily result in Server-Side Request Forgery (SSRF) and Local File Inclusion (LFI).
+**Prevention:** Always validate URL schemes before passing them to external libraries or internal fetching functions. Enforce an allow-list of schemes (like `http` and `https`) and explicitly verify the format.

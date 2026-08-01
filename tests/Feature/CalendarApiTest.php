@@ -41,8 +41,7 @@ test('calendar api returns 401 if unauthorized', function () {
 });
 
 test('calendar api returns calendar events for authorized device', function () {
-    $tempIcs = tempnam(sys_get_temp_dir(), 'ics');
-    file_put_contents($tempIcs, "BEGIN:VCALENDAR\nVERSION:2.0\nEND:VCALENDAR");
+    $tempIcs = "BEGIN:VCALENDAR\nVERSION:2.0\nEND:VCALENDAR";
 
     $unit_row = ['id' => 1, 'fullname' => 'Test Unit', 'calendar_url' => $tempIcs];
 
@@ -74,6 +73,4 @@ test('calendar api returns calendar events for authorized device', function () {
     expect(http_response_code() === false || http_response_code() === 200)->toBeTrue();
     $output = json_decode($this->appd->getData('OUTPUT_JSON'), true);
     expect($output)->toBeArray();
-
-    unlink($tempIcs);
 });

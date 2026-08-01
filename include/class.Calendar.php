@@ -65,6 +65,13 @@ class Calendar
 
         // Delay instantiation of ICal to prevent synchronous network requests in the constructor
         if ($this->ical === null) {
+            $scheme = parse_url($this->calendar_url, PHP_URL_SCHEME);
+            $isHttp = in_array(strtolower((string)$scheme), ['http', 'https'], true);
+            $isRawIcs = str_starts_with(trim($this->calendar_url), 'BEGIN:VCALENDAR');
+
+            if (!$isHttp && !$isRawIcs) {
+                return [];
+            }
             $this->ical = new ICal($this->calendar_url, [
                 'defaultTimeZone' => date_default_timezone_get(),
             ]);

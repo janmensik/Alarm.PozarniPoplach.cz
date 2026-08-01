@@ -7,9 +7,6 @@ use PozarniPoplach\Calendar;
 require_once __DIR__ . '/../../include/class.Calendar.php';
 
 beforeEach(function () {
-    // Create a temporary .ics file for testing
-    $this->tempIcs = tempnam(sys_get_temp_dir(), 'ics');
-
     // Create dates relative to today so they fall within the default 'max_ahead' (+1 year)
     // Use +2 and +3 days to avoid ambiguity with current time and +1 day/36 hours
     $date1 = date('Ymd', strtotime('+2 days'));
@@ -36,19 +33,13 @@ DESCRIPTION:Description 2
 END:VEVENT
 END:VCALENDAR";
 
-    file_put_contents($this->tempIcs, $icsContent);
-    $this->calendar = new Calendar($this->tempIcs);
-});
-
-afterEach(function () {
-    if (file_exists($this->tempIcs)) {
-        unlink($this->tempIcs);
-    }
+    $this->icsContent = $icsContent;
+    $this->calendar = new Calendar($this->icsContent);
 });
 
 test('it can be instantiated', function () {
     expect($this->calendar)->toBeInstanceOf(Calendar::class);
-    expect($this->calendar->calendar_url)->toBe($this->tempIcs);
+    expect($this->calendar->calendar_url)->toBe($this->icsContent);
 });
 
 test('it handles null URL in constructor', function () {
@@ -108,10 +99,9 @@ DTEND:{$datePast}T110000Z
 SUMMARY:Past Event
 END:VEVENT
 END:VCALENDAR";
-    file_put_contents($this->tempIcs, $icsContent);
 
     // Re-instantiate to reload the file (ics-parser loads on construct)
-    $this->calendar = new Calendar($this->tempIcs);
+    $this->calendar = new Calendar($icsContent);
 
     $events = $this->calendar->getCalendar();
     expect($events)->toBeEmpty();
@@ -128,8 +118,7 @@ DTEND:{$date}T110000Z
 SUMMARY:Minimal Event
 END:VEVENT
 END:VCALENDAR";
-    file_put_contents($this->tempIcs, $icsContent);
-    $this->calendar = new Calendar($this->tempIcs);
+    $this->calendar = new Calendar($icsContent);
 
     $events = $this->calendar->getCalendar();
     expect($events[0]['location'])->toBe('')
