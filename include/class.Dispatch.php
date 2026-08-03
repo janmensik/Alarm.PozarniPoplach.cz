@@ -86,7 +86,7 @@ class Dispatch extends Modul
         }
         $where[] = 'dis.dispatched_at < NOW()'; // only already dispatched, not scheduled for the future
 
-        $data = $this->get($where, '-26', 1, null, true);
+        $data = $this->getNoCalcRows($where, '-26', 1, null);
 
         if (!empty($data) && is_array($data) && !empty($data[0]) && is_array($data[0]) && !empty($data[0]['id'])) {
             return $this->getDispatch(intval($data[0]['id']));

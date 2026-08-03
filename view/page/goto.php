@@ -23,7 +23,8 @@ switch ($type) {
         $Ad = new \PozarniPoplach\Ad($DB);
         // We use a manual where clause instead of getId() to avoid a deprecation
         // in the underlying Jmlib library's internal caching for single IDs.
-        $res = $Ad->get(['ad.id = ' . (int)$id], null, 1);
+        // Optimization: Used getNoCalcRows to avoid expensive SQL_CALC_FOUND_ROWS overhead
+        $res = $Ad->getNoCalcRows(['ad.id = ' . (int)$id], null, 1);
 
         if (empty($res)) {
             $APPD->setData('ERROR', 'Reklama s tímto ID nebyla nalezena.');
