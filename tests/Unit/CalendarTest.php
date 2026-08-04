@@ -36,8 +36,10 @@ DESCRIPTION:Description 2
 END:VEVENT
 END:VCALENDAR";
 
-    file_put_contents($this->tempIcs, $icsContent);
-    $this->calendar = new Calendar($this->tempIcs);
+    // Pass raw content string directly instead of using a temporary local file
+    // to bypass the URL scheme validation check which blocks file:// protocol.
+
+    $this->calendar = new Calendar($icsContent);
 });
 
 afterEach(function () {
@@ -48,7 +50,7 @@ afterEach(function () {
 
 test('it can be instantiated', function () {
     expect($this->calendar)->toBeInstanceOf(Calendar::class);
-    expect($this->calendar->calendar_url)->toBe($this->tempIcs);
+    expect(str_starts_with($this->calendar->calendar_url, 'BEGIN:VCALENDAR'))->toBeTrue();
 });
 
 test('it handles null URL in constructor', function () {
@@ -111,7 +113,7 @@ END:VCALENDAR";
     file_put_contents($this->tempIcs, $icsContent);
 
     // Re-instantiate to reload the file (ics-parser loads on construct)
-    $this->calendar = new Calendar($this->tempIcs);
+    $this->calendar = new Calendar($icsContent);
 
     $events = $this->calendar->getCalendar();
     expect($events)->toBeEmpty();
@@ -128,8 +130,7 @@ DTEND:{$date}T110000Z
 SUMMARY:Minimal Event
 END:VEVENT
 END:VCALENDAR";
-    file_put_contents($this->tempIcs, $icsContent);
-    $this->calendar = new Calendar($this->tempIcs);
+    $this->calendar = new Calendar($icsContent);
 
     $events = $this->calendar->getCalendar();
     expect($events[0]['location'])->toBe('')

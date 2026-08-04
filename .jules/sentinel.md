@@ -36,3 +36,7 @@
 **Vulnerability:** The `display_errors` setting was not explicitly configured in production. If a fatal error or uncaught exception occurs, PHP would output the error details to the screen, which could leak stack traces, internal file paths, and sensitive configuration information like database credentials.
 **Learning:** PHP's default `display_errors` behavior might be 'On' depending on the environment setup. Relying on default configurations for sensitive settings can lead to unintended information disclosure.
 **Prevention:** Always explicitly set `ini_set('display_errors', '0')` in production environments to prevent sensitive error details from being exposed to end-users.
+## 2026-08-04 - [Fix SSRF/LFI in Calendar feed parsing]
+**Vulnerability:** The `include/class.Calendar.php` script allowed external calendar URLs to be parsed without validating the scheme, allowing potential Server-Side Request Forgery (SSRF) and Local File Inclusion (LFI) via the `file://` protocol.
+**Learning:** Even when the underlying external libraries seem robust (like `johngrogg/ics-parser`), they can be exploited if untrusted URLs are passed. The `file_get_contents` function (often used by these parsers) allows scheme smuggling (e.g. `file:///etc/passwd`).
+**Prevention:** Always strictly validate the URL scheme (allow-listing only `http` and `https`) or check for valid raw content (e.g. `BEGIN:VCALENDAR`) before passing dynamic/database-sourced URLs to external parsers.

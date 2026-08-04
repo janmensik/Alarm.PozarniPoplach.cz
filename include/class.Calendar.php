@@ -63,6 +63,15 @@ class Calendar
                 break;
         }
 
+        // Validate scheme to prevent SSRF and LFI vulnerabilities
+        $is_raw_content = str_starts_with(trim($this->calendar_url), 'BEGIN:VCALENDAR');
+        if (!$is_raw_content) {
+            $scheme = parse_url($this->calendar_url, PHP_URL_SCHEME);
+            if (!in_array(strtolower((string)$scheme), ['http', 'https'], true)) {
+                return [];
+            }
+        }
+
         // Delay instantiation of ICal to prevent synchronous network requests in the constructor
         if ($this->ical === null) {
             $this->ical = new ICal($this->calendar_url, [
