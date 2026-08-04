@@ -26,3 +26,10 @@
 ## 2024-07-23 - Fast lightweight query on polling endpoint
 **Learning:** High-frequency polling endpoints checking for changes often invoke methods designed to fetch full data objects. Even when bypassing full data retrieval using parameters, they often fall back to base query structures built for general use (e.g., using a heavyweight `Modul::get` that contains multi-table `JOIN`s, `GROUP BY`, or deprecated `SQL_CALC_FOUND_ROWS`).
 **Action:** When an endpoint frequently polls for state changes (like waiting for an alarm), ensure the lightweight path executes a directly optimized query targeting only the base fields (`id`, `timestamp`) necessary to determine state, completely avoiding the application ORM's complex base query structure for performance.
+## 2026-08-04 - Optimize  by skipping full ad hydration on random pick
+**Learning:** The sticky ad logic previously picked an active ad by fetching full ad objects with , but then randomly selected only one ad ID from that array, discarding all other ad data fetched. This caused unneeded heavy ORM operations for ads that weren't picked.
+**Action:** Replaced  with a simple, direct  query, only picking IDs, and replacing the subsequent  in  with a targeted  query.
+
+## 2026-08-04 - Optimize getAdForDevice by skipping full ad hydration on random pick
+**Learning:** The sticky ad logic previously picked an active ad by fetching full ad objects with `getNoCalcRows`, but then randomly selected only one ad ID from that array, discarding all other ad data fetched. This caused unneeded heavy ORM operations for ads that weren't picked.
+**Action:** Replaced `getNoCalcRows(['ad.status="active"'], null, 20)` with a simple, direct `SELECT id FROM advert WHERE status="active" LIMIT 20` query, only picking IDs, and replacing the subsequent `getNoCalcRows` in `getAdData` with a targeted `SELECT` query.

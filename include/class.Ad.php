@@ -5,7 +5,8 @@ namespace PozarniPoplach;
 use Janmensik\Jmlib\Modul;
 use Janmensik\Jmlib\Database;
 
-class Ad extends Modul {
+class Ad extends Modul
+{
     protected ?string $sql_base = 'SELECT SQL_CALC_FOUND_ROWS ad.id, ad.title, ad.status, ad.banner_image_url, ad.target_link, ad.ad_text, ad.promo_code, ad.qr_code_svg, adc.name AS advertiser_name, IFNULL(SUM(adh.display_count), 0) AS display_count_total, IFNULL(SUM(adh.link_count), 0) AS link_count_total, adc.id AS advertiser_id FROM advert ad JOIN advertiser adc ON ad.advertiser_id=adc.id LEFT JOIN advert_hit adh ON ad.id=adh.advert_id GROUP BY ad.id'; # zaklad SQL dotazu
     protected ?string $sql_update = 'UPDATE advert ad'; # zaklad SQL dotazu - UPDATE
     protected ?string $sql_insert = 'INSERT INTO advert'; # zaklad SQL dotazu - INSERT
@@ -33,7 +34,8 @@ class Ad extends Modul {
     ];
 
     # ...................................................................
-    public function __construct(Database &$database) {
+    public function __construct(Database &$database)
+    {
         parent::__construct($database);
     }
 
@@ -46,7 +48,8 @@ class Ad extends Modul {
      * @param int $unitId Unit ID the device belongs to
      * @return array|null
      */
-    public function getAdForDevice(string $deviceUuid, int $unitId): array|null {
+    public function getAdForDevice(string $deviceUuid, int $unitId): array|null
+    {
         // 1. Fetch current state and configuration for this device
         $device = $this->DB->getRow($this->DB->query(
             'SELECT ad_probability, ad_sticky_duration, current_ad_id, ad_expires_at
@@ -79,7 +82,13 @@ class Ad extends Modul {
         if ($roll <= $device['ad_probability']) {
             // Roll successful: Pick a random active ad
             // Optimization: Used getNoCalcRows to avoid expensive SQL_CALC_FOUND_ROWS overhead
-            $ads = $this->getNoCalcRows(['ad.status="active"'], null, 20); // Get up to 20 active ads
+            $res = $this->DB->query('SELECT id FROM advert WHERE status="active" LIMIT 20', __METHOD__ . ' lightweight ad pick');
+            $ads = [];
+            if ($res) {
+                while ($row = $this->DB->getRow($res)) {
+                    $ads[] = $row;
+                }
+            }
             if (!empty($ads)) {
                 $randomAd = $ads[array_rand($ads)];
                 $newAdId = $randomAd['id'];
@@ -106,15 +115,18 @@ class Ad extends Modul {
     /**
      * Internal helper to fetch full ad data by ID and optionally log a hit.
      */
-    private function getAdData(int $adId, int $unitId, bool $logHit = false): array|null {
+    private function getAdData(int $adId, int $unitId, bool $logHit = false): array|null
+    {
         // Optimization: Used getNoCalcRows to avoid expensive SQL_CALC_FOUND_ROWS overhead
-        $ad = $this->getNoCalcRows(['ad.id = ' . intval($adId), 'ad.status = "active"'], null, 1);
+        $query = 'SELECT ad.id, ad.title, ad.status, ad.banner_image_url, ad.target_link, ad.ad_text, ad.promo_code, ad.qr_code_svg, adc.name AS advertiser_name '
+               . 'FROM advert ad '
+               . 'JOIN advertiser adc ON ad.advertiser_id = adc.id '
+               . 'WHERE ad.id = ' . intval($adId) . ' AND ad.status = "active" LIMIT 1';
+        $data = $this->DB->getRow($this->DB->query($query, __METHOD__ . ' get lightweight ad data'));
 
-        if (empty($ad)) {
+        if (empty($data)) {
             return null;
         }
-
-        $data = $ad[0];
 
         if ($data['target_link']) {
             $baseUrl = \Janmensik\Jmlib\AppData::getInstance()->getData('BASE_URL') ?: '';
@@ -147,7 +159,8 @@ class Ad extends Modul {
     }
 
     # ...................................................................
-    public function getAd(int $unit_id): array|null {
+    public function getAd(int $unit_id): array|null
+    {
         # Conditions: Only Active ads
         $where = array('ad.status="active"');
 
@@ -161,7 +174,8 @@ class Ad extends Modul {
     }
 
     # ...................................................................
-    public function setAdHit(int $unit_id, int $advert_id): void {
+    public function setAdHit(int $unit_id, int $advert_id): void
+    {
         # add advert view +1 hit
         $this->DB->query('INSERT INTO advert_hit (advert_id, unit_id, display_count) VALUES ("' . $advert_id . '", "' . $unit_id . '", 1) ON DUPLICATE KEY UPDATE display_count = display_count + 1, last_displayed_at = CURRENT_TIMESTAMP;');
     }
@@ -170,7 +184,8 @@ class Ad extends Modul {
     /**
      * Log a link click (redirection) hit.
      */
-    public function logLinkHit(int $adId): void {
+    public function logLinkHit(int $adId): void
+    {
         // Since we don't have unit_id context in the goto link easily without extra params,
         // we update the global counter if we use a simplified schema,
         // but the requirements say advert_hit table which is per-unit.
@@ -182,7 +197,8 @@ class Ad extends Modul {
     }
 
     # ...................................................................
-    public function validate(): array {
+    public function validate(): array
+    {
         $errors = [];
 
         # status

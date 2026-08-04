@@ -5,7 +5,8 @@ namespace PozarniPoplach;
 use Janmensik\Jmlib\Modul;
 use Janmensik\Jmlib\Database;
 
-class Unit extends Modul {
+class Unit extends Modul
+{
     protected ?string $sql_base = 'SELECT SQL_CALC_FOUND_ROWS ut.id, ut.status, ut.fullname, ut.registration, ut.pincode, ut.category, ut.region_id, ut.base_latitude, ut.base_longitude, reg.RZPK AS region_rzpk, reg.title AS region_title, ut.calendar_url FROM unit ut JOIN region reg ON ut.region_id=reg.id GROUP BY ut.id'; # zaklad SQL dotazu
     protected ?string $sql_update = 'UPDATE unit ut'; # zaklad SQL dotazu - UPDATE
     protected ?string $sql_insert = 'INSERT INTO unit'; # zaklad SQL dotazu - INSERT
@@ -35,7 +36,8 @@ class Unit extends Modul {
     ];
 
     # ...................................................................
-    public function __construct(Database &$database) {
+    public function __construct(Database &$database)
+    {
         parent::__construct($database);
     }
 
@@ -48,7 +50,8 @@ class Unit extends Modul {
      * @param int $unitId Unit ID the device belongs to
      * @return array|null
      */
-    public function getAdForDevice(string $deviceUuid, int $unitId): array|null {
+    public function getAdForDevice(string $deviceUuid, int $unitId): array|null
+    {
         // 1. Fetch current state and configuration for this device
         $device = $this->DB->getRow($this->DB->query(
             'SELECT ad_probability, ad_sticky_duration, current_ad_id, ad_expires_at
@@ -81,7 +84,13 @@ class Unit extends Modul {
         if ($roll <= $device['ad_probability']) {
             // Roll successful: Pick a random active ad
             // Optimization: Used getNoCalcRows to avoid expensive SQL_CALC_FOUND_ROWS overhead
-            $ads = $this->getNoCalcRows(['ad.status="active"'], null, 20); // Get up to 20 active ads
+            $res = $this->DB->query('SELECT id FROM advert WHERE status="active" LIMIT 20', __METHOD__ . ' lightweight ad pick');
+            $ads = [];
+            if ($res) {
+                while ($row = $this->DB->getRow($res)) {
+                    $ads[] = $row;
+                }
+            }
             if (!empty($ads)) {
                 $randomAd = $ads[array_rand($ads)];
                 $newAdId = $randomAd['id'];
@@ -108,15 +117,18 @@ class Unit extends Modul {
     /**
      * Internal helper to fetch full ad data by ID and optionally log a hit.
      */
-    private function getAdData(int $adId, int $unitId, bool $logHit = false): array|null {
+    private function getAdData(int $adId, int $unitId, bool $logHit = false): array|null
+    {
         // Optimization: Used getNoCalcRows to avoid expensive SQL_CALC_FOUND_ROWS overhead
-        $ad = $this->getNoCalcRows(['ad.id = ' . intval($adId)], null, 1);
+        $query = 'SELECT ad.id, ad.title, ad.status, ad.banner_image_url, ad.target_link, ad.ad_text, ad.promo_code, ad.qr_code_svg, adc.name AS advertiser_name '
+               . 'FROM advert ad '
+               . 'JOIN advertiser adc ON ad.advertiser_id = adc.id '
+               . 'WHERE ad.id = ' . intval($adId) . ' AND ad.status = "active" LIMIT 1';
+        $data = $this->DB->getRow($this->DB->query($query, __METHOD__ . ' get lightweight ad data'));
 
-        if (empty($ad)) {
+        if (empty($data)) {
             return null;
         }
-
-        $data = $ad[0];
 
         if ($data['target_link']) {
             $options = new \chillerlan\QRCode\QROptions([
@@ -134,7 +146,8 @@ class Unit extends Modul {
     }
 
     # ...................................................................
-    public function getAd(int $unit_id): array|null {
+    public function getAd(int $unit_id): array|null
+    {
         # Conditions: Only Active ads
         $where = array('ad.status="active"');
 
@@ -148,7 +161,8 @@ class Unit extends Modul {
     }
 
     # ...................................................................
-    public function getRegions(): array|null {
+    public function getRegions(): array|null
+    {
         $regions = $this->DB->getAllRows($this->DB->query(
             'SELECT id, RZPK, title FROM region ORDER BY title ASC',
             'get_regions'
@@ -158,7 +172,8 @@ class Unit extends Modul {
     }
 
     # ...................................................................
-    public function validate(): array {
+    public function validate(): array
+    {
 
         $errors = [];
 
