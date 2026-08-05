@@ -52,11 +52,13 @@ test('dispatch returns peacetime data when no recent dispatch', function () {
                 'current_ad_id' => null,
                 'ad_expires_at' => null
             ],
-            ['id' => 1, 'status' => 'active', 'target_link' => 'https://example.com'], // getAdForDevice: random pick
-            false, // Modul::get loop end
             ['id' => 1, 'status' => 'active', 'target_link' => 'https://example.com'], // getAdData lookup
             false // Modul::get loop end
         );
+
+    $this->db->expects($this->any())
+        ->method('getAllRows')
+        ->willReturn([['id' => 1]]); // getAdForDevice: direct random pick lookup via getAllRows
 
     $this->db->method('query')->willReturn(true);
 

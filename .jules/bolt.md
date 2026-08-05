@@ -26,3 +26,7 @@
 ## 2024-07-23 - Fast lightweight query on polling endpoint
 **Learning:** High-frequency polling endpoints checking for changes often invoke methods designed to fetch full data objects. Even when bypassing full data retrieval using parameters, they often fall back to base query structures built for general use (e.g., using a heavyweight `Modul::get` that contains multi-table `JOIN`s, `GROUP BY`, or deprecated `SQL_CALC_FOUND_ROWS`).
 **Action:** When an endpoint frequently polls for state changes (like waiting for an alarm), ensure the lightweight path executes a directly optimized query targeting only the base fields (`id`, `timestamp`) necessary to determine state, completely avoiding the application ORM's complex base query structure for performance.
+
+## 2024-08-05 - Avoid fetching heavy ORM records for random ID selection
+**Learning:** When randomly picking a record from a subset (like choosing an active ad), using the application's ORM method (even bypassing the `SQL_CALC_FOUND_ROWS` penalty via `getNoCalcRows`) can still result in a heavy query. The ORM fetches all defined columns (often with `JOIN`s and `GROUP BY`s) to fully hydrate an array of 20 objects, only for the application to discard 19 of them after picking one random ID to display.
+**Action:** When randomly selecting a record before fetching its full data, avoid using heavy ORM base queries to fetch the initial pool. Instead, use a lightweight, direct `SELECT id` query to pick the target ID, and then fetch the specific complete data for only that selected ID.
