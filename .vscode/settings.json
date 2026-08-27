@@ -41,5 +41,6 @@
         "nosniff",
         "svgz",
         "xvzf"
-    ]
+    ],
+    "editor.inlineSuggest.enabled": true
 }
