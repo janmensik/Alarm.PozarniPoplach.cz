@@ -9,9 +9,11 @@ beforeEach(function () {
     // Create a mock for Database
     $this->db = $this->createMock(Database::class);
     $this->mysqli = new class extends mysqli {
-        public function __construct() {
+        public function __construct()
+        {
         }
-        public function real_escape_string(string $string): string {
+        public function real_escape_string(string $string): string
+        {
             return addslashes($string);
         }
     };
@@ -52,10 +54,14 @@ test('dispatch returns peacetime data when no recent dispatch', function () {
                 'current_ad_id' => null,
                 'ad_expires_at' => null
             ],
-            ['id' => 1, 'status' => 'active', 'target_link' => 'https://example.com'], // getAdForDevice: random pick
-            false, // Modul::get loop end
             ['id' => 1, 'status' => 'active', 'target_link' => 'https://example.com'], // getAdData lookup
             false // Modul::get loop end
+        );
+
+    $this->db->expects($this->any())
+        ->method('getAllRows')
+        ->willReturn(
+            [['id' => 1]] // getAdForDevice: random pick list
         );
 
     $this->db->method('query')->willReturn(true);
