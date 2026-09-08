@@ -56,11 +56,16 @@ test('activate page rejects POST without CSRF token', function () {
     $_GET = ['code' => 'TESTCODE'];
 
     $this->db->expects($this->any())->method('query')->willReturn(true);
-    $this->db->expects($this->any())->method('getRow')->willReturn([
-        'status' => 'pending',
-        'unit_id' => null,
-        'device_uuid' => 'test-uuid'
-    ]);
+    $this->db->expects($this->any())->method('getRow')->willReturnOnConsecutiveCalls(
+        [
+            'status' => 'pending',
+            'unit_id' => null,
+            'device_uuid' => 'test-uuid'
+        ],
+        [
+            'pincode' => '1234'
+        ]
+    );
 
     $APPD = $this->appData;
     $DB = $this->db;
@@ -85,17 +90,23 @@ test('activate page accepts POST with valid CSRF token', function () {
     $_POST = [
         'unit_id' => 123,
         'device_name' => 'Test',
-        'csrf_token' => 'valid-token'
+        'csrf_token' => 'valid-token',
+        'pincode' => '1234'
     ];
     $_GET = ['code' => 'TESTCODE'];
 
     $this->db->expects($this->any())->method('query')->willReturn(true);
     // getRow gets called in checkSessionStatus, then linkSessionToUnit queries
-    $this->db->expects($this->any())->method('getRow')->willReturn([
-        'status' => 'pending',
-        'unit_id' => null,
-        'device_uuid' => 'test-uuid'
-    ]);
+    $this->db->expects($this->any())->method('getRow')->willReturnOnConsecutiveCalls(
+        [
+            'status' => 'pending',
+            'unit_id' => null,
+            'device_uuid' => 'test-uuid'
+        ],
+        [
+            'pincode' => '1234'
+        ]
+    );
 
     $APPD = $this->appData;
     $DB = $this->db;
@@ -112,4 +123,44 @@ test('activate page accepts POST with valid CSRF token', function () {
     // Test that the form was processed since token was valid
     // The device_code will be TESTCODE and linkSessionToUnit will be called
     expect($Smarty->assigns['success'])->toBeTrue();
+});
+
+test('activate page rejects POST with invalid pincode', function () {
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_SESSION['csrf_token'] = 'valid-token';
+    $_POST = [
+        'unit_id' => 123,
+        'device_name' => 'Test',
+        'csrf_token' => 'valid-token',
+        'pincode' => 'wrong'
+    ];
+    $_GET = ['code' => 'TESTCODE'];
+
+    $this->db->expects($this->any())->method('query')->willReturn(true);
+    // getRow gets called in checkSessionStatus, then linkSessionToUnit queries
+    $this->db->expects($this->any())->method('getRow')->willReturnOnConsecutiveCalls(
+        [
+            'status' => 'pending',
+            'unit_id' => null,
+            'device_uuid' => 'test-uuid'
+        ],
+        [
+            'pincode' => '1234'
+        ]
+    );
+
+    $APPD = $this->appData;
+    $DB = $this->db;
+    $Smarty = $this->smarty;
+
+    ob_start();
+    try {
+        include __DIR__ . '/../../view/page/activate.php';
+    } catch (\Exception $e) {
+        // Exit is called
+    }
+    ob_end_clean();
+
+    expect($Smarty->assigns['error'])->toBe('Neplatný PIN kód pro vybranou jednotku.');
+    expect(isset($Smarty->assigns['success']))->toBeFalse();
 });

@@ -36,3 +36,8 @@
 **Vulnerability:** The `display_errors` setting was not explicitly configured in production. If a fatal error or uncaught exception occurs, PHP would output the error details to the screen, which could leak stack traces, internal file paths, and sensitive configuration information like database credentials.
 **Learning:** PHP's default `display_errors` behavior might be 'On' depending on the environment setup. Relying on default configurations for sensitive settings can lead to unintended information disclosure.
 **Prevention:** Always explicitly set `ini_set('display_errors', '0')` in production environments to prevent sensitive error details from being exposed to end-users.
+
+## 2024-07-25 - [Fix Authorization Bypass via IDOR in Kiosk Activation]
+**Vulnerability:** When a firefighter activated a Kiosk (Raspberry Pi) via their mobile phone, they could assign the kiosk to *any* unit simply by knowing or guessing the `unit_id`.
+**Learning:** There was no second factor or shared secret required to prove authorization for the specific unit being assigned. This allowed any user to link a kiosk to any unit.
+**Prevention:** Implement a defense-in-depth measure by requiring a unit-specific PIN code during the device authorization process to authenticate the request and prevent Insecure Direct Object Reference (IDOR) / authorization bypass vulnerabilities.
