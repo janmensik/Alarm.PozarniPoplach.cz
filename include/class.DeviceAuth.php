@@ -37,7 +37,7 @@ class DeviceAuth extends Modul {
                   VALUES ("' . mysqli_real_escape_string($this->DB->db, $deviceCode) . '",
                           "' . mysqli_real_escape_string($this->DB->db, $deviceUuid) . '",
                           "pending",
-                          "' . $expiresAt . '")';
+                          "' . mysqli_real_escape_string($this->DB->db, $expiresAt) . '")';
 
         if ($this->DB->query($query, __METHOD__)) {
             return [
