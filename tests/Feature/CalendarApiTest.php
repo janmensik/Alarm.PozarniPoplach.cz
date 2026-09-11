@@ -11,7 +11,8 @@ beforeEach(function () {
     $this->db = $this->createMock(Database::class);
     // Mock the mysqli object for escape string
     $this->mysqli = new class {
-        public function real_escape_string(string $string): string {
+        public function real_escape_string(string $string): string
+        {
             return addslashes($string);
         }
     };
@@ -49,7 +50,15 @@ test('calendar api returns calendar events for authorized device', function () {
     // 1. Mock DeviceAuth validation (getRow called in validateDevice)
     $this->db->method('getRow')
         ->willReturnOnConsecutiveCalls(
-            ['unit_id' => 1, 'refresh_token_hash' => hash('sha256', 'valid_token'), 'last_seen_ts' => null]
+            [
+                'unit_id' => 1,
+                'refresh_token_hash' => hash('sha256', 'valid_token'),
+                'last_seen_ts' => null,
+                'ad_probability' => 100,
+                'ad_sticky_duration' => 240,
+                'current_ad_id' => null,
+                'ad_expires_at' => null
+            ]
         );
 
     $this->db->method('query')->willReturn(true);
