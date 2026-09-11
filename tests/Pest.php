@@ -13,8 +13,7 @@ namespace PozarniPoplach {
      * Shadowing global mysqli_real_escape_string for tests.
      */
     if (!function_exists('PozarniPoplach\mysqli_real_escape_string')) {
-        function mysqli_real_escape_string($mysqli, $string)
-        {
+        function mysqli_real_escape_string($mysqli, $string) {
             if (is_object($mysqli) && method_exists($mysqli, 'real_escape_string')) {
                 return $mysqli->real_escape_string($string);
             }
@@ -28,8 +27,7 @@ namespace Janmensik\Jmlib {
      * Shadowing global mysqli_real_escape_string for tests.
      */
     if (!function_exists('Janmensik\Jmlib\mysqli_real_escape_string')) {
-        function mysqli_real_escape_string($mysqli, $string)
-        {
+        function mysqli_real_escape_string($mysqli, $string) {
             if (is_object($mysqli) && method_exists($mysqli, 'real_escape_string')) {
                 return $mysqli->real_escape_string($string);
             }
@@ -55,8 +53,7 @@ namespace {
     |--------------------------------------------------------------------------
     */
 
-    function mockApp()
-    {
+    function mockApp() {
         // Setup environment for testing
         $_ENV['ABSOLUTE_URL'] = 'http://localhost';
 
@@ -65,8 +62,7 @@ namespace {
         return $APPD;
     }
 
-    function clearAppData()
-    {
+    function clearAppData() {
         $refl = new ReflectionClass(\Janmensik\Jmlib\AppData::class);
         $instance = $refl->getProperty('instance');
         $instance->setValue(null, null);

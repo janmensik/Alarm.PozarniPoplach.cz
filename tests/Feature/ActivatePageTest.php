@@ -14,11 +14,9 @@ beforeEach(function () {
     // Create a mock for Database
     $this->db = $this->createMock(Database::class);
     $this->mysqli = new class extends mysqli {
-        public function __construct()
-        {
+        public function __construct() {
         }
-        public function real_escape_string(string $string): string
-        {
+        public function real_escape_string(string $string): string {
             return addslashes($string);
         }
     };
@@ -29,8 +27,7 @@ beforeEach(function () {
         public $assigns = [];
         public $tpl_vars = [];
 
-        public function assign($key, $value = null)
-        {
+        public function assign($key, $value = null) {
             if (is_array($key)) {
                 foreach ($key as $k => $v) {
                     $this->assigns[$k] = $v;
@@ -42,8 +39,7 @@ beforeEach(function () {
             }
         }
 
-        public function display($template)
-        {
+        public function display($template) {
             // Do nothing
         }
     };
