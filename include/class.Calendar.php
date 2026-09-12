@@ -33,6 +33,60 @@ class Calendar
             return;
         }
 
+        // Validate scheme to prevent SSRF and LFI vulnerabilities
+        $scheme = parse_url($calendar_url, PHP_URL_SCHEME);
+        $host = parse_url($calendar_url, PHP_URL_HOST);
+
+        if (!in_array(strtolower((string)$scheme), ['http', 'https'], true)) {
+            // Check if it's raw ics content for testing, to not break existing tests
+            if (!str_starts_with($calendar_url, 'BEGIN:VCALENDAR')) {
+                $this->calendar_url = '';
+                return;
+            }
+        } elseif ($host) {
+            // Block internal/private IPs to prevent true SSRF
+            $cleanHost = trim(strtolower($host), '[]');
+
+            // Check for direct localhost strings which sometimes fail dns resolution
+            if (in_array($cleanHost, ['localhost', 'localhost.localdomain'])) {
+                $this->calendar_url = '';
+                return;
+            }
+
+            // Handle IPv4, IPv6, and unresolved hosts securely
+            $records = dns_get_record($cleanHost, DNS_A | DNS_AAAA);
+            if ($records !== false && count($records) > 0) {
+                foreach ($records as $record) {
+                    $ip = $record['ip'] ?? $record['ipv6'] ?? null;
+                    if ($ip && !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                        $this->calendar_url = '';
+                        return;
+                    }
+                }
+            } else {
+                // If dns_get_record fails, try gethostbyname as fallback for standard local hosts
+                $fallbackIp = gethostbyname($cleanHost);
+                if ($fallbackIp !== $cleanHost) {
+                    if (!filter_var($fallbackIp, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                        $this->calendar_url = '';
+                        return;
+                    }
+                }
+
+                // Check if it's an IP address or hex/octal string
+                if (filter_var($cleanHost, FILTER_VALIDATE_IP) !== false) {
+                    if (!filter_var($cleanHost, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                        $this->calendar_url = '';
+                        return;
+                    }
+                } elseif (preg_match('/^[0-9a-fx\.]+$/i', $cleanHost)) {
+                     // Block potentially obfuscated hex/octal IPs to be safe
+                     $this->calendar_url = '';
+                     return;
+                }
+            }
+        }
+
         $this->calendar_url = $calendar_url;
     }
 
