@@ -36,3 +36,11 @@
 **Vulnerability:** The `display_errors` setting was not explicitly configured in production. If a fatal error or uncaught exception occurs, PHP would output the error details to the screen, which could leak stack traces, internal file paths, and sensitive configuration information like database credentials.
 **Learning:** PHP's default `display_errors` behavior might be 'On' depending on the environment setup. Relying on default configurations for sensitive settings can lead to unintended information disclosure.
 **Prevention:** Always explicitly set `ini_set('display_errors', '0')` in production environments to prevent sensitive error details from being exposed to end-users.
+## 2026-09-15 - [Fix SSRF/LFI Vulnerability in Calendar class]
+**Vulnerability:** The Calendar class passed user-controlled URLs to the iCal parser which internally uses `file()`. Without scheme validation, an attacker could supply  URLs or local internal IPs to trigger Server-Side Request Forgery (SSRF) and Local File Inclusion (LFI).
+**Learning:** Validating URLs *after* the parsing object is instantiated is ineffective if the parsing object's constructor performs the fetch operations. Security checks must happen before passing the untrusted data to the underlying library.
+**Prevention:** Always validate the URL scheme (allow-listing / or explicitly expected raw string patterns like ) inside the constructor or before instantiating classes that execute network or file operations.
+## 2024-06-25 - [Fix SSRF/LFI Vulnerability in Calendar class]
+**Vulnerability:** The Calendar class passed user-controlled URLs to the iCal parser which internally uses `file()`. Without scheme validation, an attacker could supply `file:///` URLs or local internal IPs to trigger Server-Side Request Forgery (SSRF) and Local File Inclusion (LFI).
+**Learning:** Validating URLs *after* the parsing object is instantiated is ineffective if the parsing object's constructor performs the fetch operations. Security checks must happen before passing the untrusted data to the underlying library.
+**Prevention:** Always validate the URL scheme (allow-listing `http`/`https` or explicitly expected raw string patterns like `BEGIN:VCALENDAR`) inside the constructor or before instantiating classes that execute network or file operations.
