@@ -33,6 +33,15 @@ class Calendar
             return;
         }
 
+        // Validate scheme to prevent SSRF and LFI vulnerabilities via file() in ICal parser
+        $scheme = parse_url($calendar_url, PHP_URL_SCHEME);
+        $is_valid_scheme = in_array(strtolower((string)$scheme), ['http', 'https'], true);
+        $is_raw_content = str_starts_with($calendar_url, 'BEGIN:VCALENDAR');
+
+        if (!$is_valid_scheme && !$is_raw_content) {
+            throw new \InvalidArgumentException('Invalid calendar URL scheme or content.');
+        }
+
         $this->calendar_url = $calendar_url;
     }
 
