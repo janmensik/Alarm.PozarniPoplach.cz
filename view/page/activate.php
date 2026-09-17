@@ -22,7 +22,7 @@ $error = null;
 
 // Validate CSRF token on POST requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (empty($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+    if (empty($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], (string)$_POST['csrf_token'])) {
         $error = 'Neplatný bezpečnostní token (CSRF). Zkuste to prosím znovu.';
         // Prevent further processing of the form
         $_POST = [];
