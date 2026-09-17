@@ -64,7 +64,8 @@ class Dispatch extends Modul
      * @return array|null Return full dispatch data of the last dispatch for the given unit or any unit if null is provided, or null if not found.
      *
      */
-    public function getLastDispatch(int|null $unit_id = null, bool $full_data = true): array|null {
+    public function getLastDispatch(int|null $unit_id = null, bool $full_data = true): array|null
+    {
         if (!$full_data) {
             // Optimization: Lightweight query to avoid massive joins and GROUP BY during high-frequency peacetime polling
             $where_sql = 'dis.dispatched_at < NOW()';
@@ -961,5 +962,46 @@ class Dispatch extends Modul
         return ($this->set($this->prepareSave($test_dispatch_data), null, 'IODU'));
 
         return false;
+    }
+
+    public function getStats(): array
+    {
+        $row = $this->DB->getRow($this->DB->query("
+            SELECT
+                COUNT(*)                                                        AS total,
+                SUM(IF(received >= NOW() - INTERVAL 7 DAY,  1, 0))             AS last_7d,
+                SUM(IF(received >= NOW() - INTERVAL 30 DAY, 1, 0))             AS last_30d
+            FROM dispatch
+        ", __METHOD__)) ?: [];
+
+        return [
+            'total'   => (int)($row['total']   ?? 0),
+            'last_7d' => (int)($row['last_7d'] ?? 0),
+            'last_30d' => (int)($row['last_30d'] ?? 0),
+        ];
+    }
+
+    public function getUnregisteredVehicles(): array
+    {
+        return $this->DB->getAllRows($this->DB->query("
+            SELECT d.id AS dispatch_id, d.event, d.received, UNIX_TIMESTAMP(d.received) AS received_ts, duv.fullname AS parsed_car_name, u.fullname AS unit_name, u.id AS unit_id
+            FROM dispatch_unit_vehicle duv
+            JOIN dispatch d ON duv.dispatch_id = d.id
+            JOIN unit u ON d.unit_id = u.id
+            WHERE duv.unit_vehicle_id IS NULL
+            ORDER BY d.received DESC
+        ", __METHOD__)) ?: [];
+    }
+
+    public function getDispatchesWithBadEvents(): array
+    {
+        return $this->DB->getAllRows($this->DB->query("
+            SELECT d.id AS dispatch_id, d.event, d.event_subtype, d.received, UNIX_TIMESTAMP(d.received) AS received_ts, u.fullname AS unit_name, u.id AS unit_id
+            FROM dispatch d
+            LEFT JOIN event_type et ON d.event_id = et.id
+            LEFT JOIN unit u ON d.unit_id = u.id
+            WHERE d.event_id IS NULL OR et.icon IS NULL OR et.icon = ''
+            ORDER BY d.received DESC
+        ", __METHOD__)) ?: [];
     }
 }
