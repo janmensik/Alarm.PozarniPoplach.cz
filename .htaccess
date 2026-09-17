@@ -18,6 +18,13 @@ RewriteRule ^(tests|vendor|include|tpl|view|lib|node_modules|cache)\/.*$ - [F,L]
 	</FilesMatch>
 </IfModule>
 
+# Caching for static assets
+<IfModule mod_headers.c>
+	<FilesMatch "\.(js|css|svg)$">
+		Header set Cache-Control "public, max-age=86400, immutable"
+	</FilesMatch>
+</IfModule>
+
 # MIME typy
 <IfModule mod_mime.c>
 	AddType image/svg+xml svg svgz
