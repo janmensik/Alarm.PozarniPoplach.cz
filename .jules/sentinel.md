@@ -36,3 +36,7 @@
 **Vulnerability:** The `display_errors` setting was not explicitly configured in production. If a fatal error or uncaught exception occurs, PHP would output the error details to the screen, which could leak stack traces, internal file paths, and sensitive configuration information like database credentials.
 **Learning:** PHP's default `display_errors` behavior might be 'On' depending on the environment setup. Relying on default configurations for sensitive settings can lead to unintended information disclosure.
 **Prevention:** Always explicitly set `ini_set('display_errors', '0')` in production environments to prevent sensitive error details from being exposed to end-users.
+## 2026-09-17 - [Fix TypeError DoS in CSRF Check]
+**Vulnerability:** The CSRF token validation in `view/page/activate.php` passed `$_POST['csrf_token']` directly to `hash_equals()`. If an attacker submitted an array (e.g., `csrf_token[]=1`), it would cause a fatal `TypeError` in PHP 8+ and potentially lead to a Denial of Service (DoS) or information leakage.
+**Learning:** In PHP 8+, string-based cryptographic functions like `hash_equals()` strictly require string arguments. Passing arrays or other types results in an unhandled `TypeError`.
+**Prevention:** Always explicitly cast user input from superglobals to a string (e.g., `(string)$_POST['csrf_token']`) before passing it to functions that expect strict string types, especially in security-critical checks.
