@@ -7,15 +7,12 @@ use PozarniPoplach\Calendar;
 require_once __DIR__ . '/../../include/class.Calendar.php';
 
 beforeEach(function () {
-    // Create a temporary .ics file for testing
-    $this->tempIcs = tempnam(sys_get_temp_dir(), 'ics');
-
     // Create dates relative to today so they fall within the default 'max_ahead' (+1 year)
     // Use +2 and +3 days to avoid ambiguity with current time and +1 day/36 hours
     $date1 = date('Ymd', strtotime('+2 days'));
     $date2 = date('Ymd', strtotime('+3 days'));
 
-    $icsContent = "BEGIN:VCALENDAR
+    $this->icsContent = "BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//hacksw/handcal//NONSGML v1.0//EN
 BEGIN:VEVENT
@@ -36,19 +33,12 @@ DESCRIPTION:Description 2
 END:VEVENT
 END:VCALENDAR";
 
-    file_put_contents($this->tempIcs, $icsContent);
-    $this->calendar = new Calendar($this->tempIcs);
-});
-
-afterEach(function () {
-    if (file_exists($this->tempIcs)) {
-        unlink($this->tempIcs);
-    }
+    $this->calendar = new Calendar($this->icsContent);
 });
 
 test('it can be instantiated', function () {
     expect($this->calendar)->toBeInstanceOf(Calendar::class);
-    expect($this->calendar->calendar_url)->toBe($this->tempIcs);
+    expect($this->calendar->calendar_url)->toBe($this->icsContent);
 });
 
 test('it handles null URL in constructor', function () {
@@ -108,10 +98,9 @@ DTEND:{$datePast}T110000Z
 SUMMARY:Past Event
 END:VEVENT
 END:VCALENDAR";
-    file_put_contents($this->tempIcs, $icsContent);
 
-    // Re-instantiate to reload the file (ics-parser loads on construct)
-    $this->calendar = new Calendar($this->tempIcs);
+    // Re-instantiate to load new content
+    $this->calendar = new Calendar($icsContent);
 
     $events = $this->calendar->getCalendar();
     expect($events)->toBeEmpty();
@@ -128,11 +117,18 @@ DTEND:{$date}T110000Z
 SUMMARY:Minimal Event
 END:VEVENT
 END:VCALENDAR";
-    file_put_contents($this->tempIcs, $icsContent);
-    $this->calendar = new Calendar($this->tempIcs);
+
+    $this->calendar = new Calendar($icsContent);
 
     $events = $this->calendar->getCalendar();
     expect($events[0]['location'])->toBe('')
         ->and($events[0]['description'])->toBe('')
         ->and($events[0]['status'])->toBe('');
+});
+
+test('it rejects file paths and throws exception to prevent SSRF/LFI', function () {
+    // Should be rejected because it doesn't have an http/https scheme and doesn't start with BEGIN:VCALENDAR
+    expect(fn() => new Calendar('file:///etc/passwd'))->toThrow(\InvalidArgumentException::class);
+
+    expect(fn() => new Calendar('/tmp/somefile.ics'))->toThrow(\InvalidArgumentException::class);
 });
