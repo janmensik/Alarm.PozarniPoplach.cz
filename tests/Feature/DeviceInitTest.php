@@ -57,3 +57,22 @@ test('device-init initializes session with uuid', function () {
     expect($output)->toHaveKey('device_code');
     expect($output)->toHaveKey('qr_code_data');
 });
+
+test('device-init returns error if session initialization fails in database', function () {
+    $_POST = ['uuid' => 'test-uuid'];
+
+    $APPD = AppData::getInstance();
+    $DB = $this->db;
+
+    // First cleanup query succeeds, second insert query fails
+    $this->db->expects($this->exactly(2))
+        ->method('query')
+        ->willReturnOnConsecutiveCalls(true, false);
+
+    include __DIR__ . '/../../view/api/device-init.php';
+
+    $output = json_decode($APPD->getData('OUTPUT_JSON'), true);
+
+    expect($output['success'])->toBeFalse();
+    expect($output['error'])->toBe('Failed to initialize session');
+});

@@ -59,3 +59,84 @@ test('validate returns empty array when status is present', function () {
     $errors = $this->ad->validate();
     expect($errors)->toBeEmpty();
 });
+
+test('getAdForDevice returns null when device is not found', function () {
+    $this->db->expects($this->once())
+        ->method('getRow')
+        ->willReturn(null);
+
+    $result = $this->ad->getAdForDevice('unknown-uuid', 10);
+    expect($result)->toBeNull();
+});
+
+test('getAdForDevice returns cached ad during active sticky window', function () {
+    $futureTime = date('Y-m-d H:i:s', time() + 3600);
+    $deviceRow = [
+        'ad_probability' => 100,
+        'ad_sticky_duration' => 60,
+        'current_ad_id' => 55,
+        'ad_expires_at' => $futureTime
+    ];
+
+    $adRow = [
+        'id' => 55,
+        'title' => 'Test Ad',
+        'status' => 'active',
+        'target_link' => '',
+        'banner_image_url' => 'https://example.com/banner.png'
+    ];
+
+    $this->db->expects($this->any())
+        ->method('getRow')
+        ->willReturnOnConsecutiveCalls($deviceRow, $adRow, false);
+
+    $result = $this->ad->getAdForDevice('uuid-sticky', 10);
+    expect($result)->not->toBeNull();
+    expect($result['id'])->toBe(55);
+    expect($result['title'])->toBe('Test Ad');
+});
+
+test('getAdForDevice returns null (sticky silence) during sticky window when current_ad_id is null', function () {
+    $futureTime = date('Y-m-d H:i:s', time() + 3600);
+    $deviceRow = [
+        'ad_probability' => 50,
+        'ad_sticky_duration' => 60,
+        'current_ad_id' => null,
+        'ad_expires_at' => $futureTime
+    ];
+
+    $this->db->expects($this->once())
+        ->method('getRow')
+        ->willReturn($deviceRow);
+
+    $result = $this->ad->getAdForDevice('uuid-silence', 10);
+    expect($result)->toBeNull();
+});
+
+test('getAdTotals calculates total views and clicks', function () {
+    $this->db->expects($this->any())
+        ->method('getRow')
+        ->willReturnOnConsecutiveCalls(
+            ['id' => 1, 'display_count_total' => 100, 'link_count_total' => 10],
+            ['id' => 2, 'display_count_total' => 250, 'link_count_total' => 25],
+            false
+        );
+
+    $totals = $this->ad->getAdTotals();
+    expect($totals['total_views'])->toBe(350);
+    expect($totals['total_clicks'])->toBe(35);
+});
+
+test('getActiveReport returns report sorted by views descending', function () {
+    $this->db->expects($this->any())
+        ->method('getRow')
+        ->willReturnOnConsecutiveCalls(
+            ['id' => 1, 'status' => 'active', 'display_count_total' => 50],
+            false
+        );
+
+    $report = $this->ad->getActiveReport();
+    expect($report)->toBeArray();
+    expect($report)->toHaveCount(1);
+    expect($report[0]['id'])->toBe(1);
+});

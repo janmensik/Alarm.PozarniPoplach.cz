@@ -49,7 +49,9 @@ switch ($type) {
 
         // Perform redirect
         header('Location: ' . $ad_data['target_link']);
-        exit;
+        if (!defined('TESTING')) {
+            exit;
+        }
 
     default:
         $APPD->setData('ERROR', 'Neznámý typ přesměrování.');

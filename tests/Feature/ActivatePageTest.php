@@ -113,3 +113,82 @@ test('activate page accepts POST with valid CSRF token', function () {
     // The device_code will be TESTCODE and linkSessionToUnit will be called
     expect($Smarty->assigns['success'])->toBeTrue();
 });
+
+test('activate page renders in manual entry mode when no code is provided', function () {
+    $_SERVER['REQUEST_METHOD'] = 'GET';
+    $_GET = [];
+    $_POST = [];
+
+    $this->db->method('query')->willReturn(true);
+    $this->db->method('getAllRows')->willReturn([['id' => 1, 'fullname' => 'JSDH Test']]);
+
+    $APPD = $this->appData;
+    $DB = $this->db;
+    $Smarty = $this->smarty;
+
+    ob_start();
+    include __DIR__ . '/../../view/page/activate.php';
+    ob_end_clean();
+
+    expect($Smarty->assigns['manual_mode'])->toBeTrue();
+    expect($Smarty->assigns['device_code'])->toBeNull();
+    expect($Smarty->assigns['error'])->toBeNull();
+});
+
+test('activate page shows error when activation code is invalid or expired', function () {
+    $_SERVER['REQUEST_METHOD'] = 'GET';
+    $_GET = ['code' => 'EXPIRED9'];
+    $_POST = [];
+
+    $this->db->method('query')->willReturn(true);
+    $this->db->method('getRow')->willReturn(null); // No active pending session
+    $this->db->method('getAllRows')->willReturn([]);
+
+    $APPD = $this->appData;
+    $DB = $this->db;
+    $Smarty = $this->smarty;
+
+    ob_start();
+    include __DIR__ . '/../../view/page/activate.php';
+    ob_end_clean();
+
+    expect($Smarty->assigns['error'])->toBe('Neplatný nebo prošlý aktivační kód.');
+    expect($Smarty->assigns['session_data'])->toBeNull();
+});
+
+test('activate page shows error when linking session to unit fails', function () {
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_SESSION['csrf_token'] = 'token-123';
+    $_POST = [
+        'unit_id' => 10,
+        'csrf_token' => 'token-123'
+    ];
+    $_GET = ['code' => 'CODE1234'];
+
+    // getRow for checkSessionStatus returns pending session
+    $this->db->method('getRow')->willReturn([
+        'status' => 'pending',
+        'unit_id' => null,
+        'device_uuid' => 'test-uuid'
+    ]);
+
+    // query fails during linkSessionToUnit UPDATE query
+    $this->db->expects($this->any())
+        ->method('query')
+        ->willReturnCallback(function ($query) {
+            if (str_contains($query, 'UPDATE alarm_device_session')) {
+                return false;
+            }
+            return true;
+        });
+
+    $APPD = $this->appData;
+    $DB = $this->db;
+    $Smarty = $this->smarty;
+
+    ob_start();
+    include __DIR__ . '/../../view/page/activate.php';
+    ob_end_clean();
+
+    expect($Smarty->assigns['error'])->toBe('Nepodařilo se autorizovat zařízení.');
+});

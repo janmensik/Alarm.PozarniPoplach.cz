@@ -64,3 +64,23 @@ test('getRegions returns null when no regions are found', function () {
 
     expect($result)->toBeNull();
 });
+
+test('validate returns errors when required fields are missing', function () {
+    $this->unit->data = [];
+    $errors = $this->unit->validate();
+
+    expect($errors)->toHaveKey('fullname', 'Fullname is required');
+    expect($errors)->toHaveKey('registration', 'Registration is required');
+    expect($errors)->toHaveKey('category', 'Category is required');
+});
+
+test('validate returns empty array when required fields are populated', function () {
+    $this->unit->data = [
+        'fullname' => 'JSDH Příbram',
+        'registration' => 'ABC123',
+        'category' => 'JPO III'
+    ];
+    $errors = $this->unit->validate();
+
+    expect($errors)->toBeEmpty();
+});

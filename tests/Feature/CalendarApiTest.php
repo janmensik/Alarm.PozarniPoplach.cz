@@ -77,3 +77,32 @@ test('calendar api returns calendar events for authorized device', function () {
 
     unlink($tempIcs);
 });
+
+test('calendar api returns 404 if unit has no calendar URL', function () {
+    $unit_row = ['id' => 2, 'fullname' => 'Unit Without Calendar', 'calendar_url' => ''];
+
+    $this->db->method('getRow')
+        ->willReturnOnConsecutiveCalls(
+            ['unit_id' => 2, 'refresh_token_hash' => hash('sha256', 'valid_token'), 'last_seen_ts' => null]
+        );
+
+    $this->db->method('query')->willReturn(true);
+
+    $_SERVER['HTTP_X_DEVICE_UUID'] = 'test-uuid-2';
+    $_SERVER['HTTP_X_DEVICE_TOKEN'] = 'valid_token';
+
+    $DB = $this->db;
+
+    require_once __DIR__ . '/../../include/class.Unit.php';
+    $Unit = new Unit($DB);
+    $Unit->cache[2] = $unit_row;
+
+    ob_start();
+    include __DIR__ . '/../../view/api/calendar.php';
+    ob_end_clean();
+
+    expect(http_response_code())->toBe(404);
+    $output = json_decode($this->appd->getData('OUTPUT_JSON'), true);
+    expect($output['success'])->toBeFalse();
+    expect($output['error'])->toBe('No calendar found for this unit');
+});

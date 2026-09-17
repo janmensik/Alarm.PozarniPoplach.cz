@@ -339,3 +339,57 @@ test('extractUnitRegistration is case insensitive', function () {
     $result = $this->dispatch->extractUnitRegistration('NoTiFiKaCe.aBcDeF@PoZaRnIpOpLaCh.Cz');
     expect($result)->toBe('aBcDeF');
 });
+
+test('getStats returns total and recent counts', function () {
+    $this->db->expects($this->once())
+        ->method('getRow')
+        ->willReturn(['total' => 150, 'last_7d' => 12, 'last_30d' => 45]);
+
+    $stats = $this->dispatch->getStats();
+
+    expect($stats['total'])->toBe(150);
+    expect($stats['last_7d'])->toBe(12);
+    expect($stats['last_30d'])->toBe(45);
+});
+
+test('getUnregisteredVehicles returns dispatches without linked unit vehicle', function () {
+    $rows = [
+        ['dispatch_id' => 1, 'parsed_car_name' => 'CAS 20', 'unit_name' => 'JSDH Test']
+    ];
+
+    $this->db->expects($this->once())
+        ->method('getAllRows')
+        ->willReturn($rows);
+
+    $result = $this->dispatch->getUnregisteredVehicles();
+    expect($result)->toBe($rows);
+});
+
+test('getDispatchesWithBadEvents returns dispatches with missing or bad events', function () {
+    $rows = [
+        ['dispatch_id' => 2, 'event' => null, 'event_subtype' => null, 'unit_name' => 'JSDH Test']
+    ];
+
+    $this->db->expects($this->once())
+        ->method('getAllRows')
+        ->willReturn($rows);
+
+    $result = $this->dispatch->getDispatchesWithBadEvents();
+    expect($result)->toBe($rows);
+});
+
+test('getLastDispatch with full_data false performs lightweight query', function () {
+    $this->db->expects($this->once())
+        ->method('query')
+        ->with($this->stringContains('SELECT dis.id, UNIX_TIMESTAMP(dis.dispatched_at) AS dispatched_at_ts, u.fullname AS unit_fullname'))
+        ->willReturn('res');
+
+    $this->db->expects($this->once())
+        ->method('getRow')
+        ->with('res')
+        ->willReturn(['id' => 99, 'dispatched_at_ts' => 1700000000, 'unit_fullname' => 'JSDH Test']);
+
+    $result = $this->dispatch->getLastDispatch(10, false);
+    expect($result['id'])->toBe(99);
+    expect($result['unit_fullname'])->toBe('JSDH Test');
+});
