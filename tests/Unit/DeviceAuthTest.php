@@ -207,7 +207,11 @@ test('validateDevice returns null when token hash does not match', function () {
         ->willReturn([
             'unit_id' => 10,
             'refresh_token_hash' => hash('sha256', 'actual-valid-token'),
-            'last_seen_ts' => time()
+            'last_seen_ts' => time(),
+            'ad_probability' => 100,
+            'ad_sticky_duration' => 240,
+            'current_ad_id' => null,
+            'ad_expires_at' => null
         ]);
 
     $result = $this->deviceAuth->validateDevice('uuid-10', 'wrong-token');
@@ -228,7 +232,11 @@ test('validateDevice validates token and throttles last_seen update if seen rece
         ->willReturn([
             'unit_id' => 15,
             'refresh_token_hash' => hash('sha256', $token),
-            'last_seen_ts' => $recentTs
+            'last_seen_ts' => $recentTs,
+            'ad_probability' => 100,
+            'ad_sticky_duration' => 240,
+            'current_ad_id' => null,
+            'ad_expires_at' => null
         ]);
 
     // Should NOT call UPDATE since it was seen 60 seconds ago (< 300s throttle)
@@ -258,7 +266,11 @@ test('validateDevice validates token and updates last_seen if last seen more tha
         ->willReturn([
             'unit_id' => 20,
             'refresh_token_hash' => hash('sha256', $token),
-            'last_seen_ts' => $oldTs
+            'last_seen_ts' => $oldTs,
+            'ad_probability' => 100,
+            'ad_sticky_duration' => 240,
+            'current_ad_id' => null,
+            'ad_expires_at' => null
         ]);
 
     $result = $this->deviceAuth->validateDevice('uuid-20', $token);

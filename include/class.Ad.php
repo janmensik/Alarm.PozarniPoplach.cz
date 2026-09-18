@@ -46,12 +46,13 @@ class Ad extends Modul
      *
      * @param string $deviceUuid Hardware UUID of the device
      * @param int $unitId Unit ID the device belongs to
+     * @param array|null $deviceRow Optional pre-fetched device row containing ad config fields to save DB hits
      * @return array|null
      */
-    public function getAdForDevice(string $deviceUuid, int $unitId): array|null
+    public function getAdForDevice(string $deviceUuid, int $unitId, ?array $deviceRow = null): array|null
     {
-        // 1. Fetch current state and configuration for this device
-        $device = $this->DB->getRow($this->DB->query(
+        // 1. Fetch current state and configuration for this device (if not provided)
+        $device = $deviceRow ?? $this->DB->getRow($this->DB->query(
             'SELECT ad_probability, ad_sticky_duration, current_ad_id, ad_expires_at
              FROM alarm_device_authorized
              WHERE device_uuid = "' . mysqli_real_escape_string($this->DB->db, $deviceUuid) . '"
