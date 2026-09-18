@@ -45,15 +45,17 @@ test('dispatch returns peacetime data when no recent dispatch', function () {
     $this->db->expects($this->any())
         ->method('getRow')
         ->willReturnOnConsecutiveCalls(
-            ['unit_id' => 123, 'refresh_token_hash' => hash('sha256', 'test-token'), 'last_seen_ts' => null], // validateDevice
-            false, // getLastDispatch
-            ['fullname' => 'Test Unit'], // Fallback unit name
-            [ // getAdForDevice: device lookup
+            [
+                'unit_id' => 123,
+                'refresh_token_hash' => hash('sha256', 'test-token'),
+                'last_seen_ts' => null,
                 'ad_probability' => 100,
                 'ad_sticky_duration' => 240,
                 'current_ad_id' => null,
                 'ad_expires_at' => null
-            ],
+            ], // validateDevice (includes deviceRow caching for getAdForDevice)
+            false, // getLastDispatch
+            ['fullname' => 'Test Unit'], // Fallback unit name
             ['id' => 1, 'status' => 'active', 'target_link' => 'https://example.com'], // getAdData lookup
             false // Modul::get loop end
         );
@@ -92,7 +94,15 @@ test('dispatch returns alarm data when recent dispatch exists', function () {
     $this->db->expects($this->any())
         ->method('getRow')
         ->willReturnOnConsecutiveCalls(
-            ['unit_id' => 123, 'refresh_token_hash' => hash('sha256', 'test-token'), 'last_seen_ts' => null], // validateDevice
+            [
+                'unit_id' => 123,
+                'refresh_token_hash' => hash('sha256', 'test-token'),
+                'last_seen_ts' => null,
+                'ad_probability' => 100,
+                'ad_sticky_duration' => 240,
+                'current_ad_id' => null,
+                'ad_expires_at' => null
+            ], // validateDevice
             [ // getLastDispatch base lookup
                 'id' => 456,
                 'dispatched_at_ts' => $recent_ts,
