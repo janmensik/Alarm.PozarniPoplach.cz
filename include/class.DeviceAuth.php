@@ -184,6 +184,8 @@ class DeviceAuth extends Modul
         ];
     }
 
+    public ?array $currentDevice = null;
+
     /**
      * Validates a refresh token and updates the device's last_seen timestamp.
      *
@@ -193,7 +195,7 @@ class DeviceAuth extends Modul
      */
     public function validateDevice(string $deviceUuid, string $refreshToken): int|null
     {
-        $query = 'SELECT unit_id, refresh_token_hash, UNIX_TIMESTAMP(last_seen) AS last_seen_ts FROM alarm_device_authorized
+        $query = 'SELECT unit_id, refresh_token_hash, UNIX_TIMESTAMP(last_seen) AS last_seen_ts, ad_probability, ad_sticky_duration, current_ad_id, ad_expires_at FROM alarm_device_authorized
                   WHERE device_uuid = "' . mysqli_real_escape_string($this->DB->db, $deviceUuid) . '" LIMIT 1';
 
         $device = $this->DB->getRow($this->DB->query($query, __METHOD__));
@@ -204,6 +206,7 @@ class DeviceAuth extends Modul
                 $this->DB->query('UPDATE alarm_device_authorized SET last_seen = NOW()
                                   WHERE device_uuid = "' . mysqli_real_escape_string($this->DB->db, $deviceUuid) . '"');
             }
+            $this->currentDevice = $device;
             return (int)$device['unit_id'];
         }
 
