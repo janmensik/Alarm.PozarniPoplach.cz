@@ -66,6 +66,7 @@ test('activate page rejects POST without CSRF token', function () {
     $DB = $this->db;
     $Smarty = $this->smarty;
 
+    @session_start();
     ob_start();
     try {
         include __DIR__ . '/../../view/page/activate.php';
@@ -79,23 +80,70 @@ test('activate page rejects POST without CSRF token', function () {
     expect(isset($Smarty->assigns['success']))->toBeFalse();
 });
 
-test('activate page accepts POST with valid CSRF token', function () {
+test('activate page accepts POST with valid CSRF token and valid pincode', function () {
     $_SERVER['REQUEST_METHOD'] = 'POST';
     $_SESSION['csrf_token'] = 'valid-token';
     $_POST = [
         'unit_id' => 123,
         'device_name' => 'Test',
-        'csrf_token' => 'valid-token'
+        'csrf_token' => 'valid-token',
+        'pincode' => '1234'
     ];
     $_GET = ['code' => 'TESTCODE'];
 
     $this->db->expects($this->any())->method('query')->willReturn(true);
-    // getRow gets called in checkSessionStatus, then linkSessionToUnit queries
-    $this->db->expects($this->any())->method('getRow')->willReturn([
-        'status' => 'pending',
-        'unit_id' => null,
-        'device_uuid' => 'test-uuid'
-    ]);
+    // getRow gets called in checkSessionStatus, then for unit pincode
+    $this->db->expects($this->any())->method('getRow')->willReturnCallback(function($result) {
+        // Since we are mocking query returning true, we just return a map based on context or a general mock.
+        // It's tricky to map it without knowing the query in getRow, but we can return an array
+        // that satisfies both `checkSessionStatus` and the new `pincode` check.
+        return [
+            'status' => 'pending',
+            'unit_id' => null,
+            'device_uuid' => 'test-uuid',
+            'pincode' => '1234'
+        ];
+    });
+
+    $APPD = $this->appData;
+    $DB = $this->db;
+    $Smarty = $this->smarty;
+
+    @session_start();
+    ob_start();
+    try {
+        include __DIR__ . '/../../view/page/activate.php';
+    } catch (\Exception $e) {
+        // Exit is called
+    }
+    ob_end_clean();
+
+    // Test that the form was processed since token was valid
+    // The device_code will be TESTCODE and linkSessionToUnit will be called
+    expect($Smarty->assigns['success'])->toBeTrue();
+});
+
+test('activate page shows error for valid CSRF token but invalid pincode', function () {
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_SESSION['csrf_token'] = 'valid-token';
+    $_POST = [
+        'unit_id' => 123,
+        'device_name' => 'Test',
+        'csrf_token' => 'valid-token',
+        'pincode' => 'wrong'
+    ];
+    $_GET = ['code' => 'TESTCODE'];
+
+    $this->db->expects($this->any())->method('query')->willReturn(true);
+    // getRow gets called in checkSessionStatus, then for unit pincode
+    $this->db->expects($this->any())->method('getRow')->willReturnCallback(function($result) {
+        return [
+            'status' => 'pending',
+            'unit_id' => null,
+            'device_uuid' => 'test-uuid',
+            'pincode' => '1234'
+        ];
+    });
 
     $APPD = $this->appData;
     $DB = $this->db;
@@ -109,9 +157,8 @@ test('activate page accepts POST with valid CSRF token', function () {
     }
     ob_end_clean();
 
-    // Test that the form was processed since token was valid
-    // The device_code will be TESTCODE and linkSessionToUnit will be called
-    expect($Smarty->assigns['success'])->toBeTrue();
+    expect($Smarty->assigns['error'])->toBe('Neplatný PIN kód jednotky.');
+    expect(isset($Smarty->assigns['success']))->toBeFalse();
 });
 
 test('activate page renders in manual entry mode when no code is provided', function () {
@@ -161,7 +208,8 @@ test('activate page shows error when linking session to unit fails', function ()
     $_SESSION['csrf_token'] = 'token-123';
     $_POST = [
         'unit_id' => 10,
-        'csrf_token' => 'token-123'
+        'csrf_token' => 'token-123',
+        'pincode' => '1234'
     ];
     $_GET = ['code' => 'CODE1234'];
 
@@ -169,7 +217,8 @@ test('activate page shows error when linking session to unit fails', function ()
     $this->db->method('getRow')->willReturn([
         'status' => 'pending',
         'unit_id' => null,
-        'device_uuid' => 'test-uuid'
+        'device_uuid' => 'test-uuid',
+        'pincode' => '1234'
     ]);
 
     // query fails during linkSessionToUnit UPDATE query
