@@ -80,6 +80,12 @@ test('activate page rejects POST without CSRF token', function () {
 });
 
 test('activate page accepts POST with valid CSRF token', function () {
+    // Avoid session_regenerate_id warnings in tests
+    if (session_status() === PHP_SESSION_NONE) {
+        session_id('test-session-id');
+        session_start();
+    }
+
     $_SERVER['REQUEST_METHOD'] = 'POST';
     $_SESSION['csrf_token'] = 'valid-token';
     $_POST = [

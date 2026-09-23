@@ -46,6 +46,7 @@ if (!empty($device_code)) {
 // Handle Authorization form submission
 if ($session && !empty($_POST['unit_id'])) {
     if ($DeviceAuth->linkSessionToUnit($device_code, intval($_POST['unit_id']), $_POST['device_name'] ?? null)) {
+        session_regenerate_id(true);
         $Smarty->assign('success', true);
     } else {
         $error = 'Nepodařilo se autorizovat zařízení.';
