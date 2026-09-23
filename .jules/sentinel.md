@@ -48,3 +48,7 @@
 **Vulnerability:** The Calendar class passed user-controlled URLs to the iCal parser which internally uses `file()`. Without scheme validation, an attacker could supply  URLs or local internal IPs to trigger Server-Side Request Forgery (SSRF) and Local File Inclusion (LFI).
 **Learning:** Validating URLs *after* the parsing object is instantiated is ineffective if the parsing object's constructor performs the fetch operations. Security checks must happen before passing the untrusted data to the underlying library.
 **Prevention:** Always validate the URL scheme (allow-listing / or explicitly expected raw string patterns like ) inside the constructor or before instantiating classes that execute network or file operations.
+## 2024-10-27 - [Session Fixation Prevention on Authorization]
+**Vulnerability:** The `view/page/activate.php` script was not regenerating the session ID after successfully linking a session to a unit (privilege escalation).
+**Learning:** Failing to regenerate a session ID upon authentication or significant state changes can make the application vulnerable to session fixation attacks, where an attacker tricks a user into authenticating with a known session ID.
+**Prevention:** Always call `session_regenerate_id(true)` upon successful authentication, login, or any process that elevates the user's privileges to ensure a fresh, untainted session ID is assigned.
