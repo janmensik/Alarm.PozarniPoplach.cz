@@ -122,10 +122,6 @@ This is a 350 KB JIT compiler that runs in the browser. Fine for a debug page, b
 ### 2.3 No HTTP caching for static assets
 Nothing in the repo sets `Cache-Control`. The Pi will revalidate `ui/alarm.dist.css` and `ui/alpine.js` on every page reload (24h meta refresh + watchdog reloads). Add `Cache-Control: public, max-age=86400, immutable` via `.htaccess` / nginx config and bust the cache using the existing `/api/version` mechanism (append `?v=<hash>` to script and CSS URLs).
 
-### 2.4 `SQL_CALC_FOUND_ROWS` on every list query
-[include/class.Dispatch.php](include/class.Dispatch.php#L13) and [include/class.Ad.php](include/class.Ad.php#L9).
-`SQL_CALC_FOUND_ROWS` is deprecated in MySQL 8 and significantly slower than a separate `COUNT(*)`. The kiosk path only needs one row (`getLastDispatch`) but still pays the cost. Replace with `LIMIT 1` + no row count.
-
 ### 2.5 Per-poll DB cleanup
 [include/class.DeviceAuth.php](include/class.DeviceAuth.php#L32)
 ```php
@@ -198,43 +194,8 @@ header("Content-Security-Policy: default-src 'self'; img-src 'self' data: https:
 ```
 Tighten once external CDNs are removed (§2.1).
 
-### 3.5 `$APPD->setData('APP', $filtered_app_data)`
-[index.php](index.php#L20-L33)
-The block list `['PASSWORD', 'API_KEY', 'SECRET']` is **not exhaustive**. Variables like `GOOGLE_MAPS_API_KEY`, `MAPBOX_API_KEY`, `IMAP_USERNAME`, `SQL_HOST`, `SQL_USER`, `SQL_DATABASE`, `JWT_SECRET` will be exposed if assigned to Smarty templates (and indeed `$Smarty->assign('APPD', $APPD->getData())` does just that in [index.php](index.php#L125)).
-
-Look at the Smarty `{$APPD}` use — if any template prints it (e.g. for debug), all `$_SERVER` plus all `$_ENV` (including `SQL_*` credentials) leaks to the browser.
-
-Fix: use an **allow list** instead of a deny list. Only copy explicitly chosen keys (e.g. `BASE_URL`, `APP_NAME`, `APP_VERSION`).
-
-### 3.6 CSRF token reused across kiosk + activate sessions
-[index.php](index.php#L52-L62) starts a session named `pozarnipoplach_alarm` on every request including `/api/*` endpoints. API endpoints don't need sessions — disable `session_start()` for `/api/*` paths to save lock contention and reduce attack surface.
-
-The CSRF token in `$_SESSION['csrf_token']` in [view/page/activate.php](view/page/activate.php#L15-L19) is fine but the session cookie is **not regenerated** after authorization. Add `session_regenerate_id(true)` after successful `linkSessionToUnit`.
-
-### 3.7 `Dispatch::parseDispatchHtml` loads arbitrary HTML with libxml
-[include/class.Dispatch.php](include/class.Dispatch.php#L412-L416)
-```php
-libxml_use_internal_errors(true);
-$doc = new DOMDocument();
-$doc->loadHTML('<?xml encoding="utf-8" ?>' . $htmlContent);
-```
-Risk: PHP's libxml has had **XXE** issues. Add:
-```php
-libxml_disable_entity_loader(true); // PHP < 8; in PHP 8 use LIBXML_NONET
-$doc->loadHTML('<?xml encoding="utf-8" ?>' . $htmlContent, LIBXML_NONET | LIBXML_NOENT);
-```
-Even though emails come from a trusted source today, defense in depth costs nothing.
-
 ### 3.8 No expiration on `alarm_device_authorized`
 Devices never expire. If a Pi is stolen / decommissioned, the only way to revoke is manual DB delete. Add `expires_at` (e.g. 1 year), and re-issue on `last_seen` updates.
-
-### 3.9 `goto.php` open redirect
-[view/page/goto.php](view/page/goto.php#L45-L46)
-```php
-header('Location: ' . $ad_data['target_link']);
-exit;
-```
-`target_link` is stored in DB by admins, so direct risk is low. Still: validate the scheme is `http`/`https` and the host is not the same site, to prevent reflected open-redirect via DB injection.
 
 ### 3.10 `error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED)` only in cron
 [cron.email_import.php](cron.email_import.php#L8) silences deprecations, but `index.php` does not. Production should never echo PHP warnings to the kiosk (would break the alarm view). Set `display_errors=Off` in `inc.startup.php` based on `getenv('DEBUGGING')`.
@@ -304,15 +265,12 @@ The server has `last_seen` updated by `validateDevice` on every API hit. Add an 
 | 3 | High | §1.5 Audio autoplay always-off bug | 1 h |
 | 4 | High | §2.1 self-host Alpine.js / Font Awesome / Public Sans | 2 h |
 | 5 | High | §1.4 Service worker + last-known dispatch cache | 0.5 day |
-| 6 | High | §3.5 APP allow-list instead of deny-list | 30 min |
 | 7 | Medium | §1.1 SSE or shorter `DISPATCH_POLL_INTERVAL_MS` | 0.5 day |
 | 8 | Medium | §1.7 warm Maps cache from cron | 2 h |
 | 9 | Medium | §3.4 CSP / HSTS / Referrer-Policy headers | 1 h |
 | 10 | Medium | §4.1 gate meta-refresh behind peacetime | 15 min |
 | 11 | Medium | §1.2 fix timer "limit" alert miss | 15 min |
 | 12 | Medium | §2.3 `Cache-Control` for static assets | 30 min |
-| 14 | Low | §2.4 drop `SQL_CALC_FOUND_ROWS` from kiosk path | 30 min |
-| 15 | Low | §3.7 `LIBXML_NONET` on dispatch parser | 5 min |
 | 16 | Low | §4.5 admin "kiosk alive" telemetry | 0.5 day |
 
 ---
