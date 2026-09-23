@@ -48,15 +48,19 @@ class Ad extends Modul
      * @param int $unitId Unit ID the device belongs to
      * @return array|null
      */
-    public function getAdForDevice(string $deviceUuid, int $unitId): array|null
+    public function getAdForDevice(string $deviceUuid, int $unitId, array|null $cachedDeviceData = null): array|null
     {
         // 1. Fetch current state and configuration for this device
-        $device = $this->DB->getRow($this->DB->query(
-            'SELECT ad_probability, ad_sticky_duration, current_ad_id, ad_expires_at
-             FROM alarm_device_authorized
-             WHERE device_uuid = "' . mysqli_real_escape_string($this->DB->db, $deviceUuid) . '"
-             LIMIT 1'
-        ));
+        if ($cachedDeviceData !== null && isset($cachedDeviceData['ad_probability'])) {
+            $device = $cachedDeviceData;
+        } else {
+            $device = $this->DB->getRow($this->DB->query(
+                'SELECT ad_probability, ad_sticky_duration, current_ad_id, ad_expires_at
+                 FROM alarm_device_authorized
+                 WHERE device_uuid = "' . mysqli_real_escape_string($this->DB->db, $deviceUuid) . '"
+                 LIMIT 1'
+            ));
+        }
 
         if (!$device) {
             return null;
