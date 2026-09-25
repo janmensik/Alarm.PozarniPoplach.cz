@@ -124,14 +124,20 @@ class Ad extends Modul
      */
     private function getAdData(int $adId, int $unitId, bool $logHit = false): array|null
     {
-        // Optimization: Used getNoCalcRows to avoid expensive SQL_CALC_FOUND_ROWS overhead
-        $ad = $this->getNoCalcRows(['ad.id = ' . intval($adId), 'ad.status = "active"'], null, 1);
+        // Optimization: Used a direct query to avoid expensive operations (like LEFT JOIN advert_hit and GROUP BY)
+        // that are present in $this->sql_base. This converts an O(N) database load per poll into O(1).
+        $query = 'SELECT ad.id, ad.title, ad.status, ad.banner_image_url, ad.target_link, ad.ad_text, ad.promo_code, ad.qr_code_svg, adc.name AS advertiser_name, adc.id AS advertiser_id '
+               . 'FROM advert ad '
+               . 'JOIN advertiser adc ON ad.advertiser_id = adc.id '
+               . 'WHERE ad.id = ' . intval($adId) . ' AND ad.status = "active" LIMIT 1';
+
+        $ad = $this->DB->getRow($this->DB->query($query, __METHOD__));
 
         if (empty($ad)) {
             return null;
         }
 
-        $data = $ad[0];
+        $data = $ad;
 
         if ($data['target_link']) {
             $baseUrl = \Janmensik\Jmlib\AppData::getInstance()->getData('BASE_URL') ?: '';
