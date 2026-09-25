@@ -52,3 +52,7 @@
 **Vulnerability:** The `view/page/activate.php` script was not regenerating the session ID after successfully linking a session to a unit (privilege escalation).
 **Learning:** Failing to regenerate a session ID upon authentication or significant state changes can make the application vulnerable to session fixation attacks, where an attacker tricks a user into authenticating with a known session ID.
 **Prevention:** Always call `session_regenerate_id(true)` upon successful authentication, login, or any process that elevates the user's privileges to ensure a fresh, untainted session ID is assigned.
+## 2024-05-29 - [Fix Missing Kiosk Authorization in Activation Page]
+**Vulnerability:** The activation page allowed pairing a device to any unit without validating authorization, enabling a potential attacker to blindly assign a display panel to any unit by providing a valid device code and a unit ID in the form submission.
+**Learning:** Kiosk activation forms exposed publicly (or semi-publicly) must always validate that the user linking the display to the unit is authorized to do so. In absence of full user authentication, the `unit_pincode` serves as a shared secret to restrict linking to authorized members of the target unit.
+**Prevention:** During kiosk device authorization, always require and validate a secret associated with the target unit (like a PIN code) before associating a device with the unit's session.

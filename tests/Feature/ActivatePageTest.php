@@ -90,12 +90,14 @@ test('activate page accepts POST with valid CSRF token', function () {
     $_SESSION['csrf_token'] = 'valid-token';
     $_POST = [
         'unit_id' => 123,
+        'unit_pincode' => '1234',
         'device_name' => 'Test',
         'csrf_token' => 'valid-token'
     ];
     $_GET = ['code' => 'TESTCODE'];
 
     $this->db->expects($this->any())->method('query')->willReturn(true);
+    $this->db->expects($this->any())->method('getResult')->willReturn(123);
     // getRow gets called in checkSessionStatus, then linkSessionToUnit queries
     $this->db->expects($this->any())->method('getRow')->willReturn([
         'status' => 'pending',
@@ -167,6 +169,7 @@ test('activate page shows error when linking session to unit fails', function ()
     $_SESSION['csrf_token'] = 'token-123';
     $_POST = [
         'unit_id' => 10,
+        'unit_pincode' => '1234',
         'csrf_token' => 'token-123'
     ];
     $_GET = ['code' => 'CODE1234'];
@@ -177,6 +180,8 @@ test('activate page shows error when linking session to unit fails', function ()
         'unit_id' => null,
         'device_uuid' => 'test-uuid'
     ]);
+
+    $this->db->method('getResult')->willReturn(10);
 
     // query fails during linkSessionToUnit UPDATE query
     $this->db->expects($this->any())
