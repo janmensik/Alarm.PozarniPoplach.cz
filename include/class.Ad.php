@@ -208,7 +208,8 @@ class Ad extends Modul
 
     public function getAdTotals(): array
     {
-        $rows = $this->get() ?: [];
+        // Optimization: Use getNoCalcRows instead of get to avoid SQL_CALC_FOUND_ROWS overhead since pagination is not needed
+        $rows = $this->getNoCalcRows() ?: [];
         return [
             'total_views'  => array_sum(array_column($rows, 'display_count_total')),
             'total_clicks' => array_sum(array_column($rows, 'link_count_total')),
@@ -218,6 +219,7 @@ class Ad extends Modul
     public function getActiveReport(): array
     {
         // Column 10 = display_count_total → -10 means ORDER BY 10 DESC.
-        return $this->get("ad.status = 'active'", -10) ?: [];
+        // Optimization: pass nocalcrows=true as 5th argument to skip SQL_CALC_FOUND_ROWS
+        return $this->get("ad.status = 'active'", -10, null, null, true) ?: [];
     }
 }
