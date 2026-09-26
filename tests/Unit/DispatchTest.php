@@ -38,8 +38,7 @@ test('getDispatch returns data with vehicles', function () {
     // so $data['id'] is null, which PHP 8.1+ flags as a deprecation).
     $this->dispatch->cache[$dispatch_id] = $dispatch_row;
 
-    $this->db->expects($this->any())
-        ->method('getAllRows')
+    $this->db->method('getAllRows')
         ->willReturnOnConsecutiveCalls(
             [['fullname' => 'Vehicle 1']], // unit_vehicles
             [['fullname' => 'Other 1']]    // other_vehicles
@@ -54,8 +53,7 @@ test('getDispatch returns data with vehicles', function () {
 });
 
 test('getLastDispatch returns null when no dispatch found', function () {
-    $this->db->expects($this->any())
-        ->method('getRow')
+    $this->db->method('getRow')
         ->willReturn(false);
 
     $result = $this->dispatch->getLastDispatch(123);
@@ -81,8 +79,7 @@ test('checkUnitPincode returns null for invalid pincode', function () {
 });
 
 test('getRandomDispatch returns a dispatch', function () {
-    $this->db->expects($this->any())
-        ->method('getRow')
+    $this->db->method('getRow')
         ->willReturnOnConsecutiveCalls(
             ['id' => 999, 'event' => 'Random'], // Result of getRandom loop 1
             false, // Result of getRandom loop end
@@ -90,8 +87,7 @@ test('getRandomDispatch returns a dispatch', function () {
             false // Result of getDispatch -> getId loop end
         );
 
-    $this->db->expects($this->any())
-        ->method('getAllRows')
+    $this->db->method('getAllRows')
         ->willReturnOnConsecutiveCalls(
             [['fullname' => 'V1']], // unit_vehicles
             [['fullname' => 'O1']]  // other_vehicles
@@ -219,12 +215,10 @@ test('linkParsedDispatch correctly links data with database records', function (
         ]
     ];
 
-    $this->db->expects($this->any())
-        ->method('query')
+    $this->db->method('query')
         ->willReturn(true);
 
-    $this->db->expects($this->any())
-        ->method('getAllRows')
+    $this->db->method('getAllRows')
         ->willReturnOnConsecutiveCalls(
             [['id' => 1, 'code' => 'S1R', 'type' => 'CAS', 'icon' => 'fire']], // vehicle_types
             [['id' => 10, 'rzpk' => 'S', 'title' => 'Středočeský']], // regions

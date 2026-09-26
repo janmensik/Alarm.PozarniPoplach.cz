@@ -42,5 +42,17 @@
         "svgz",
         "xvzf"
     ],
-    "editor.inlineSuggest.enabled": true
+    "editor.inlineSuggest.enabled": true,
+    "intelephense.diagnostics.undefinedProperties": false,
+    "intelephense.diagnostics.exclude": {
+        "**/vendor/**": [
+            "*"
+        ],
+        "**/tests/**": [
+            "P1014"
+        ],
+        "tests/**": [
+            "P1014"
+        ]
+    }
 }

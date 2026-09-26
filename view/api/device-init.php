@@ -26,11 +26,11 @@ if ($session) {
     // Generate QR code using chillerlan/php-qrcode
     // We return it as a Data URI so it can be directly used in an <img> tag
     $options = new \chillerlan\QRCode\QROptions([
-        'version'      => \chillerlan\QRCode\Common\Version::AUTO,
-        'outputType'   => \chillerlan\QRCode\Output\QROutputInterface::MARKUP_SVG,
-        'eccLevel'     => \chillerlan\QRCode\Common\EccLevel::L,
-        'addQuietzone' => true,
-        'svgViewBox'   => true, // Important for responsive scaling
+        'version'         => \chillerlan\QRCode\Common\Version::AUTO,
+        'outputInterface' => \chillerlan\QRCode\Output\QRMarkupSVG::class,
+        'eccLevel'        => \chillerlan\QRCode\Common\EccLevel::L,
+        'addQuietzone'    => true,
+        'svgViewBox'      => true, // Important for responsive scaling
     ]);
 
     $qrcode = (new \chillerlan\QRCode\QRCode($options))->render($session['verification_url']);

@@ -86,8 +86,7 @@ test('getAdForDevice returns cached ad during active sticky window', function ()
         'banner_image_url' => 'https://example.com/banner.png'
     ];
 
-    $this->db->expects($this->any())
-        ->method('getRow')
+    $this->db->method('getRow')
         ->willReturnOnConsecutiveCalls($deviceRow, $adRow, false);
 
     $result = $this->ad->getAdForDevice('uuid-sticky', 10);
@@ -114,8 +113,7 @@ test('getAdForDevice returns null (sticky silence) during sticky window when cur
 });
 
 test('getAdTotals calculates total views and clicks', function () {
-    $this->db->expects($this->any())
-        ->method('getRow')
+    $this->db->method('getRow')
         ->willReturnOnConsecutiveCalls(
             ['id' => 1, 'display_count_total' => 100, 'link_count_total' => 10],
             ['id' => 2, 'display_count_total' => 250, 'link_count_total' => 25],
@@ -128,8 +126,7 @@ test('getAdTotals calculates total views and clicks', function () {
 });
 
 test('getActiveReport returns report sorted by views descending', function () {
-    $this->db->expects($this->any())
-        ->method('getRow')
+    $this->db->method('getRow')
         ->willReturnOnConsecutiveCalls(
             ['id' => 1, 'status' => 'active', 'display_count_total' => 50],
             false

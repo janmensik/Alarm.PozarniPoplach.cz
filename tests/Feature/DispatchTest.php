@@ -42,8 +42,7 @@ test('dispatch returns peacetime data when no recent dispatch', function () {
     $APPD = AppData::getInstance();
     $DB = $this->db;
 
-    $this->db->expects($this->any())
-        ->method('getRow')
+    $this->db->method('getRow')
         ->willReturnOnConsecutiveCalls(
             [
                 'unit_id' => 123,
@@ -60,8 +59,7 @@ test('dispatch returns peacetime data when no recent dispatch', function () {
             false // Modul::get loop end
         );
 
-    $this->db->expects($this->any())
-        ->method('getAllRows')
+    $this->db->method('getAllRows')
         ->willReturn(
             [['id' => 1]] // getAdForDevice: random pick list
         );
@@ -91,8 +89,7 @@ test('dispatch returns alarm data when recent dispatch exists', function () {
 
     $recent_ts = time() - 60;
 
-    $this->db->expects($this->any())
-        ->method('getRow')
+    $this->db->method('getRow')
         ->willReturnOnConsecutiveCalls(
             ['unit_id' => 123, 'refresh_token_hash' => hash('sha256', 'test-token'), 'last_seen_ts' => null], // validateDevice
             [ // getLastDispatch base lookup

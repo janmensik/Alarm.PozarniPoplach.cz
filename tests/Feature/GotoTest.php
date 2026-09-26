@@ -33,8 +33,7 @@ test('goto ad redirect works and logs hit', function () {
 
     // Setup Database expectations: get() calls getRow() in a while loop
     $this->db->method('query')->willReturn(true);
-    $this->db->expects($this->any())
-        ->method('getRow')
+    $this->db->method('getRow')
         ->willReturnOnConsecutiveCalls(
             ['id' => $adId, 'target_link' => $targetLink],
             false
@@ -62,8 +61,7 @@ test('goto ad returns error if not found', function () {
     $appd->setData('API', false);
 
     $this->db->method('query')->willReturn(true);
-    $this->db->expects($this->any())
-        ->method('getRow')
+    $this->db->method('getRow')
         ->willReturn(false);
 
     $DB = $this->db;
@@ -93,8 +91,7 @@ test('goto ad returns error if target_link is empty', function () {
     $appd->setData('GOTO_ID', '10');
 
     $this->db->method('query')->willReturn(true);
-    $this->db->expects($this->any())
-        ->method('getRow')
+    $this->db->method('getRow')
         ->willReturnOnConsecutiveCalls(
             ['id' => 10, 'target_link' => ''],
             false
@@ -114,8 +111,7 @@ test('goto ad returns error if target_link has invalid scheme', function () {
     $appd->setData('GOTO_ID', '11');
 
     $this->db->method('query')->willReturn(true);
-    $this->db->expects($this->any())
-        ->method('getRow')
+    $this->db->method('getRow')
         ->willReturnOnConsecutiveCalls(
             ['id' => 11, 'target_link' => 'javascript:alert(1)'],
             false

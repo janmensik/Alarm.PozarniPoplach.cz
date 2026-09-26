@@ -55,8 +55,8 @@ test('activate page rejects POST without CSRF token', function () {
     ];
     $_GET = ['code' => 'TESTCODE'];
 
-    $this->db->expects($this->any())->method('query')->willReturn(true);
-    $this->db->expects($this->any())->method('getRow')->willReturn([
+    $this->db->method('query')->willReturn(true);
+    $this->db->method('getRow')->willReturn([
         'status' => 'pending',
         'unit_id' => null,
         'device_uuid' => 'test-uuid'
@@ -95,9 +95,9 @@ test('activate page accepts POST with valid CSRF token', function () {
     ];
     $_GET = ['code' => 'TESTCODE'];
 
-    $this->db->expects($this->any())->method('query')->willReturn(true);
+    $this->db->method('query')->willReturn(true);
     // getRow gets called in checkSessionStatus, then linkSessionToUnit queries
-    $this->db->expects($this->any())->method('getRow')->willReturn([
+    $this->db->method('getRow')->willReturn([
         'status' => 'pending',
         'unit_id' => null,
         'device_uuid' => 'test-uuid'
@@ -179,8 +179,7 @@ test('activate page shows error when linking session to unit fails', function ()
     ]);
 
     // query fails during linkSessionToUnit UPDATE query
-    $this->db->expects($this->any())
-        ->method('query')
+    $this->db->method('query')
         ->willReturnCallback(function ($query) {
             if (str_contains($query, 'UPDATE alarm_device_session')) {
                 return false;
