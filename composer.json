@@ -15,9 +15,12 @@
     "config": {
         "allow-plugins": {
             "pestphp/pest-plugin": true
+        },
+        "platform": {
+            "php": "8.2.33"
         }
     },
     "require-dev": {
-        "pestphp/pest": "^5.0"
+        "pestphp/pest": "^3.8"
     }
 }
