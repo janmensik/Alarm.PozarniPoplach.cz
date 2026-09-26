@@ -154,20 +154,8 @@ All `Modul`-derived classes use `mysqli_real_escape_string` + string interpolati
 
 Recommend migrating to **prepared statements** in `Jmlib\Database` (single change, no callsite churn possible since query strings flow through `DB->query`).
 
-### 3.2 `linkSessionToUnit` does not authenticate the firefighter
-[view/page/activate.php](view/page/activate.php#L45-L51) and [include/class.DeviceAuth.php](include/class.DeviceAuth.php#L93-L101)
 
-The phone visiting `/activate?code=XXX` is shown a `<select>` of **all units** with no authentication. Anyone on the internet who guesses an 8-char code (32^8 ≈ 1.1 trillion; brute force impractical) can pair a kiosk to any random unit they pick from the dropdown.
-
-**Critical**: A malicious actor watching a station's screen can read the code, race to `/activate?code=…`, and bind the screen to a different unit, blacking it out from real alarms. Or they can scrape the unit list (also leaked to the public).
-
-Fixes:
-1. The activate page **must** require firefighter login (the AUTH_FLOW.md mentions "logs in & selects Unit" — but the current `/activate` page has no login).
-2. Filter the unit `<select>` to only units the logged-in firefighter belongs to.
-3. Add rate-limiting on `/activate` and `/api/auth/device/*` endpoints (e.g. 10 req / min / IP).
-4. Until login exists, at minimum: require both the **device_code AND a one-time PIN displayed on the kiosk** that the firefighter must type — defense in depth.
-
-### 3.3 Refresh token is stored in `localStorage`
+### 3.2 Refresh token is stored in `localStorage`
 [ui/alpine.js](ui/alpine.js#L42)
 ```js
 localStorage.setItem("alarm_refresh_token", this.refreshToken);
@@ -179,7 +167,7 @@ Mitigations:
 - Add a strict `Content-Security-Policy` header (already started with `X-Frame-Options`, `X-Content-Type-Options`).
 - Store the token in an **HttpOnly cookie** scoped to the device UUID instead of localStorage. The cookie must be `Secure; SameSite=Strict`.
 
-### 3.4 Missing Content-Security-Policy and HSTS
+### 3.3 Missing Content-Security-Policy and HSTS
 [index.php](index.php#L48-L49) sets only:
 ```php
 header('X-Content-Type-Options: nosniff');
@@ -194,13 +182,9 @@ header("Content-Security-Policy: default-src 'self'; img-src 'self' data: https:
 ```
 Tighten once external CDNs are removed (§2.1).
 
-### 3.8 No expiration on `alarm_device_authorized`
+### 3.4 No expiration on `alarm_device_authorized`
 Devices never expire. If a Pi is stolen / decommissioned, the only way to revoke is manual DB delete. Add `expires_at` (e.g. 1 year), and re-issue on `last_seen` updates.
 
-### 3.10 `error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED)` only in cron
-[cron.email_import.php](cron.email_import.php#L8) silences deprecations, but `index.php` does not. Production should never echo PHP warnings to the kiosk (would break the alarm view). Set `display_errors=Off` in `inc.startup.php` based on `getenv('DEBUGGING')`.
-
----
 
 ## 4. Kiosk‑specific operational concerns
 
@@ -261,17 +245,16 @@ The server has `last_seen` updated by `validateDevice` on every API hit. Add an 
 
 | # | Severity | Fix | Effort |
 |---|----------|-----|--------|
-| 2 | Critical | §3.2 `/activate` requires firefighter login + unit allow-list | 1 day |
-| 3 | High | §1.5 Audio autoplay always-off bug | 1 h |
-| 4 | High | §2.1 self-host Alpine.js / Font Awesome / Public Sans | 2 h |
-| 5 | High | §1.4 Service worker + last-known dispatch cache | 0.5 day |
-| 7 | Medium | §1.1 SSE or shorter `DISPATCH_POLL_INTERVAL_MS` | 0.5 day |
-| 8 | Medium | §1.7 warm Maps cache from cron | 2 h |
-| 9 | Medium | §3.4 CSP / HSTS / Referrer-Policy headers | 1 h |
-| 10 | Medium | §4.1 gate meta-refresh behind peacetime | 15 min |
-| 11 | Medium | §1.2 fix timer "limit" alert miss | 15 min |
-| 12 | Medium | §2.3 `Cache-Control` for static assets | 30 min |
-| 16 | Low | §4.5 admin "kiosk alive" telemetry | 0.5 day |
+| 1 | High | §1.5 Audio autoplay always-off bug | 1 h |
+| 2 | High | §2.1 self-host Alpine.js / Font Awesome / Public Sans | 2 h |
+| 3 | High | §1.4 Service worker + last-known dispatch cache | 0.5 day |
+| 4 | Medium | §1.1 SSE or shorter `DISPATCH_POLL_INTERVAL_MS` | 0.5 day |
+| 5 | Medium | §1.7 warm Maps cache from cron | 2 h |
+| 6 | Medium | §3.3 CSP / HSTS / Referrer-Policy headers | 1 h |
+| 7 | Medium | §4.1 gate meta-refresh behind peacetime | 15 min |
+| 8 | Medium | §1.2 fix timer "limit" alert miss | 15 min |
+| 9 | Medium | §2.3 `Cache-Control` for static assets | 30 min |
+| 10 | Low | §4.5 admin "kiosk alive" telemetry | 0.5 day |
 
 ---
 
