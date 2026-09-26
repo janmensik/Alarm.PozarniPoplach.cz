@@ -52,3 +52,8 @@
 **Vulnerability:** The `view/page/activate.php` script was not regenerating the session ID after successfully linking a session to a unit (privilege escalation).
 **Learning:** Failing to regenerate a session ID upon authentication or significant state changes can make the application vulnerable to session fixation attacks, where an attacker tricks a user into authenticating with a known session ID.
 **Prevention:** Always call `session_regenerate_id(true)` upon successful authentication, login, or any process that elevates the user's privileges to ensure a fresh, untainted session ID is assigned.
+
+## 2024-10-30 - [Fix IDOR/Authorization Bypass in Activation Page]
+**Vulnerability:** The device activation page (`view/page/activate.php`) allowed linking a device to any unit by simply supplying the unit ID in the POST request, bypassing authorization checks.
+**Learning:** Providing an ID without verifying the user's right to access or modify that specific record leads to Insecure Direct Object Reference (IDOR).
+**Prevention:** During kiosk device authorization, require the unit's PIN code (`pincode`) as a defense-in-depth measure to authenticate the request and authorize linking to that specific unit.

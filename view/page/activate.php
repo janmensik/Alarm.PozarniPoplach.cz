@@ -44,8 +44,13 @@ if (!empty($device_code)) {
 }
 
 // Handle Authorization form submission
-if ($session && !empty($_POST['unit_id'])) {
-    if ($DeviceAuth->linkSessionToUnit($device_code, intval($_POST['unit_id']), $_POST['device_name'] ?? null)) {
+if ($session && !empty($_POST['unit_id']) && isset($_POST['pincode'])) {
+    $unit_id = intval($_POST['unit_id']);
+    $unit_pincode = $DB->getResult($DB->query('SELECT pincode FROM unit WHERE id = ' . $unit_id . ' LIMIT 1'));
+
+    if (empty($unit_pincode) || !hash_equals((string)$unit_pincode, (string)$_POST['pincode'])) {
+        $error = 'Neplatný PIN kód jednotky.';
+    } elseif ($DeviceAuth->linkSessionToUnit($device_code, $unit_id, $_POST['device_name'] ?? null)) {
         session_regenerate_id(true);
         $Smarty->assign('success', true);
     } else {
