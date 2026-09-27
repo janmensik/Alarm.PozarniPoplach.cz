@@ -91,11 +91,13 @@ test('activate page accepts POST with valid CSRF token', function () {
     $_POST = [
         'unit_id' => 123,
         'device_name' => 'Test',
-        'csrf_token' => 'valid-token'
+        'csrf_token' => 'valid-token',
+        'pincode' => 'correct-pin'
     ];
     $_GET = ['code' => 'TESTCODE'];
 
     $this->db->method('query')->willReturn(true);
+    $this->db->method('getResult')->willReturn('correct-pin'); // For the pincode check
     // getRow gets called in checkSessionStatus, then linkSessionToUnit queries
     $this->db->method('getRow')->willReturn([
         'status' => 'pending',
@@ -118,6 +120,47 @@ test('activate page accepts POST with valid CSRF token', function () {
     // Test that the form was processed since token was valid
     // The device_code will be TESTCODE and linkSessionToUnit will be called
     expect($Smarty->assigns['success'])->toBeTrue();
+});
+
+test('activate page shows error when pincode is invalid', function () {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_id('test-session-id');
+        session_start();
+    }
+
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_SESSION['csrf_token'] = 'valid-token';
+    $_POST = [
+        'unit_id' => 123,
+        'device_name' => 'Test',
+        'csrf_token' => 'valid-token',
+        'pincode' => 'wrong-pin'
+    ];
+    $_GET = ['code' => 'TESTCODE'];
+
+    $this->db->method('query')->willReturn(true);
+    $this->db->method('getResult')->willReturn('correct-pin'); // For the pincode check
+
+    $this->db->method('getRow')->willReturn([
+        'status' => 'pending',
+        'unit_id' => null,
+        'device_uuid' => 'test-uuid'
+    ]);
+
+    $APPD = $this->appData;
+    $DB = $this->db;
+    $Smarty = $this->smarty;
+
+    ob_start();
+    try {
+        include __DIR__ . '/../../view/page/activate.php';
+    } catch (\Exception $e) {
+        // Exit is called
+    }
+    ob_end_clean();
+
+    expect($Smarty->assigns['error'])->toBe('Neplatný PIN kód jednotky.');
+    expect(isset($Smarty->assigns['success']))->toBeFalse();
 });
 
 test('activate page renders in manual entry mode when no code is provided', function () {
@@ -167,9 +210,12 @@ test('activate page shows error when linking session to unit fails', function ()
     $_SESSION['csrf_token'] = 'token-123';
     $_POST = [
         'unit_id' => 10,
-        'csrf_token' => 'token-123'
+        'csrf_token' => 'token-123',
+        'pincode' => 'correct-pin'
     ];
     $_GET = ['code' => 'CODE1234'];
+
+    $this->db->method('getResult')->willReturn('correct-pin'); // For the pincode check
 
     // getRow for checkSessionStatus returns pending session
     $this->db->method('getRow')->willReturn([

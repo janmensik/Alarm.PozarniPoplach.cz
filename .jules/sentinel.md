@@ -52,3 +52,7 @@
 **Vulnerability:** The `view/page/activate.php` script was not regenerating the session ID after successfully linking a session to a unit (privilege escalation).
 **Learning:** Failing to regenerate a session ID upon authentication or significant state changes can make the application vulnerable to session fixation attacks, where an attacker tricks a user into authenticating with a known session ID.
 **Prevention:** Always call `session_regenerate_id(true)` upon successful authentication, login, or any process that elevates the user's privileges to ensure a fresh, untainted session ID is assigned.
+## 2025-02-23 - Authorization Bypass via Missing PIN Verification
+**Vulnerability:** The `/activate` flow allowed any user (or attacker) with a device code to arbitrarily link that device to any `unit_id` from the public list without any form of unit-specific authentication.
+**Learning:** Kiosk-based authentication flows that rely on out-of-band mobile verification must ensure that the verifying user is actually authorized for the target unit. In the absence of an authenticated user session, defense-in-depth measures like requiring a shared secret (e.g., the unit's PIN code) are critical to prevent authorization bypass and unauthorized session linking.
+**Prevention:** Always implement strong authorization checks when linking resources across different trust boundaries. If user sessions are not available, enforce verification using secure, pre-shared secrets and compare them using timing-attack safe functions like `hash_equals()`.
