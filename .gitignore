@@ -11,9 +11,5 @@
 # sensitive files
 .env
 .env.localhost
-data.txt
-dashboard.html
-GEMINI.md
-ANALYSIS.md
 /.vscode/
 /.gemini/
