@@ -113,12 +113,17 @@ test('getAdForDevice returns null (sticky silence) during sticky window when cur
 });
 
 test('getAdTotals calculates total views and clicks', function () {
-    $this->db->method('getRow')
-        ->willReturnOnConsecutiveCalls(
-            ['id' => 1, 'display_count_total' => 100, 'link_count_total' => 10],
-            ['id' => 2, 'display_count_total' => 250, 'link_count_total' => 25],
-            false
-        );
+    $baseQuery = 'SELECT SQL_CALC_FOUND_ROWS ad.id, ad.title, ad.status, ad.banner_image_url, ad.target_link, ad.ad_text, ad.promo_code, ad.qr_code_svg, adc.name AS advertiser_name, IFNULL(SUM(adh.display_count), 0) AS display_count_total, IFNULL(SUM(adh.link_count), 0) AS link_count_total, adc.id AS advertiser_id FROM advert ad JOIN advertiser adc ON ad.advertiser_id=adc.id LEFT JOIN advert_hit adh ON ad.id=adh.advert_id GROUP BY ad.id';
+    $expectedQuery = 'SELECT SUM(display_count_total) AS display_count_total, SUM(link_count_total) AS link_count_total FROM (' . $baseQuery . ') AS base_data';
+
+    $this->db->expects($this->once())
+        ->method('query')
+        ->with($expectedQuery)
+        ->willReturn(true);
+
+    $this->db->expects($this->once())
+        ->method('getRow')
+        ->willReturn(['display_count_total' => 350, 'link_count_total' => 35]);
 
     $totals = $this->ad->getAdTotals();
     expect($totals['total_views'])->toBe(350);
