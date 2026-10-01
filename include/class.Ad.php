@@ -208,10 +208,16 @@ class Ad extends Modul
 
     public function getAdTotals(): array
     {
-        $rows = $this->get() ?: [];
+        // Optimization: Use direct database SQL aggregation instead of hydrating full models
+        // into a PHP array and using array_sum() to prevent O(N) memory and CPU overhead.
+        // We use the base query as a subquery to guarantee exactly the same logic and constraints
+        // (like joining with advertiser and grouping) while letting the database do the summation.
+        $query = 'SELECT SUM(display_count_total) AS display_count_total, SUM(link_count_total) AS link_count_total FROM (' . $this->sql_base . ') AS base_data';
+        $row = $this->DB->getRow($this->DB->query($query, __METHOD__));
+
         return [
-            'total_views'  => array_sum(array_column($rows, 'display_count_total')),
-            'total_clicks' => array_sum(array_column($rows, 'link_count_total')),
+            'total_views'  => (int)($row['display_count_total'] ?? 0),
+            'total_clicks' => (int)($row['link_count_total'] ?? 0),
         ];
     }
 

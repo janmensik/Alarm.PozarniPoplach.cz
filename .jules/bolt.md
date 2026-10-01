@@ -30,3 +30,7 @@
 ## 2024-07-28 - HTTP Caching for Static Assets
 **Learning:** Static assets like `.js`, `.css`, and `.svg` were being re-fetched on every reload because the web server lacked caching headers. This increases bandwidth consumption and latency on every load, negatively impacting frontend performance.
 **Action:** Always configure HTTP caching (e.g., using `Cache-Control` headers in `.htaccess` or server configs) for static assets. A policy like `Cache-Control: public, max-age=86400, immutable` prevents redundant network requests for assets that are cache-busted via query strings (e.g., `?v=<hash>`).
+
+## 2024-07-28 - O(N) Array Aggregation to Database SQL Aggregation
+**Learning:** The `Ad::getAdTotals` method was fetching full models into PHP arrays and using `array_sum()` over `array_column()` to calculate totals. This pulls all records into memory, creating O(N) overhead for both memory and CPU, which doesn't scale well with large datasets. When shifting this to a direct raw SQL query (e.g. `SELECT SUM(col) FROM table`), manually rewriting the base query logic risks missing implicit joins and filtering.
+**Action:** To optimize calculations on large datasets like totals or counts, offload aggregation to the database using SQL functions like `SUM()` or `COUNT()`. To guarantee absolute fidelity to the ORM logic without hallucinating missing tables or columns, wrap the existing `$this->sql_base` in a subquery (e.g., `SELECT SUM(col) FROM (' . $this->sql_base . ') AS base_data`).
