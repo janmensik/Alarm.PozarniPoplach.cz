@@ -30,3 +30,6 @@
 ## 2024-07-28 - HTTP Caching for Static Assets
 **Learning:** Static assets like `.js`, `.css`, and `.svg` were being re-fetched on every reload because the web server lacked caching headers. This increases bandwidth consumption and latency on every load, negatively impacting frontend performance.
 **Action:** Always configure HTTP caching (e.g., using `Cache-Control` headers in `.htaccess` or server configs) for static assets. A policy like `Cache-Control: public, max-age=86400, immutable` prevents redundant network requests for assets that are cache-busted via query strings (e.g., `?v=<hash>`).
+## 2024-07-29 - Array Sum Offload
+**Learning:** Using `array_sum(array_column())` to calculate totals on large lists retrieved by ORM models hydrates full arrays in memory and processes calculations on the application layer. This can lead to O(N) memory and CPU overhead.
+**Action:** When refactoring hydration loops or array aggregates like `array_sum` on entire tables (e.g. in `Ad::getAdTotals()`), offload the aggregation to the database using `SUM()` wrapped around the existing `sql_base` in a subquery for exact fidelity while keeping computation O(1) in PHP.
