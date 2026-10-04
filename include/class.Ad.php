@@ -208,10 +208,12 @@ class Ad extends Modul
 
     public function getAdTotals(): array
     {
-        $rows = $this->get() ?: [];
+        $query = 'SELECT SUM(display_count_total) AS total_views, SUM(link_count_total) AS total_clicks FROM (' . $this->sql_base . ') AS base_data';
+        $row = $this->DB->getRow($this->DB->query($query));
+
         return [
-            'total_views'  => array_sum(array_column($rows, 'display_count_total')),
-            'total_clicks' => array_sum(array_column($rows, 'link_count_total')),
+            'total_views'  => $row['total_views'] ?? 0,
+            'total_clicks' => $row['total_clicks'] ?? 0,
         ];
     }
 
