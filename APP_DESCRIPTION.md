@@ -148,7 +148,6 @@ Every web request is processed through [`index.php`](index.php):
 ### 4.1 Creative North Star & Philosophy
 The design language rejects standard "SaaS app" conventions (soft pastels, generous rounded corners, low contrast) in favor of **Kinetic Command**: an authoritative, HUD-first aesthetic inspired by emergency vehicle markings (RAL 3000/3024) and tactical control panels.
 
-- **Instant Glanceability:** Firefighters must absorb incident type, location, and dispatched vehicles in under 3 seconds.
 - **Dark-First Immersion:** Deep obsidian base tones eliminate eye strain in darkened garages while allowing high-visibility emergency colors to command attention.
 - **Hardware Aesthetic:** Sharp 0px corners, monospace coordinates, tabular digits, and CRT scanline textures create a dedicated instrument feel.
 
@@ -289,7 +288,7 @@ sequenceDiagram
    - The kiosk stores the token in `localStorage` and begins fetching `/api/dispatch`.
 
 #### Legacy `/activate` Redirect
-The former public, unauthenticated `/activate` page (and its `view/page/activate.php` controller and `tpl/page.activate.html` template) was removed. Old QR codes and bookmarks are still honored: `GET /activate`, `GET /activate?code=XYZ` and `GET /activate/XYZ` respond with a **301 redirect** to `ADMIN_URL/activate/XYZ` (code sanitized to `[A-Za-z0-9]` and uppercased).
+The former public, unauthenticated `/activate` page (and its `view/page/activate.php` controller and `tpl/page.activate.html` template) was removed. Old QR codes and bookmarks are still honored: `GET /activate`, `GET /activate?code=XYZ` and `GET /activate/XYZ` respond with a **301 redirect** to `ADMIN_URL/activate/XYZ` (code sanitized to `[A-Za-z0-9]` and upper cased).
 
 ---
 
