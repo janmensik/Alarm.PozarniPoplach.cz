@@ -40,7 +40,7 @@
         <template x-if="authStatus === 'pending'">
           <div class="flex flex-col items-center">
             <h2 class="text-4xl font-black uppercase tracking-tighter mb-2 text-secondary">Panel není autorizován</h2>
-            <p class="text-xl font-light text-tertiary mb-10">Pro aktivaci tohoto výjezdového panelu naskenujte QR kód svým mobilním telefonem.</p>
+            <p class="text-xl font-light text-tertiary mb-10">Pro aktivaci naskenujte QR kód nebo otevřete odkaz. Budete přesměrováni na přihlašovací stránku administrace.</p>
 
             <div class="bg-white p-8 mb-10 shadow-inner rounded-xl w-full flex flex-col md:flex-row items-center justify-center gap-12">
               <div class="flex flex-col items-center shrink-0">
@@ -58,7 +58,7 @@
                 <span class="text-xs font-black uppercase tracking-widest text-outline-variant mb-2">Kód ruční aktivace</span>
                 <div class="text-4xl font-mono font-black tracking-[0.2em] text-primary mb-4" x-text="deviceCode"></div>
                 <p class="text-sm font-bold text-outline-variant">
-                  Pokud nejde naskenovat, otevřete stránku:<br />
+                  Pokud nejde naskenovat, přihlaste se na admin.pozarnipoplach.cz a otevřete:<br />
                   <a :href="verificationUrl" target="_blank" class="text-primary underline break-all" x-text="verificationUrl"></a>
                 </p>
               </div>

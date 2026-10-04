@@ -214,11 +214,11 @@ class DeviceAuth extends Modul
     }
 
     /**
-     * Helper to generate the mobile activation URL.
+     * Helper to generate the activation URL (authenticated flow in admin.pozarnipoplach.cz).
      */
     private function getVerificationUrl(string $deviceCode): string
     {
-        $baseUrl = $_ENV['ABSOLUTE_URL'] ?? '';
-        return $baseUrl . '/activate?code=' . $deviceCode;
+        $adminUrl = rtrim($_ENV['ADMIN_URL'] ?? '', '/');
+        return $adminUrl . '/activate/' . $deviceCode;
     }
 }

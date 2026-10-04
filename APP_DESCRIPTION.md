@@ -19,9 +19,9 @@ When an emergency call is dispatched by the regional operations center (**KOPIS*
 During peacetime (standby mode), the screen displays unit calendar schedules, training dates, operational status, and non-intrusive sponsor announcements.
 
 ### 1.2 Dual-Surface Ecosystem
-The application consists of two distinct user-facing surfaces:
+The application consists of two cooperating surfaces:
 1. **The Kiosk HUD (`/`)** — A full-screen, high-contrast dark-mode dashboard tailored for visibility from across the vehicle bay.
-2. **The Mobile Activation Surface (`/activate`)** — A responsive mobile web interface opened on a firefighter's smartphone to authenticate and link a newly installed kiosk screen to their brigade unit via QR code scanning.
+2. **Authenticated Activation in the Admin App (`admin.pozarnipoplach.cz/activate/XXXX`)** — A firefighter scans the kiosk's QR code (or opens the link), **logs in to the admin application**, and links the kiosk to a brigade unit they are authorized for. The alarm project itself contains no login or user management; the legacy public `/activate` page was removed (it was unauthenticated) and `/activate` now only redirects to the admin app.
 
 ---
 
@@ -50,7 +50,6 @@ The application consists of two distinct user-facing surfaces:
 ├── view/
 │   ├── page/
 │   │   ├── alarm.php           # Controller: main kiosk dashboard
-│   │   ├── activate.php        # Controller: mobile activation & pairing page
 │   │   └── goto.php            # Controller: ad redirection & click hit tracking
 │   └── api/
 │       ├── dispatch.php        # API: get latest dispatch data (auth required)
@@ -63,7 +62,6 @@ The application consists of two distinct user-facing surfaces:
 │
 ├── tpl/
 │   ├── page.alarm.html         # Smarty template: full kiosk HUD (alarm + peacetime)
-│   ├── page.activate.html      # Smarty template: mobile pairing form
 │   ├── page.goto.html          # Smarty template: error page for invalid ad redirects
 │   ├── page.404.html           # Smarty template: 404 page
 │   └── app.conf                # Smarty configuration file
@@ -81,7 +79,7 @@ The application consists of two distinct user-facing surfaces:
 └── tests/
     ├── Pest.php                # PestPHP test bootstrap & global helper mocks
     ├── Feature/                # Integration / endpoint tests
-    │   ├── ActivatePageTest.php
+    │   ├── ActivateRedirectTest.php
     │   ├── CalendarApiTest.php
     │   ├── DeviceAuthFlowTest.php
     │   ├── DeviceInitTest.php
@@ -107,6 +105,7 @@ The application is configured via `.env` at the project root. For local developm
 ```dotenv
 # Application
 ABSOLUTE_URL=https://alarm.pozarnipoplach.cz
+ADMIN_URL=https://admin.pozarnipoplach.cz   # Base URL of the admin app - used to build the device activation link/QR
 DEBUGGING=0                  # 0=production (errors off), 1=debug on, 2=Smarty debug panel
 
 # Database (MySQL / MariaDB)
@@ -192,7 +191,7 @@ stateDiagram-v2
     Validating --> Authorized: Token Valid
 
     PendingAuth --> PairingScreen: Show QR Code + Manual Code
-    PairingScreen --> Authorized: Firefighter Activates via Mobile
+    PairingScreen --> Authorized: Firefighter Logs In & Activates via Admin App
 
     state Authorized {
         [*] --> PollingDispatch
@@ -223,15 +222,17 @@ When no alarm is active, the screen maintains operational awareness:
 
 ### 5.3 Mode 3: Pairing Screen (`authStatus: 'pending'`)
 Shown when a kiosk has not yet been authorized:
-- Renders an ultra-sharp **SVG QR code** pointing to the device pairing URL (`/activate?code=XYZ`).
+- Renders an ultra-sharp **SVG QR code** pointing to the authenticated activation URL in the admin app (`ADMIN_URL/activate/XYZ`), plus a clickable fallback link.
 - Displays a high-contrast 8-character alphanumeric code for manual browser entry.
-- Background polling loop automatically transitions the display the instant authorization completes on mobile.
+- Background polling loop automatically transitions the display the instant authorization completes in the admin app.
 
 ---
 
 ## 6. End-to-End Process Flows
 
-### 6.1 Zero-Touch Device Pairing (OAuth 2.0 Device Flow)
+### 6.1 Authenticated Device Pairing (OAuth 2.0 Device Flow via Admin Login)
+
+The kiosk owns the session state and the token (alarm project); the **user login and unit authorization happen in `admin.pozarnipoplach.cz`**, which links the pending session to a unit the logged-in user may manage.
 
 ```mermaid
 sequenceDiagram
@@ -239,20 +240,21 @@ sequenceDiagram
     actor FF as Firefighter (Mobile)
     participant K as Kiosk Display
     participant S as Alarm Server
+    participant A as Admin App (admin.pozarnipoplach.cz)
     participant DB as MySQL Database
 
     K->>K: Generate/Load deviceUuid from localStorage
     K->>S: POST /api/auth/device/init { uuid }
     S->>DB: INSERT alarm_device_session (code, uuid, expires_at)
-    S-->>K: { device_code, verification_url, qr_code_data (SVG) }
+    S-->>K: { device_code, verification_url = ADMIN_URL/activate/CODE, qr_code_data (SVG) }
     K->>K: Render QR Code & start polling (every 5s)
 
     FF->>K: Scans QR code with smartphone
-    FF->>S: GET /activate?code=XYZ
-    S-->>FF: Render unit selection form + CSRF token
-    FF->>S: POST /activate { code, unit_id, device_name, csrf_token }
-    S->>DB: UPDATE alarm_device_session SET status='linked', unit_id=...
-    S-->>FF: Show "Device successfully authorized!"
+    FF->>A: GET /activate/CODE
+    A-->>FF: Login page (if not authenticated)
+    FF->>A: Logs in, selects unit
+    A->>DB: UPDATE alarm_device_session SET status='linked', unit_id=..., activated_by_user_id=...
+    A-->>FF: Show "Device successfully authorized!"
 
     loop Every 5 seconds
         K->>S: GET /api/auth/device/poll?code=XYZ
@@ -274,17 +276,20 @@ sequenceDiagram
 1. **Phase 1: Initialization**
    - The kiosk checks `localStorage` for `alarm_refresh_token`.
    - If missing, it generates a persistent hardware UUID (`crypto.randomUUID()`) and posts to `/api/auth/device/init`.
-   - The server creates an `alarm_device_session` with an 8-character code (excluding ambiguous chars `0`, `O`, `1`, `I`) expiring in 5 minutes, generates an SVG QR code using `chillerlan/php-qrcode`, and returns `{ device_code, qr_code_data, verification_url }`.
+   - The server creates an `alarm_device_session` with an 8-character code (excluding ambiguous chars `0`, `O`, `1`, `I`) expiring in 5 minutes, and builds the verification URL as `ADMIN_URL + '/activate/' + code` (`DeviceAuth::getVerificationUrl()`). It generates an SVG QR code from that URL using `chillerlan/php-qrcode` and returns `{ device_code, qr_code_data, verification_url }`.
 2. **Phase 2: Polling**
-   - The kiosk displays the QR code and polls `/api/auth/device/poll?code=XYZ` every 5 seconds.
-3. **Phase 3: Unit Authorization (Mobile)**
-   - Firefighter scans the QR code, opening `/activate?code=XYZ` on mobile.
-   - The firefighter selects their unit and submits the form with CSRF validation.
-   - The server sets `status = 'linked'` and records `unit_id` in `alarm_device_session`.
+   - The kiosk displays the QR code (plus the clickable link and manual code) and polls `/api/auth/device/poll?code=XYZ` every 5 seconds.
+3. **Phase 3: Unit Authorization (Admin App)**
+   - The firefighter scans the QR code (or opens the link) and lands on `admin.pozarnipoplach.cz/activate/CODE`.
+   - The admin app requires login, lets the user pick a unit they are authorized for, and calls `DeviceAuth::linkSessionToUnit()` on the shared database. The session becomes `linked` with the chosen `unit_id` (admin additionally records `activated_by_user_id`).
+   - The alarm project implements **no login or user management** — this is fully handled by the admin app.
 4. **Phase 4: Authorization & Completion**
    - On the next poll, the kiosk detects `linked` status and calls `/api/auth/device/authorize?code=XYZ`.
    - The server generates a random 64-character hex `refresh_token`, hashes it via `hash('sha256', $token)`, stores the hash in `alarm_device_authorized`, deletes the temporary session, and returns the raw token to the kiosk.
    - The kiosk stores the token in `localStorage` and begins fetching `/api/dispatch`.
+
+#### Legacy `/activate` Redirect
+The former public, unauthenticated `/activate` page (and its `view/page/activate.php` controller and `tpl/page.activate.html` template) was removed. Old QR codes and bookmarks are still honored: `GET /activate`, `GET /activate?code=XYZ` and `GET /activate/XYZ` respond with a **301 redirect** to `ADMIN_URL/activate/XYZ` (code sanitized to `[A-Za-z0-9]` and uppercased).
 
 ---
 
@@ -389,7 +394,7 @@ Defined in [`include/routes.php`](include/routes.php):
 | Method | Path | Controller View | Description |
 |---|---|---|---|
 | `GET` | `/` | `view/page/alarm.php` | Main Kiosk HUD interface |
-| `GET\|POST` | `/activate` | `view/page/activate.php` | Mobile pairing & unit selection form |
+| `GET` | `/activate`, `/activate/(code)` | _(inline redirect closure)_ | 301 redirect to `ADMIN_URL/activate/CODE` (legacy links) |
 | `GET` | `/goto/(\w+)/(\d+)` | `view/page/goto.php` | Ad link redirection & hit counter |
 | `GET` | `/api/dispatch` | `view/api/dispatch.php` | Dispatch data payload (auth required) |
 | `GET` | `/api/version` | `view/api/version.php` | App git/assets version hash |
@@ -410,7 +415,7 @@ All classes reside in the `PozarniPoplach\` namespace and inherit from `Janmensi
 - **`DeviceAuth` ([`include/class.DeviceAuth.php`](include/class.DeviceAuth.php)):**
   - `initSession(string $deviceUuid)` — Generates 8-char code and sets up temporary session.
   - `checkSessionStatus(string $deviceCode)` — Returns session status (`pending` / `linked`).
-  - `linkSessionToUnit(string $deviceCode, int $unitId, ?string $deviceName)` — Mobile linking.
+  - `linkSessionToUnit(string $deviceCode, int $unitId, ?string $deviceName)` — Called by the admin app after the user logs in and picks a unit.
   - `authorizeDevice(string $deviceCode)` — Finalizes pairing, returns raw refresh token.
   - `validateDevice(string $deviceUuid, string $refreshToken)` — Validates token hash and updates `last_seen`.
   - `getRequestCredentials()` — Reads credentials from `X-Device-Token` / `X-Device-UUID` or `Authorization: Bearer`.
@@ -678,5 +683,5 @@ Because production does not run Composer CLI directly and receives files via FTP
 - **Smarty compile cache:** If template edits do not appear, clear `tpl_c/`. `compile_check` is enabled when `DEBUGGING=1`.
 - **Session Name:** The session name is strictly `pozarnipoplach_alarm` (not the PHP default).
 - **`DEFAULT_ALARM_SHOWN`:** Defines the duration (in minutes) an alarm remains visible on the HUD before automatically returning to peacetime mode.
-- **CSRF Token:** The `/activate` page requires CSRF validation stored in `$_SESSION['csrf_token']`.
+- **No public activation page:** Device activation requires a login in the admin app; the alarm project exposes no unauthenticated way to link a kiosk to a unit. `/activate` only redirects.
 - **Refresh Token Storage:** Refresh tokens are stored as SHA-256 hashes in `alarm_device_authorized`. The raw token is sent only once upon authorization.

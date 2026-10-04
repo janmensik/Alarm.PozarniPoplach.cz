@@ -31,13 +31,19 @@ $router->get('/', function () use ($Smarty, $DB) {
     include('./view/page/alarm.php');
 });
 
-# Device Activation (Mobile)
-$router->match('GET|POST', '/activate', function () use ($Smarty, $DB) {
-    $APPD = AppData::getInstance();
-    $APPD->setData('PAGE', 'activate');
-
-    include('./view/page/activate.php');
-});
+# Device Activation — DEPRECATED: now handled by admin.pozarnipoplach.cz/activate/XXXX
+# Redirect old /activate links (QR codes, bookmarks) to the authenticated admin flow
+$redirectToAdminActivation = function ($code = null) {
+    $code = $code ?: ($_GET['code'] ?? '');
+    $code = preg_replace('/[^A-Za-z0-9]/', '', (string)$code);
+    $adminUrl = rtrim($_ENV['ADMIN_URL'] ?? 'https://admin.pozarnipoplach.cz', '/');
+    $target = $adminUrl . '/activate' . ($code !== '' ? '/' . strtoupper($code) : '');
+    header('Location: ' . $target, true, 301);
+    header('Connection: close');
+    exit();
+};
+$router->get('/activate', $redirectToAdminActivation);
+$router->get('/activate/([A-Za-z0-9]{4,16})', $redirectToAdminActivation);
 
 # Redirection Service (Goto)
 $router->get('/goto/(\w+)/(\d+)', function ($type, $id) use ($DB) {

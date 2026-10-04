@@ -66,7 +66,8 @@ test('routes defines all expected public and API endpoints', function () {
     // Public pages
     expect($routes['GET'])->toContain('/');
     expect($routes['GET'])->toContain('/activate');
-    expect($routes['POST'])->toContain('/activate');
+    expect($routes['GET'])->toContain('/activate/([A-Za-z0-9]{4,16})');
+    expect($routes['POST'] ?? [])->not->toContain('/activate');
     expect($routes['GET'])->toContain('/goto/(\w+)/(\d+)');
 
     // API endpoints

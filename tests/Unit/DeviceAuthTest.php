@@ -27,7 +27,7 @@ beforeEach(function () {
 });
 
 test('initSession executes cleanup, generates valid code, and returns session data', function () {
-    $_ENV['ABSOLUTE_URL'] = 'https://alarm.pozarnipoplach.cz';
+    $_ENV['ADMIN_URL'] = 'https://admin.pozarnipoplach.cz';
 
     $cleanupExecuted = false;
     $insertExecuted = false;
@@ -55,7 +55,18 @@ test('initSession executes cleanup, generates valid code, and returns session da
     expect(strlen($result['device_code']))->toBe(8);
     // User-friendly alphabet: no 0, O, 1, l, I
     expect($result['device_code'])->toMatch('/^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{8}$/');
-    expect($result['verification_url'])->toBe('https://alarm.pozarnipoplach.cz/activate?code=' . $result['device_code']);
+    expect($result['verification_url'])->toBe('https://admin.pozarnipoplach.cz/activate/' . $result['device_code']);
+});
+
+test('verification url strips trailing slash from ADMIN_URL', function () {
+    $_ENV['ADMIN_URL'] = 'https://admin.pozarnipoplach.cz///';
+
+    $this->db->method('query')->willReturn(true);
+
+    $result = $this->deviceAuth->initSession('test-device-uuid-456');
+
+    expect($result['verification_url'])->toBe('https://admin.pozarnipoplach.cz/activate/' . $result['device_code']);
+    expect($result['verification_url'])->not->toContain('?code=');
 });
 
 test('initSession returns null when insert query fails', function () {
