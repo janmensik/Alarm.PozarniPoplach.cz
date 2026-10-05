@@ -11,6 +11,7 @@ class Ad extends Modul
     protected ?string $sql_update = 'UPDATE advert ad'; # zaklad SQL dotazu - UPDATE
     protected ?string $sql_insert = 'INSERT INTO advert'; # zaklad SQL dotazu - INSERT
     protected ?string $sql_table = 'ad';
+    protected ?string $sql_group_total = 'SELECT IFNULL(SUM(adh.display_count), 0) AS display_count_total, IFNULL(SUM(adh.link_count), 0) AS link_count_total';
     protected int|string $order = 8;
 
     //protected ?array $fulltext_columns = array('hub.id', 'hub.title', 'hub.pincode');
@@ -208,10 +209,15 @@ class Ad extends Modul
 
     public function getAdTotals(): array
     {
-        $rows = $this->get() ?: [];
+        // ⚡ Bolt Optimization:
+        // Offloaded aggregation from O(N) PHP array iteration to direct database query using Modul's getGroupTotal.
+        // This leverages the framework's native abstraction to generate a safe SQL query using sql_group_total,
+        // preserving encapsulation while reducing memory and CPU overhead.
+        $row = $this->getGroupTotal();
+
         return [
-            'total_views'  => array_sum(array_column($rows, 'display_count_total')),
-            'total_clicks' => array_sum(array_column($rows, 'link_count_total')),
+            'total_views'  => (int)($row['display_count_total'] ?? 0),
+            'total_clicks' => (int)($row['link_count_total'] ?? 0),
         ];
     }
 

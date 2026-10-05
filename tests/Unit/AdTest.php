@@ -113,12 +113,9 @@ test('getAdForDevice returns null (sticky silence) during sticky window when cur
 });
 
 test('getAdTotals calculates total views and clicks', function () {
-    $this->db->method('getRow')
-        ->willReturnOnConsecutiveCalls(
-            ['id' => 1, 'display_count_total' => 100, 'link_count_total' => 10],
-            ['id' => 2, 'display_count_total' => 250, 'link_count_total' => 25],
-            false
-        );
+    $this->db->expects($this->once())
+        ->method('getRow')
+        ->willReturn(['display_count_total' => 350, 'link_count_total' => 35]);
 
     $totals = $this->ad->getAdTotals();
     expect($totals['total_views'])->toBe(350);
