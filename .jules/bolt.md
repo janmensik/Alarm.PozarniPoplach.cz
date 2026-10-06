@@ -30,3 +30,11 @@
 ## 2024-07-28 - HTTP Caching for Static Assets
 **Learning:** Static assets like `.js`, `.css`, and `.svg` were being re-fetched on every reload because the web server lacked caching headers. This increases bandwidth consumption and latency on every load, negatively impacting frontend performance.
 **Action:** Always configure HTTP caching (e.g., using `Cache-Control` headers in `.htaccess` or server configs) for static assets. A policy like `Cache-Control: public, max-age=86400, immutable` prevents redundant network requests for assets that are cache-busted via query strings (e.g., `?v=<hash>`).
+
+## 2024-08-01 - Offload array summation to SQL layer in Modul
+**Learning:** In the Jmlib Modul class, fetching all objects into memory () just to perform mathematical aggregations using PHP (like ) is highly inefficient and runs in O(N) time.
+**Action:** When calculating aggregated values like sums or counts for a specific dataset managed by a Modul child class, offload the work to the database by defining  and calling  to achieve O(1) memory and calculation overhead.
+
+## 2024-08-01 - Offload array summation to SQL layer in Modul
+**Learning:** In the Jmlib Modul class, fetching all objects into memory (`Modul::get()`) just to perform mathematical aggregations using PHP (like `array_sum()`) is highly inefficient and runs in O(N) time and memory overhead.
+**Action:** When calculating aggregated values like sums or counts for a specific dataset managed by a Modul child class, offload the work to the database by defining `$sql_group_total` and calling `getGroupTotal()` to achieve O(1) memory and calculation overhead.
