@@ -8,6 +8,7 @@ use Janmensik\Jmlib\Database;
 class Ad extends Modul
 {
     protected ?string $sql_base = 'SELECT SQL_CALC_FOUND_ROWS ad.id, ad.title, ad.status, ad.banner_image_url, ad.target_link, ad.ad_text, ad.promo_code, ad.qr_code_svg, adc.name AS advertiser_name, IFNULL(SUM(adh.display_count), 0) AS display_count_total, IFNULL(SUM(adh.link_count), 0) AS link_count_total, adc.id AS advertiser_id FROM advert ad JOIN advertiser adc ON ad.advertiser_id=adc.id LEFT JOIN advert_hit adh ON ad.id=adh.advert_id GROUP BY ad.id'; # zaklad SQL dotazu
+    protected ?string $sql_group_total = 'SELECT IFNULL(SUM(adh.display_count), 0) AS total_views, IFNULL(SUM(adh.link_count), 0) AS total_clicks GROUP BY ""';
     protected ?string $sql_update = 'UPDATE advert ad'; # zaklad SQL dotazu - UPDATE
     protected ?string $sql_insert = 'INSERT INTO advert'; # zaklad SQL dotazu - INSERT
     protected ?string $sql_table = 'ad';
@@ -208,10 +209,10 @@ class Ad extends Modul
 
     public function getAdTotals(): array
     {
-        $rows = $this->get() ?: [];
+        $totals = $this->getGroupTotal();
         return [
-            'total_views'  => array_sum(array_column($rows, 'display_count_total')),
-            'total_clicks' => array_sum(array_column($rows, 'link_count_total')),
+            'total_views'  => (int) ($totals['total_views'] ?? 0),
+            'total_clicks' => (int) ($totals['total_clicks'] ?? 0),
         ];
     }
 
