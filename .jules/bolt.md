@@ -30,3 +30,7 @@
 ## 2024-07-28 - HTTP Caching for Static Assets
 **Learning:** Static assets like `.js`, `.css`, and `.svg` were being re-fetched on every reload because the web server lacked caching headers. This increases bandwidth consumption and latency on every load, negatively impacting frontend performance.
 **Action:** Always configure HTTP caching (e.g., using `Cache-Control` headers in `.htaccess` or server configs) for static assets. A policy like `Cache-Control: public, max-age=86400, immutable` prevents redundant network requests for assets that are cache-busted via query strings (e.g., `?v=<hash>`).
+## 2026-06-25 - O(1) Data Retrieval on getAdTotals\n**Learning:** When calculating totals across an entire dataset in a PHP class utilizing , fetching all rows with  and aggregating them via  leads to O(n) memory and CPU usage.\n**Action:** Optimize aggregation by shifting the calculation to the database layer. Write a raw SQL query using  containing  functions to achieve O(1) memory footprint and faster execution time.
+## 2026-06-25 - O(1) Data Retrieval on getAdTotals
+**Learning:** When calculating totals across an entire dataset in a PHP class utilizing `Modul`, fetching all rows with `get()` and aggregating them via `array_sum` leads to O(n) memory and CPU usage.
+**Action:** Optimize aggregation by shifting the calculation to the database layer. Write a raw SQL query using `$this->DB->getRow()` containing `SUM()` functions to achieve O(1) memory footprint and faster execution time.
