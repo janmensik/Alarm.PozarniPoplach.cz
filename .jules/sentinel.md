@@ -52,3 +52,7 @@
 **Vulnerability:** The `view/page/activate.php` script was not regenerating the session ID after successfully linking a session to a unit (privilege escalation).
 **Learning:** Failing to regenerate a session ID upon authentication or significant state changes can make the application vulnerable to session fixation attacks, where an attacker tricks a user into authenticating with a known session ID.
 **Prevention:** Always call `session_regenerate_id(true)` upon successful authentication, login, or any process that elevates the user's privileges to ensure a fresh, untainted session ID is assigned.
+## 2025-02-06 - Prevent TypeError DoS in hash_equals
+**Vulnerability:** The `validateDevice` method in `include/class.DeviceAuth.php` passed `$refreshToken` directly from user input to `hash()` and `hash_equals()`. If an attacker submitted an array, it would cause a fatal `TypeError` in PHP 8+, potentially leading to a Denial of Service (DoS).
+**Learning:** In PHP 8+, string-based cryptographic functions like `hash()` and `hash_equals()` strictly require string arguments. Passing arrays or other types results in an unhandled `TypeError`.
+**Prevention:** Always explicitly cast user-provided inputs to strings (e.g., `(string)$refreshToken`) before passing them to string-based cryptographic functions to ensure safe execution.
