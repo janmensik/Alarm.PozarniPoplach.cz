@@ -200,7 +200,7 @@ class DeviceAuth extends Modul
 
         $device = $this->DB->getRow($this->DB->query($query, __METHOD__));
 
-        if ($device && hash_equals($device['refresh_token_hash'], hash('sha256', $refreshToken))) {
+        if ($device && hash_equals((string)$device['refresh_token_hash'], hash('sha256', (string)$refreshToken))) {
             $this->currentDevice = $device;
             // Update last seen only if it's been more than 5 minutes to reduce DB load
             if (!isset($device['last_seen_ts']) || (time() - (int)$device['last_seen_ts']) >= 300) {
