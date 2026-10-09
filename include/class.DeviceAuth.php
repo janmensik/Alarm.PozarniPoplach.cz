@@ -171,7 +171,7 @@ class DeviceAuth extends Modul
     {
         // Optimization: Access required headers directly via exact keys instead of iterating over entire $_SERVER.
         // This improves complexity from O(n) relative to $_SERVER size to O(1) and eliminates string manipulation overhead.
-        $uuid = $_SERVER['HTTP_X_DEVICE_UUID'] ?? $_GET['uuid'] ?? $_POST['uuid'] ?? $_REQUEST['uuid'] ?? null;
+        $uuid = $_SERVER['HTTP_X_DEVICE_UUID'] ?? $_GET['uuid'] ?? $_POST['uuid'] ?? null;
 
         $token = null;
         if (isset($_SERVER['HTTP_AUTHORIZATION']) && preg_match('/Bearer\s+(.*)$/i', $_SERVER['HTTP_AUTHORIZATION'], $matches)) {
