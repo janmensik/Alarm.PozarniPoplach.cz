@@ -171,14 +171,21 @@ class DeviceAuth extends Modul
     {
         // Optimization: Access required headers directly via exact keys instead of iterating over entire $_SERVER.
         // This improves complexity from O(n) relative to $_SERVER size to O(1) and eliminates string manipulation overhead.
-        $uuid = $_SERVER['HTTP_X_DEVICE_UUID'] ?? $_GET['uuid'] ?? $_POST['uuid'] ?? $_REQUEST['uuid'] ?? null;
+
+        // Security: Remove $_REQUEST to prevent variable poisoning via cookies.
+        $raw_uuid = $_SERVER['HTTP_X_DEVICE_UUID'] ?? $_GET['uuid'] ?? $_POST['uuid'] ?? null;
+        // Security: Ensure uuid is a string to prevent TypeError DoS
+        $uuid = is_scalar($raw_uuid) ? (string)$raw_uuid : null;
 
         $token = null;
-        if (isset($_SERVER['HTTP_AUTHORIZATION']) && preg_match('/Bearer\s+(.*)$/i', $_SERVER['HTTP_AUTHORIZATION'], $matches)) {
+        if (isset($_SERVER['HTTP_AUTHORIZATION']) && is_scalar($_SERVER['HTTP_AUTHORIZATION']) && preg_match('/Bearer\s+(.*)$/i', (string)$_SERVER['HTTP_AUTHORIZATION'], $matches)) {
             $token = $matches[1];
-        } elseif (isset($_SERVER['HTTP_X_DEVICE_TOKEN'])) {
-            $token = $_SERVER['HTTP_X_DEVICE_TOKEN'];
+        } elseif (isset($_SERVER['HTTP_X_DEVICE_TOKEN']) && is_scalar($_SERVER['HTTP_X_DEVICE_TOKEN'])) {
+            $token = (string)$_SERVER['HTTP_X_DEVICE_TOKEN'];
         }
+
+        // Security: Ensure token is a string to prevent TypeError DoS in hash/hash_equals
+        $token = is_scalar($token) ? (string)$token : null;
 
         return [
             'uuid' => $uuid,

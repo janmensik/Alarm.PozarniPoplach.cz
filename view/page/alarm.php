@@ -22,8 +22,8 @@ if (!isset($Dispatch)) {
 # *******************************************************************
 
 // Legacy pincode support (if needed for some old devices)
-if (!empty($_GET['pincode'])) {
-    $unit_id = $Dispatch->checkUnitPincode($_GET['pincode'], true);
+if (!empty($_GET['pincode']) && is_scalar($_GET['pincode'])) {
+    $unit_id = $Dispatch->checkUnitPincode((string)$_GET['pincode'], true);
     if ($unit_id) {
         $data = $Dispatch->getLastDispatch($unit_id);
         $data_parsed = $Dispatch->beautifulLastDispatch($data);

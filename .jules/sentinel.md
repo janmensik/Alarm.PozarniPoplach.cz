@@ -56,3 +56,7 @@
 **Vulnerability:** The `validateDevice` method in `include/class.DeviceAuth.php` passed `$refreshToken` directly from user input to `hash()` and `hash_equals()`. If an attacker submitted an array, it would cause a fatal `TypeError` in PHP 8+, potentially leading to a Denial of Service (DoS).
 **Learning:** In PHP 8+, string-based cryptographic functions like `hash()` and `hash_equals()` strictly require string arguments. Passing arrays or other types results in an unhandled `TypeError`.
 **Prevention:** Always explicitly cast user-provided inputs to strings (e.g., `(string)$refreshToken`) before passing them to string-based cryptographic functions to ensure safe execution.
+## 2026-09-17 - [Fix TypeError DoS in Request Credentials]
+**Vulnerability:** The `$uuid` value from `$_REQUEST` (and other headers) was directly parsed, allowing potential arrays (e.g. `uuid[]=1`) to cause fatal TypeErrors when passed to strictly typed functions downstream, alongside variable poisoning via `$_REQUEST`.
+**Learning:** `$_REQUEST` should be avoided for strict validation, and any user input passed to strongly typed functions (like `hash()` or custom classes) must be verified as a scalar and cast to a string first.
+**Prevention:** Always use `is_scalar()` and explicit string casts `(string)` for header/query inputs before they hit strictly typed functions or are used in critical auth workflows.
