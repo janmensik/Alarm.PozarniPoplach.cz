@@ -52,3 +52,7 @@
 **Vulnerability:** The `view/page/activate.php` script was not regenerating the session ID after successfully linking a session to a unit (privilege escalation).
 **Learning:** Failing to regenerate a session ID upon authentication or significant state changes can make the application vulnerable to session fixation attacks, where an attacker tricks a user into authenticating with a known session ID.
 **Prevention:** Always call `session_regenerate_id(true)` upon successful authentication, login, or any process that elevates the user's privileges to ensure a fresh, untainted session ID is assigned.
+## 2026-09-17 - [Fix TypeError DoS in Request Credentials]
+**Vulnerability:** The `$uuid` value from `$_REQUEST` (and other headers) was directly parsed, allowing potential arrays (e.g. `uuid[]=1`) to cause fatal TypeErrors when passed to strictly typed functions downstream, alongside variable poisoning via `$_REQUEST`.
+**Learning:** `$_REQUEST` should be avoided for strict validation, and any user input passed to strongly typed functions (like `hash()` or custom classes) must be verified as a scalar and cast to a string first.
+**Prevention:** Always use `is_scalar()` and explicit string casts `(string)` for header/query inputs before they hit strictly typed functions or are used in critical auth workflows.
