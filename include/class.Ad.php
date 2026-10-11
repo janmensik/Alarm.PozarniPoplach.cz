@@ -208,10 +208,13 @@ class Ad extends Modul
 
     public function getAdTotals(): array
     {
-        $rows = $this->get() ?: [];
+        // Optimization: Use direct SQL aggregation to avoid O(N) memory/CPU overhead of hydrating all rows
+        $query = 'SELECT IFNULL(SUM(adh.display_count), 0) AS total_views, IFNULL(SUM(adh.link_count), 0) AS total_clicks FROM advert ad LEFT JOIN advert_hit adh ON ad.id=adh.advert_id';
+        $totals = $this->DB->getRow($this->DB->query($query, __METHOD__));
+
         return [
-            'total_views'  => array_sum(array_column($rows, 'display_count_total')),
-            'total_clicks' => array_sum(array_column($rows, 'link_count_total')),
+            'total_views'  => (int)($totals['total_views'] ?? 0),
+            'total_clicks' => (int)($totals['total_clicks'] ?? 0),
         ];
     }
 
