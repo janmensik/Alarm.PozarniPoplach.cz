@@ -60,3 +60,7 @@
 **Vulnerability:** The `$uuid` value from `$_REQUEST` (and other headers) was directly parsed, allowing potential arrays (e.g. `uuid[]=1`) to cause fatal TypeErrors when passed to strictly typed functions downstream, alongside variable poisoning via `$_REQUEST`.
 **Learning:** `$_REQUEST` should be avoided for strict validation, and any user input passed to strongly typed functions (like `hash()` or custom classes) must be verified as a scalar and cast to a string first.
 **Prevention:** Always use `is_scalar()` and explicit string casts `(string)` for header/query inputs before they hit strictly typed functions or are used in critical auth workflows.
+## 2025-03-09 - [Fix TypeError DoS in API Endpoint Parameters]
+**Vulnerability:** API endpoints (`device-init.php`, `device-poll.php`, `device-authorize.php`) passed user input (`$_GET['code']`, `$_POST['uuid']`) directly as strings. In PHP 8+, passing an array (e.g. `?code[]=123`) instead of a string to strictly typed functions downstream causes an unhandled `TypeError`, leading to a Denial of Service (DoS) and potential information disclosure.
+**Learning:** In PHP 8+, user input should never be implicitly trusted to be a scalar value when passed to strictly typed methods (like `DeviceAuth::authorizeDevice(string $deviceCode)`).
+**Prevention:** Always explicitly check user input with `is_scalar()` before casting it to a string (e.g. `is_scalar($input) ? (string)$input : null`) in endpoints before passing the value to strictly typed methods.
