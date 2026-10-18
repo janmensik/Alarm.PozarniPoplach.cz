@@ -43,10 +43,9 @@ if (empty($unit_id)) {
 # *******************************************************************
 
 # load unit data for potential use in calendar filtering or output
-if (!isset($Unit)) {
-    $Unit = new \PozarniPoplach\Unit($DB);
-}
-$unit_data = $Unit->getId($unit_id);
+# Optimize: avoid loading the full unit and executing SQL_CALC_FOUND_ROWS,
+# we only need the calendar_url for this endpoint.
+$unit_data = $DB->getRow($DB->query("SELECT calendar_url FROM unit WHERE id = " . (int)$unit_id . " LIMIT 1"));
 
 
 # does the unit have a calendar URL set?
