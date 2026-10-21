@@ -44,9 +44,11 @@ test('calendar api returns calendar events for authorized device', function () {
     $unit_row = ['id' => 1, 'fullname' => 'Test Unit', 'calendar_url' => "BEGIN:VCALENDAR\nVERSION:2.0\nEND:VCALENDAR"];
 
     // 1. Mock DeviceAuth validation (getRow called in validateDevice)
+    // 2. Mock direct SQL fetch of calendar_url
     $this->db->method('getRow')
         ->willReturnOnConsecutiveCalls(
-            ['unit_id' => 1, 'refresh_token_hash' => hash('sha256', 'valid_token'), 'last_seen_ts' => null]
+            ['unit_id' => 1, 'refresh_token_hash' => hash('sha256', 'valid_token'), 'last_seen_ts' => null],
+            ['calendar_url' => "BEGIN:VCALENDAR\nVERSION:2.0\nEND:VCALENDAR"]
         );
 
     $this->db->method('query')->willReturn(true);
@@ -78,7 +80,8 @@ test('calendar api returns 404 if unit has no calendar URL', function () {
 
     $this->db->method('getRow')
         ->willReturnOnConsecutiveCalls(
-            ['unit_id' => 2, 'refresh_token_hash' => hash('sha256', 'valid_token'), 'last_seen_ts' => null]
+            ['unit_id' => 2, 'refresh_token_hash' => hash('sha256', 'valid_token'), 'last_seen_ts' => null],
+            ['calendar_url' => '']
         );
 
     $this->db->method('query')->willReturn(true);
