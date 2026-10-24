@@ -14,7 +14,6 @@ $APPD->setData('PAGE', 'calendar');
 # load up
 require_once(__DIR__ . '/../../include/class.DeviceAuth.php');
 require_once(__DIR__ . '/../../include/class.Calendar.php');
-require_once(__DIR__ . '/../../include/class.Unit.php');
 
 if (!isset($DeviceAuth)) {
     $DeviceAuth = new \PozarniPoplach\DeviceAuth($DB);
@@ -43,10 +42,7 @@ if (empty($unit_id)) {
 # *******************************************************************
 
 # load unit data for potential use in calendar filtering or output
-if (!isset($Unit)) {
-    $Unit = new \PozarniPoplach\Unit($DB);
-}
-$unit_data = $Unit->getId($unit_id);
+$unit_data = $DB->getRow($DB->query('SELECT calendar_url FROM unit WHERE id = ' . (int)$unit_id . ' LIMIT 1'));
 
 
 # does the unit have a calendar URL set?
