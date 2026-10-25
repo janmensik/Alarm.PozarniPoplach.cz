@@ -13,7 +13,8 @@ require_once(__DIR__ . '/../../include/class.DeviceAuth.php');
 
 $DeviceAuth = new \PozarniPoplach\DeviceAuth($DB);
 
-$device_uuid = $_POST['uuid'] ?? $_GET['uuid'] ?? null;
+$raw_device_uuid = $_POST['uuid'] ?? $_GET['uuid'] ?? null;
+$device_uuid = is_scalar($raw_device_uuid) ? (string)$raw_device_uuid : null;
 
 if (empty($device_uuid)) {
     $APPD->setData('OUTPUT_JSON', json_encode(['success' => false, 'error' => 'Missing device UUID']));

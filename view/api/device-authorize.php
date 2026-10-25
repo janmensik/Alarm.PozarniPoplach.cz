@@ -13,7 +13,8 @@ require_once(__DIR__ . '/../../include/class.DeviceAuth.php');
 
 $DeviceAuth = new \PozarniPoplach\DeviceAuth($DB);
 
-$device_code = $_GET['code'] ?? $_POST['code'] ?? null;
+$raw_device_code = $_GET['code'] ?? $_POST['code'] ?? null;
+$device_code = is_scalar($raw_device_code) ? (string)$raw_device_code : null;
 
 if (empty($device_code)) {
     $APPD->setData('OUTPUT_JSON', json_encode(['success' => false, 'error' => 'Missing device code']));
